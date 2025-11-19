@@ -1,0 +1,82 @@
+﻿ 
+<style>
+	.rz-dialog-content {
+		height:100%;
+	}
+
+	.grid-layout {
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		height: 100%;
+	}
+
+	.scrollable-content {
+		overflow-y: auto;
+	}
+
+</style>
+ 
+<div @ref=rootElement class="dialog-estandar-layout  h-100 grid-layout ">
+	<div class="dialog-estandar-layout-header">
+		@TitleContent
+	</div>
+
+ 
+	<div class="dialog-estandar-layout-content   scrollable-content" style=@ContentStyle>
+		@BodyContent
+	</div>
+
+
+	<div class="dialog-estandar-layout-footer my-3">
+		@if (FooterContent == null)
+		{
+			<div class="d-flex justify-content-end gap-1  align-items-center " style="margin-right:20px">
+				<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text"></RadzenButton>
+			</div>
+		}
+		else
+		{
+			@FooterContent
+		}
+	</div>
+
+</div>
+
+
+@code {
+
+	private ElementReference rootElement;
+
+
+
+	private bool  isClosed = false;
+
+	void Cerrar()
+	{
+		if (!isClosed)
+		{
+			isClosed = true;
+			DialogService.Close();
+		}
+	}
+
+
+
+	[Parameter] public RenderFragment TitleContent { get; set; }
+	[Parameter] public RenderFragment BodyContent { get; set; }
+	[Parameter] public RenderFragment FooterContent { get; set; }
+	[Parameter] public string ContentStyle { get; set; }
+
+
+	public async Task SetWidth(string width)
+	{
+		await JS.InvokeVoidAsync("setDialogWidth", rootElement, width);
+	}
+
+	public async Task SetHeight(string height)
+	{
+		await JS.InvokeVoidAsync("setDialogHeight", rootElement, height);
+	}
+
+
+}
