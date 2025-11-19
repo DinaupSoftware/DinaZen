@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>9.1.2.4</Version>
+    <Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dinaup" Version="9.1.2.*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.9" />
+    <PackageReference Include="Radzen.Blazor" Version="7.3.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Dinaup.extensions">
+      <Static>True</Static>
+    </Using>
+  </ItemGroup>
+
+</Project>
