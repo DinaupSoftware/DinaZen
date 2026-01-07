@@ -1,0 +1,85 @@
+@using System.ComponentModel.DataAnnotations
+
+<DialogLayout ContentStyle="padding: 16px;">
+    <TitleContent>
+        <h5 class="m-0">
+            <RadzenIcon Icon="edit" class="me-2" />
+            Formulario de Contacto
+        </h5>
+    </TitleContent>
+    <BodyContent>
+        <div class="row g-3">
+            <div class="col-12">
+                <RadzenFormField Text="Nombre completo" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox @bind-Value="nombre" Style="width:100%" />
+                </RadzenFormField>
+            </div>
+
+            <div class="col-12">
+                <RadzenFormField Text="Email" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox @bind-Value="email" Style="width:100%" />
+                </RadzenFormField>
+            </div>
+
+            <div class="col-12">
+                <RadzenFormField Text="Prioridad" Variant="Variant.Outlined" Style="width:100%">
+                    <EnumDropDown TEnum="PrioridadContacto" @bind-Value="prioridad" Style="width:100%" />
+                </RadzenFormField>
+            </div>
+
+            <div class="col-12">
+                <RadzenFormField Text="Mensaje" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextArea @bind-Value="mensaje" Rows="3" Style="width:100%" />
+                </RadzenFormField>
+            </div>
+        </div>
+    </BodyContent>
+    <FooterContent>
+        <div class="d-flex justify-content-between align-items-center px-3">
+            <span class="text-muted small">* Todos los campos son requeridos</span>
+            <div class="d-flex gap-2">
+                <RadzenButton Text="Cancelar"
+                              ButtonStyle="ButtonStyle.Light"
+                              Variant="Variant.Text"
+                              Click="@Cancelar" />
+                <RadzenButton Text="Enviar"
+                              ButtonStyle="ButtonStyle.Success"
+                              Icon="send"
+                              Click="@Enviar" />
+            </div>
+        </div>
+    </FooterContent>
+</DialogLayout>
+
+@code {
+    private string nombre = "";
+    private string email = "";
+    private string mensaje = "";
+    private PrioridadContacto prioridad = PrioridadContacto.Normal;
+
+    public enum PrioridadContacto
+    {
+        [Display(Name = "Baja")]
+        Baja,
+
+        [Display(Name = "Normal")]
+        Normal,
+
+        [Display(Name = "Alta")]
+        Alta,
+
+        [Display(Name = "Urgente")]
+        Urgente
+    }
+
+    private void Cancelar()
+    {
+        DialogService.Close(false);
+    }
+
+    private void Enviar()
+    {
+        // Aquí iría la lógica de envío
+        DialogService.Close(true);
+    }
+}

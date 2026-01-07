@@ -1,0 +1,40 @@
+<DialogLayout>
+    <TitleContent>
+        <div class="d-flex align-items-center justify-content-between">
+            <h5 class="m-0">
+                <RadzenIcon Icon="dashboard" class="me-2" />
+                Diálogo Completo
+            </h5>
+            <RadzenBadge Text="Premium" BadgeStyle="BadgeStyle.Info" />
+        </div>
+    </TitleContent>
+    <BodyContent>
+        <div class="p-3">
+            <h6>Características del DialogLayout:</h6>
+            <ul>
+                <li>Header personalizable con <code>TitleContent</code></li>
+                <li>Contenido scrollable con <code>BodyContent</code></li>
+                <li>Footer opcional con <code>FooterContent</code></li>
+                <li>Métodos <code>SetWidth()</code> y <code>SetHeight()</code></li>
+            </ul>
+
+            <div class="alert alert-info">
+                <RadzenIcon Icon="lightbulb" class="me-2" />
+                Este diálogo tiene un footer personalizado con múltiples botones.
+            </div>
+
+            <KV Key="Creado por">DinaZen Library</KV>
+            <KV Key="Versión">9.1.2.4</KV>
+        </div>
+    </BodyContent>
+    <FooterContent>
+        <div class="d-flex justify-content-end gap-2 pe-3">
+            <RadzenButton Text="Secundario"
+                          ButtonStyle="ButtonStyle.Light"
+                          Variant="Variant.Outlined" />
+            <RadzenButton Text="Primario"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Icon="check" />
+        </div>
+    </FooterContent>
+</DialogLayout>

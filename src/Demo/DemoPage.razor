@@ -1,0 +1,504 @@
+@page "/dinazen-demo"
+@using System.ComponentModel.DataAnnotations
+
+<style>
+    .demo-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid #e9ecef;
+    }
+
+    .demo-section h3 {
+        color: #495057;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 8px;
+        margin-bottom: 16px;
+    }
+
+    .demo-box {
+        background: white;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .demo-title {
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .code-block {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+        margin-top: 12px;
+    }
+
+    .demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .loader-container {
+        height: 120px;
+        position: relative;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 12px;
+        margin-bottom: 32px;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.5rem;
+    }
+
+    .page-header p {
+        margin: 0;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="container-fluid p-4">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h1>DinaZen Components</h1>
+        <p>Biblioteca de componentes Blazor para Dinaup + Radzen</p>
+    </div>
+
+    <!-- Índice -->
+    <div class="demo-section">
+        <h3>Índice de Componentes</h3>
+        <div class="demo-box">
+            <ul class="list-unstyled m-0">
+                <li class="mb-2"><a href="#loader">1. LoaderU</a> - Spinner animado de carga</li>
+                <li class="mb-2"><a href="#enumdropdown">2. EnumDropDown</a> - Selector dropdown para enums</li>
+                <li class="mb-2"><a href="#kv">3. KV</a> - Componente clave-valor</li>
+                <li class="mb-2"><a href="#dialoglayout">4. DialogLayout</a> - Layout para diálogos</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ==================== LOADER ==================== -->
+    <div id="loader" class="demo-section">
+        <h3>1. LoaderU</h3>
+        <p class="text-muted">Spinner animado con 4 círculos de colores para indicar estados de carga.</p>
+
+        <div class="demo-box">
+            <div class="demo-title">Ejemplo en vivo</div>
+            <div class="loader-container">
+                <LoaderU />
+            </div>
+
+            <div class="code-block">
+&lt;LoaderU /&gt;
+            </div>
+        </div>
+
+        <div class="demo-box">
+            <div class="demo-title">Características</div>
+            <ul>
+                <li>Animación CSS pura (sin dependencias JavaScript)</li>
+                <li>Centrado automático con flexbox</li>
+                <li>Colores: <span style="color:#01c0ff">Cyan</span>, <span style="color:#fd6550">Coral</span>, <span style="color:#55df68">Verde</span>, <span style="color:#fcd819">Amarillo</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ==================== ENUM DROPDOWN ==================== -->
+    <div id="enumdropdown" class="demo-section">
+        <h3>2. EnumDropDown</h3>
+        <p class="text-muted">Dropdown genérico para seleccionar valores de un enum con soporte para DisplayAttribute.</p>
+
+        <div class="demo-grid">
+            <div class="demo-box">
+                <div class="demo-title">Enum básico</div>
+                <EnumDropDown TEnum="DiasSemana" @bind-Value="diaSeleccionado" Style="width:100%" />
+                <p class="mt-2 mb-0"><strong>Seleccionado:</strong> @diaSeleccionado</p>
+
+                <div class="code-block">
+&lt;EnumDropDown TEnum="DiasSemana"
+              @bind-Value="diaSeleccionado" /&gt;
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Con DisplayAttribute</div>
+                <EnumDropDown TEnum="EstadoPedido" @bind-Value="estadoSeleccionado" Style="width:100%" />
+                <p class="mt-2 mb-0"><strong>Seleccionado:</strong> @estadoSeleccionado</p>
+
+                <div class="code-block">
+[Display(Name = "Pendiente de pago")]
+Pendiente,
+
+[Display(Name = "En proceso")]
+EnProceso
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Prioridades</div>
+                <EnumDropDown TEnum="Prioridad" @bind-Value="prioridadSeleccionada" Style="width:100%" />
+                <p class="mt-2 mb-0"><strong>Seleccionado:</strong> @prioridadSeleccionada</p>
+
+                <div class="code-block">
+&lt;EnumDropDown TEnum="Prioridad"
+              @bind-Value="prioridadSeleccionada" /&gt;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== KV ==================== -->
+    <div id="kv" class="demo-section">
+        <h3>3. KV (Key-Value)</h3>
+        <p class="text-muted">Componente para mostrar pares clave-valor con layouts flexibles e iconos opcionales.</p>
+
+        <div class="demo-grid">
+            <div class="demo-box">
+                <div class="demo-title">Básico (Vertical)</div>
+                <KV Key="Nombre completo">
+                    Juan Pérez García
+                </KV>
+                <KV Key="Email">
+                    juan.perez@ejemplo.com
+                </KV>
+                <KV Key="Teléfono">
+                    +34 612 345 678
+                </KV>
+
+                <div class="code-block">
+&lt;KV Key="Nombre completo"&gt;
+    Juan Pérez García
+&lt;/KV&gt;
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Horizontal</div>
+                <KV Key="Cliente" Horizontal="true" LabelWidth="100px">
+                    Empresa ABC S.L.
+                </KV>
+                <KV Key="Proyecto" Horizontal="true" LabelWidth="100px">
+                    Sistema de Gestión
+                </KV>
+                <KV Key="Estado" Horizontal="true" LabelWidth="100px">
+                    <RadzenBadge Text="Activo" BadgeStyle="BadgeStyle.Success" />
+                </KV>
+
+                <div class="code-block">
+&lt;KV Key="Cliente"
+    Horizontal="true"
+    LabelWidth="100px"&gt;
+    Empresa ABC S.L.
+&lt;/KV&gt;
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Con Iconos</div>
+                <KV Key="Email verificado" Icon="check_circle" IconColor="#28a745">
+                    usuario@dominio.com
+                </KV>
+                <KV Key="Alerta de seguridad" Icon="warning" IconColor="#ffc107">
+                    Contraseña débil
+                </KV>
+                <KV Key="Error detectado" Icon="error" IconColor="#dc3545">
+                    Conexión fallida
+                </KV>
+
+                <div class="code-block">
+&lt;KV Key="Email verificado"
+    Icon="check_circle"
+    IconColor="#28a745"&gt;
+    usuario@dominio.com
+&lt;/KV&gt;
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Visibilidad condicional</div>
+                <RadzenSwitch @bind-Value="mostrarKV" />
+                <span class="ms-2">Mostrar campo</span>
+
+                <div class="mt-3">
+                    <KV Key="Campo condicional" Visible="@mostrarKV" Icon="visibility" IconColor="#6c757d">
+                        Este contenido se puede ocultar
+                    </KV>
+                </div>
+
+                <div class="code-block">
+&lt;KV Key="Campo"
+    Visible="@@mostrarKV"&gt;
+    Contenido
+&lt;/KV&gt;
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-box">
+            <div class="demo-title">Ejemplo: Ficha de usuario completa</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <KV Key="Nombre" Icon="person" IconColor="#007bff">
+                        María González
+                    </KV>
+                    <KV Key="Departamento" Icon="business" IconColor="#6c757d">
+                        Desarrollo
+                    </KV>
+                    <KV Key="Rol" Icon="badge" IconColor="#17a2b8">
+                        Senior Developer
+                    </KV>
+                </div>
+                <div class="col-md-6">
+                    <KV Key="Email" Icon="email" IconColor="#28a745">
+                        maria@empresa.com
+                    </KV>
+                    <KV Key="Teléfono" Icon="phone" IconColor="#6c757d">
+                        +34 666 777 888
+                    </KV>
+                    <KV Key="Ubicación" Icon="location_on" IconColor="#dc3545">
+                        Madrid, España
+                    </KV>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DIALOG LAYOUT ==================== -->
+    <div id="dialoglayout" class="demo-section">
+        <h3>4. DialogLayout</h3>
+        <p class="text-muted">Layout estructurado para diálogos con header, contenido scrollable y footer.</p>
+
+        <div class="demo-grid">
+            <div class="demo-box">
+                <div class="demo-title">Abrir diálogo de ejemplo</div>
+                <RadzenButton Text="Abrir Diálogo Simple"
+                              Icon="open_in_new"
+                              Click="@AbrirDialogoSimple"
+                              ButtonStyle="ButtonStyle.Primary" />
+
+                <div class="code-block">
+&lt;DialogLayout&gt;
+    &lt;TitleContent&gt;
+        &lt;h4&gt;Título&lt;/h4&gt;
+    &lt;/TitleContent&gt;
+    &lt;BodyContent&gt;
+        Contenido...
+    &lt;/BodyContent&gt;
+&lt;/DialogLayout&gt;
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Diálogo con footer personalizado</div>
+                <RadzenButton Text="Abrir Diálogo Completo"
+                              Icon="open_in_new"
+                              Click="@AbrirDialogoCompleto"
+                              ButtonStyle="ButtonStyle.Secondary" />
+
+                <div class="code-block">
+&lt;DialogLayout&gt;
+    &lt;TitleContent&gt;...&lt;/TitleContent&gt;
+    &lt;BodyContent&gt;...&lt;/BodyContent&gt;
+    &lt;FooterContent&gt;
+        &lt;RadzenButton Text="Guardar" /&gt;
+        &lt;RadzenButton Text="Cancelar" /&gt;
+    &lt;/FooterContent&gt;
+&lt;/DialogLayout&gt;
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Diálogo con formulario</div>
+                <RadzenButton Text="Abrir Formulario"
+                              Icon="edit"
+                              Click="@AbrirDialogoFormulario"
+                              ButtonStyle="ButtonStyle.Info" />
+
+                <div class="code-block">
+// Incluir campos de formulario
+// en BodyContent
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-box">
+            <div class="demo-title">Parámetros disponibles</div>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>TitleContent</code></td>
+                            <td>RenderFragment</td>
+                            <td>Contenido del header</td>
+                        </tr>
+                        <tr>
+                            <td><code>BodyContent</code></td>
+                            <td>RenderFragment</td>
+                            <td>Contenido principal (scrollable)</td>
+                        </tr>
+                        <tr>
+                            <td><code>FooterContent</code></td>
+                            <td>RenderFragment</td>
+                            <td>Contenido del footer (opcional)</td>
+                        </tr>
+                        <tr>
+                            <td><code>ContentStyle</code></td>
+                            <td>string</td>
+                            <td>Estilos CSS para el área de contenido</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== EXTENSIONS ==================== -->
+    <div class="demo-section">
+        <h3>5. Utilidades (Extensions)</h3>
+        <p class="text-muted">Métodos de extensión para strings y carga de reportes.</p>
+
+        <div class="demo-grid">
+            <div class="demo-box">
+                <div class="demo-title">Normalized()</div>
+                <p>Normaliza strings: trim, lowercase, limpia caracteres especiales.</p>
+
+                <div class="code-block">
+string texto = "  ¡HOLA Mundo!  ";
+string resultado = texto.Normalized();
+// resultado: "hola mundo"
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">LoadReportDataAsync()</div>
+                <p>Carga datos para componentes de reporte Dinaup.</p>
+
+                <div class="code-block">
+await Extensions.LoadReportDataAsync(
+    client, user, report, args,
+    new ReportRequestOptions {
+        QuerySearch = "búsqueda",
+        Variables = new Dictionary&lt;...&gt;()
+    }
+);
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    // EnumDropDown demos
+    private DiasSemana diaSeleccionado = DiasSemana.Lunes;
+    private EstadoPedido estadoSeleccionado = EstadoPedido.Pendiente;
+    private Prioridad prioridadSeleccionada = Prioridad.Media;
+
+    // KV visibility demo
+    private bool mostrarKV = true;
+
+    // Enums de ejemplo
+    public enum DiasSemana
+    {
+        Lunes,
+        Martes,
+        Miércoles,
+        Jueves,
+        Viernes,
+        Sábado,
+        Domingo
+    }
+
+    public enum EstadoPedido
+    {
+        [Display(Name = "Pendiente de pago")]
+        Pendiente,
+
+        [Display(Name = "En proceso de envío")]
+        EnProceso,
+
+        [Display(Name = "Enviado")]
+        Enviado,
+
+        [Display(Name = "Entregado")]
+        Entregado,
+
+        [Display(Name = "Cancelado")]
+        Cancelado
+    }
+
+    public enum Prioridad
+    {
+        [Display(Name = "Baja")]
+        Baja,
+
+        [Display(Name = "Media")]
+        Media,
+
+        [Display(Name = "Alta")]
+        Alta,
+
+        [Display(Name = "Urgente")]
+        Urgente
+    }
+
+    // Dialog demos
+    private async Task AbrirDialogoSimple()
+    {
+        await DialogService.OpenAsync<DemoDialogSimple>("Diálogo Simple",
+            options: new DialogOptions
+            {
+                Width = "500px",
+                Height = "300px"
+            });
+    }
+
+    private async Task AbrirDialogoCompleto()
+    {
+        await DialogService.OpenAsync<DemoDialogCompleto>("Diálogo Completo",
+            options: new DialogOptions
+            {
+                Width = "600px",
+                Height = "400px"
+            });
+    }
+
+    private async Task AbrirDialogoFormulario()
+    {
+        await DialogService.OpenAsync<DemoDialogFormulario>("Formulario",
+            options: new DialogOptions
+            {
+                Width = "500px",
+                Height = "450px"
+            });
+    }
+}
