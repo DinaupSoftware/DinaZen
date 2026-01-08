@@ -1,0 +1,99 @@
+﻿
+@if (VisibleText.IsNotEmpty())
+{
+	<span style="font-size:@FontSize; word-break: keep-all; white-space: nowrap; ">
+
+
+		@if (Caption )
+		{
+
+			<span class="rz-text-caption">@VisibleText</span>
+		}
+		else
+		{
+			@VisibleText
+
+
+		}
+
+		@if (MostrarEstado)
+		{
+			<AutoBadgetU Value=@DateStatus></AutoBadgetU>
+		}
+	</span>
+}
+
+
+
+@code {
+
+
+	public string VisibleText { get; set; }
+	[Parameter] public DateTime? Value { get; set; }
+	[Parameter] public string FontSize { get; set; } = "16px"; // Tamaño de fuente predeterminado
+	[Parameter] public bool MostrarEstado { get; set; } = false; // Tamaño de fuente predeterminado
+	[Parameter] public bool Caption { get; set; } = false; // Tamaño de fuente predeterminado
+
+
+	protected override void OnParametersSet()
+	{
+		if (Value.HasValue)
+		{
+
+			VisibleText = RegionService.ToLocalFriendlyDate (Value.Value);
+
+			if (MostrarEstado)
+				VisibleText = VisibleText.ReplaceIgnoreCase("Hoy", "").ReplaceIgnoreCase("Ayer", "").ReplaceIgnoreCase("Mañana", "").Trim();
+
+			DeterminarEstadoFecha(Value.Value);
+		}
+
+
+
+	}
+
+	private static DateTime GenerarFechaAleatoria(DateTime fechaBase)
+	{
+		Random random = new Random();
+		int diasAleatorios = random.Next(-40, 41); // Genera un número aleatorio entre -40 y 40
+		return fechaBase.AddDays(diasAleatorios);  // Añade los días aleatorios a la fecha base
+	}
+
+	string DateStatus;
+	string DateColor;
+
+	private void DeterminarEstadoFecha(DateTime fecha)
+	{
+		DateTime hoy = DateTime.Today;
+		DateTime mañana = hoy.AddDays(1);
+		DateTime ayer = hoy.AddDays(-1);
+
+		if (fecha.Date == hoy)
+		{
+			DateStatus = "Hoy";
+			DateColor = "green";
+		}
+		else if (fecha.Date == mañana)
+		{
+			DateStatus = "Mañana";
+			DateColor = "#0052A8";
+		}
+		else if (fecha.Date == ayer)
+		{
+			DateStatus = "Ayer";
+			DateColor = "#000000";
+		}
+		else if (fecha.Date < hoy)
+		{
+			DateStatus = "Pasado";
+			DateColor = "gray";
+		}
+		else
+		{
+			DateStatus = "Futuro";
+			DateColor = "#AD00CB";
+		}
+		 
+	}
+
+}

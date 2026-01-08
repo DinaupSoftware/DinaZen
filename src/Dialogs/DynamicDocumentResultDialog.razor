@@ -1,0 +1,96 @@
+﻿@using System.Text
+@using System.Text.Json
+
+
+<DialogLayout>
+	<TitleContent>
+		@Title
+	</TitleContent>
+	<BodyContent>
+
+		<div style="display: grid; grid-template-rows: auto 1fr; height: 100%; gap: 1rem;padding-bottom:20px">
+			<RadzenCard class="rz-mb-0">
+				<div class="rz-text-align-center">
+					<span onclick="printIframe('documentopreview')">
+						<RadzenButton Text="Imprimir / Guardar PDF" Icon="print" />
+					</span>
+				</div>
+			</RadzenCard>
+
+			<iframe class="rz-shadow-4" id="documentopreview" style="width: 210mm; max-width: 100%; height: 100%; border-radius: 10px; border: none; margin: 0 auto; display: block;"></iframe>
+		</div>
+
+	</BodyContent>
+</DialogLayout>
+
+
+@code {
+
+	public static async Task Open(DialogService DialogService, DynamicDocumentsGetResponse Result, String  title)
+	{
+
+		
+		var parameters = new Dictionary<string, object>()
+		{
+			{ nameof(DynamicDocumentResultDialog.Result ), Result },
+			{ nameof(DynamicDocumentResultDialog.Title ), title }
+		};
+		var options = new DialogOptions()
+		{
+			Width = "80%",
+			Height = "90%",
+			ShowClose = false,
+			ShowTitle = false,
+			Resizable = false,
+			Draggable = false,
+			CloseDialogOnOverlayClick = false
+		};
+
+
+		await DialogService.OpenAsync<DynamicDocumentResultDialog>("DynamicDocument", parameters, options);
+
+	}
+
+
+
+
+
+	[Parameter] public DynamicDocumentsGetResponse Result { get; set; }
+	[Parameter] public string Title { get; set; }  = "Dynamic Document Preview";
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+	}
+
+
+	protected override Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && Result.IsNotNull())
+		{
+			// ┌──────────────────────────────────────────────────────────────────────────────┐
+			// │  📘 CONCEPT: Why use a Blob for the iframe                                   │
+			// │      ───────────────────────────────────────                                  │
+			// │                                                                              │
+			// │  1) Security:                                                                 │
+			// │     Loading HTML via srcdoc or data:text/html allows the browser to parse    │
+			// │     raw, untrusted strings, which may enable XSS if the content is not fully │
+			// │     sanitized. A Blob isolates the document as a binary object, preventing    │
+			// │     direct script execution and blocking injection vectors.                   │
+			// │                                                                              │
+			// │  2) Performance:                                                              │
+			// │     Blob URLs are **significantly faster** than Base64-encoded strings.       │
+			// │     They avoid decoding overhead, reduce memory usage, and let the browser    │
+			// │     stream the content efficiently.                                           │
+			// │                                                                              │
+			// │  Result: safer loading and noticeably faster rendering.                        │
+			// └──────────────────────────────────────────────────────────────────────────────┘
+			JS.InvokeVoidAsync("setIframeBlob", "documentopreview", Result.R_DocumentContent);
+		}
+		return base.OnAfterRenderAsync(firstRender);
+
+	}
+
+
+}

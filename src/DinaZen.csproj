@@ -1,28 +1,37 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Version>9.1.2.4</Version>
-    <Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Version>10.11.0.1</Version>
+		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="Forms\Components\Anotations\RedactarModernoU.razor.exclude" />
+		<Content Include="Forms\Components\Anotations\RedactarU.razor.exclude" />
+		<Content Include="Forms\Components\DataFlow\DataFlowCard.razor.exclude" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Dinaup" Version="9.1.2.*" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.9" />
-    <PackageReference Include="Radzen.Blazor" Version="7.3.5" />
-  </ItemGroup>
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+	<ItemGroup>
+		<Using Include="Dinaup.extensions">
+			<Static>True</Static>
+		</Using>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.11.*" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
+		<PackageReference Include="Radzen.Blazor" Version="8.4.*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Controllers\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Dinaup.extensions">
-      <Static>True</Static>
-    </Using>
-  </ItemGroup>
+
 
 </Project>

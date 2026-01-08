@@ -1,0 +1,40 @@
+﻿<style>
+
+
+	.stepper-step {
+		display: flex;
+		align-items: flex-start;
+		gap: 12px;
+		position: relative;
+	}
+
+	.stepper-circle {
+		width: var(--stepper-dot);
+		height: var(--stepper-dot);
+		border-radius: 50%;
+		background: #616873;
+		color: #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 700;
+		flex: 0 0 auto;
+		z-index: 1;
+	}
+
+	.stepper-content {
+		font-size: 0.95rem;
+		line-height: 1.4;
+	}
+</style>
+<div class="stepper-step">
+    <div class="stepper-circle">@Index</div>
+    <div class="stepper-content">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Index { get; set; }
+    [Parameter] public RenderFragment  ChildContent { get; set; }
+}

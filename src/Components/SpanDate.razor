@@ -1,0 +1,104 @@
+﻿@if (VisibleText.IsNotEmpty())
+{
+    <span class=@($"{Class} d-inline-flex gap-1 align-items-center") style="font-size:@FontSize; white-space:nowrap;">
+        @if (ShowBadge)
+        {
+            <RadzenBadge Text=@VisibleText
+                         BadgeStyle="BadgeStyle.Secondary"
+                         Variant="Variant.Outlined"
+                         @attributes=@(new Dictionary<string, object> { { "title", TooltipText } }) />
+        }
+        else
+        {
+            <span title=@TooltipText>
+                @if (ShowStatus)
+                {
+                    <b>@VisibleText</b>
+                }
+                else
+                {
+                    @VisibleText
+                }
+            </span>
+        }
+
+        @if (ShowStatus)
+        {
+            <AutoBadgetU Value=@DateStatus />
+        }
+    </span>
+}
+
+@code {
+    [Parameter] public bool FriendlyMode { get; set; } = true;
+    [Parameter] public bool ShowBadge { get; set; }
+    [Parameter] public bool ShowStatus { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+
+    // Excepción: aquí sí puede ser nullable
+    [Parameter] public DateOnly? Value { get; set; }
+
+    public string VisibleText { get; set; } = "";
+    [Parameter] public string FontSize { get; set; } = "16px";
+    public string TooltipText { get; set; } = "";
+
+    private string DateStatus = "";
+    private string DateColor = "";
+
+    protected override void OnParametersSet()
+    {
+        if (Value.IsEmpty())
+        {
+            VisibleText = "";
+            TooltipText = "";
+            DateStatus = "";
+            DateColor = "";
+            return;
+        }
+
+        var date = Value!.Value;
+        VisibleText = RegionService.ToLocalFriendlyDate(date);
+        TooltipText = FormatHelpers.FormatDate(date);
+        SetDateStatus(date);
+    }
+
+    private static DateOnly GenerateRandomDate(DateOnly baseDate)
+    {
+        var random = new Random();
+        var delta = random.Next(-40, 41);
+        return baseDate.AddDays(delta);
+    }
+
+    private void SetDateStatus(DateOnly date)
+    {
+        var today = RegionService.DateOnlyNow();
+        var tomorrow = today.AddDays(1);
+        var yesterday = today.AddDays(-1);
+
+        if (date == today)
+        {
+            DateStatus = "Hoy";
+            DateColor = "green";
+        }
+        else if (date == tomorrow)
+        {
+            DateStatus = "Mañana";
+            DateColor = "#0052A8";
+        }
+        else if (date == yesterday)
+        {
+            DateStatus = "Ayer";
+            DateColor = "#000000";
+        }
+        else if (date < today)
+        {
+            DateStatus = "Pasado";
+            DateColor = "gray";
+        }
+        else
+        {
+            DateStatus = "Futuro";
+            DateColor = "#AD00CB";
+        }
+    }
+}

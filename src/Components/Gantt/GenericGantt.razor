@@ -1,0 +1,174 @@
+﻿@using static Dinaup.extensions;
+@using DinaZen.Components.Gantt.Models
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+
+
+
+<ErrorBoundary>
+	@if (Viewport.IsNotNull() && SourceItems.IsNotEmpty() && Groups.IsNotEmpty())
+	{
+		<GanttToolBarU Viewport=@Viewport ViewportChanged="OnViewportChanged" />
+	}
+</ErrorBoundary>
+
+@if (Items.Count > 20000)
+{
+
+	<RadzenAlert AlertStyle="AlertStyle.Warning" AllowClose="false" Style="width:600px" class="mx-auto my-4">
+		<div class="gantt-warning-content">
+			<h4 class="gantt-warning-title">Demasiados resultados para mostrar</h4>
+			<p class="gantt-warning-text">
+				Refina los filtros para reducir el número de elementos.
+			</p>
+		</div>
+	</RadzenAlert>
+	return;
+}
+
+<div class="gantt">
+
+	<div class="gantt-body">
+		<ErrorBoundary>
+
+			<!-- LEFT FIXED -->
+			<div class="gantt-left">
+				<div class="gantt-groups-header">
+					Grupos
+				</div>
+
+				<div class="gantt-groups">
+					@foreach (var g in Groups)
+					{
+						<div class="gantt-group-row">
+							@if (g.Template.IsNotNull())
+							{
+								@g.Template(g)
+							}
+							else
+							{
+								@g.Text
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</ErrorBoundary>
+
+		<!-- RIGHT SCROLL (HEADER + ROWS juntos) -->
+		<div class="gantt-right-scroll">
+			<div class="gantt-canvas" style="width:@CanvasWidth;">
+
+				<!-- HEADER RIGHT -->
+				<ErrorBoundary>
+					<div class="gantt-columns-header">
+						@foreach (var col in Columns)
+						{
+							<div class="gantt-column-header"
+								 style="left:@Pct(col.LeftPercent); width:@Pct(col.WidthPercent);">
+								@col.Text
+							</div>
+						}
+					</div>
+				</ErrorBoundary>
+
+				<!-- ROWS RIGHT -->
+				<ErrorBoundary>
+					<div class="gantt-rows">
+						@foreach (var g in Groups)
+						{
+							<div class="gantt-row">
+								@foreach (var item in Items.Where(i => i.GroupId == g.Id))
+								{
+									<div class="gantt-item"
+										 title="@item.Tooltip"
+										 @onclick="() => HandleItemClick(item)"
+										 style="left:@Pct(item.LeftPercent); width:@Pct(item.WidthPercent);@item.RowStyle">
+										@item.Text
+									</div>
+								}
+							</div>
+						}
+					</div>
+				</ErrorBoundary>
+
+			</div>
+		</div>
+
+	</div>
+</div>
+ 
+
+@code {
+
+	// ─────────────────────────────────────────────────────────────
+	// PARAMETERS
+	// ─────────────────────────────────────────────────────────────
+
+	[Parameter]
+	public EventCallback<GanttItem> OnItemClick { get; set; }
+
+	// ─────────────────────────────────────────────────────────────
+	// CONSTANTS
+	// ─────────────────────────────────────────────────────────────
+
+	const int BaseCanvasWidth = 1500;
+
+	// ─────────────────────────────────────────────────────────────
+	// STATE
+	// ───────────────────────────────────────────────────────────── 
+
+	private GanttViewport Viewport = new()  { ViewMode = GanttViewMode.Hour, FocusDate = DateTime.Today };
+
+	IReadOnlyList<GanttColumn> Columns = Array.Empty<GanttColumn>();
+	IReadOnlyList<GanttItem> Items = Array.Empty<GanttItem>();
+
+
+	[Parameter]
+	public List<GanttGroup> Groups { get; set; }
+
+	[Parameter]
+	public List<GanttItem> SourceItems { get; set; }
+
+	// ─────────────────────────────────────────────────────────────
+	// COMPUTED
+	// ─────────────────────────────────────────────────────────────
+
+	string CanvasWidth => $"{BaseCanvasWidth * Viewport.Zoom / 100}px";
+
+ 
+	static string Pct(double value) => value.ToString("0.####", CultureInfo.InvariantCulture) + "%";
+
+	 
+	protected override void OnInitialized()
+	{
+		if (Columns.IsNotEmpty() && Items.IsNotEmpty())
+			RebuildLayout();
+	}
+
+	void OnViewportChanged(GanttViewport vp)
+	{
+		Viewport = vp;
+		RebuildLayout();
+	}
+
+	protected override Task OnParametersSetAsync()
+	{
+		RebuildLayout();
+		return base.OnParametersSetAsync();
+	}
+
+	void RebuildLayout()
+	{
+		Columns = DinaZen.Components.Gantt.Utilities.GenerateColumns(Viewport, Viewport.ViewMode);
+		Items = DinaZen.Components.Gantt.Utilities.GenerateItems(SourceItems, Viewport);
+		StateHasChanged();
+	}
+
+	Task HandleItemClick(GanttItem item) => OnItemClick.InvokeAsync(item);
+
+
+
+}
+
+

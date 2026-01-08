@@ -1,0 +1,180 @@
+﻿@using Dinaup
+@typeparam T where T : IDinaupRow
+
+
+@if (TextProperty.IsEmpty())
+{
+	<b style="color:red">Se requiere TextProperty</b>
+	return;
+
+}
+
+
+
+<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat">
+	<Start>
+		@if (Icon.IsNotEmpty())
+		{
+			<RadzenIcon Icon=@Icon />
+		}
+	</Start>
+	<ChildContent>
+
+
+		<RadzenDropDownDataGrid FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+								PageSize="10" ShowSearch=@TextProperty.IsNotEmpty() TextProperty=@TextProperty @bind-Value=@Selected TValue="T" Data=@Data>
+			<Columns>
+				<RadzenDropDownDataGridColumn Title=@Label Width="100px">
+					<Template>
+						<div class="d-flex gap-1 align-content-center align-items-center">
+							@((context as IDinaupRow).Label)
+						</div>
+					</Template>
+				</RadzenDropDownDataGridColumn>
+			</Columns>
+			<ValueTemplate>
+				<div class="d-flex gap-1 align-content-center align-items-center">
+					@((context as IDinaupRow).Label)
+				</div>
+			</ValueTemplate>
+		</RadzenDropDownDataGrid>
+
+
+	</ChildContent>
+	<End>
+
+		@if (Disabled)
+		{
+
+		}
+		else if (Selected != null)
+		{
+			<div class="d-flex flex-column gap-1 align-items-end justify-content-center h-100">
+				<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" @onclick=@(() => OnRemoveClick()) />
+				<RadzenIcon Visible=@this.OnOpen.HasDelegate Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" @onclick=@(() => OnOpenClick()) />
+			</div>
+		}
+		else
+		{
+
+			<RadzenButton Visible=@this.OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle=" ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
+		}
+
+	</End>
+</RadzenFormField>
+
+@code {
+
+
+
+	[Parameter]
+	public string Icon { get; set; }
+	[Parameter] public string TextProperty { get; set; }
+	[Parameter] public string ColorProperty { get; set; }
+	[Parameter] public string IconoProperty { get; set; }
+	[Parameter] public string Style { get; set; }
+	[Parameter] public string Class { get; set; }
+	[Parameter] public bool Visible { get; set; } = true;
+	[Parameter] public string Label { get; set; }
+	[Parameter] public bool Disabled { get; set; }
+	[Parameter] public IEnumerable<T> Data { get; set; } = new List<T>();
+
+	[Parameter] public EventCallback<T> SelectedChanged { get; set; }
+	[Parameter] public EventCallback OnAdd { get; set; }
+	[Parameter] public EventCallback<T> OnRemove { get; set; }
+	[Parameter] public EventCallback<T> OnOpen { get; set; }
+
+
+
+
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+
+		try
+		{
+			colorProperty = ColorProperty.IsNotEmpty() ? typeof(T).GetProperty(ColorProperty) : null;
+		}
+		catch (Exception)
+		{
+
+			colorProperty = null;
+		}
+
+
+
+		try
+		{
+			iconProperty = IconoProperty.IsNotEmpty() ? typeof(T).GetProperty(IconoProperty) : null;
+		}
+		catch (Exception)
+		{
+			iconProperty = null;
+		}
+
+
+	}
+
+
+
+	private Guid _selectedID;
+	private System.Reflection.PropertyInfo colorProperty { get; set; }
+	private System.Reflection.PropertyInfo iconProperty { get; set; }
+
+
+
+
+
+
+	private T _selected;
+	[Parameter]
+	public T Selected
+	{
+		get => _selected;
+		set
+		{
+			if (!EqualityComparer<T>.Default.Equals(_selected, value))
+			{
+				_selected = value;
+
+
+				if (value.IsNull())
+					_selectedID = Guid.Empty;
+				else if (value.Id != _selectedID)
+					_selectedID = value.Id;
+
+				if (SelectedChanged.HasDelegate)
+					SelectedChanged.InvokeAsync(value);
+
+			}
+		}
+	}
+
+	private async Task OnAddClick()
+	{
+		if (OnAdd.HasDelegate)
+			await OnAdd.InvokeAsync(Selected);
+	}
+
+	private async Task OnRemoveClick()
+	{
+		if (OnRemove.HasDelegate)
+			await OnRemove.InvokeAsync(Selected);
+		else
+			Selected = default(T);
+
+	}
+
+	private async Task OnOpenClick()
+	{
+
+		if (OnOpen.HasDelegate)
+			await OnOpen.InvokeAsync(Selected);
+
+	}
+
+
+
+}

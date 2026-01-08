@@ -1,0 +1,69 @@
+﻿@if (Amount.IsNull()) return;
+
+@if (IsVisible)
+{
+    @if (Label.IsEmpty() && Icon.IsEmpty())
+    {
+        <span class=@_cssClass style=@_style>
+            @RegionService.ToStringMoney(Amount)
+        </span>
+    }
+    else if (Label.IsNotEmpty() && Icon.IsEmpty())
+    {
+        <div class="d-flex flex-column justify-content-start">
+            <span class="rz-text-caption">
+                @Label
+            </span>
+            <span class=@_cssClass style=@_style>
+                @RegionService.ToStringMoney(Amount)
+            </span>
+        </div>
+    }
+    else if (Label.IsNotEmpty() && Icon.IsNotEmpty())
+    {
+        <div class="d-flex gap-2 align-items-center align-content-center">
+            <RadzenIcon Icon=@Icon />
+            <div class="d-flex flex-column justify-content-start">
+                <span class="rz-text-caption m-0">
+                    @Label
+                </span>
+                <span class=@_cssClass style=@_style>
+                    @RegionService.ToStringMoney(Amount)
+                </span>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = true;
+
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+
+    [Parameter] public bool AutoColorRed { get; set; } = false;
+    [Parameter] public bool AutoColorGreen { get; set; } = false;
+
+    [Parameter] public bool AutoColor { get; set; } = false;
+    [Parameter] public string CssClass { get; set; } = "";
+    [Parameter] public decimal? Amount { get; set; } = 0;
+    [Parameter] public string FontSize { get; set; } = "16px";
+
+    private string _cssClass = "";
+    private string _style = "";
+
+    protected override Task OnParametersSetAsync()
+    {
+        var color = "";
+
+        if ((AutoColor || AutoColorGreen) && Amount > 0)
+            color = "color:#086F0C";
+        else if ((AutoColor || AutoColorRed) && Amount < 0)
+            color = "color:#ff444b";
+
+        _cssClass = $"{CssClass} numspan";
+        _style = $"font-size:{FontSize}; width:fit-content; word-break:keep-all; white-space:nowrap; {color}";
+
+        return base.OnParametersSetAsync();
+    }
+}

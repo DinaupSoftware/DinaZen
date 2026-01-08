@@ -1,0 +1,136 @@
+﻿@using System;
+@using System.Collections.Generic;
+@using System.Reflection;
+@using System.Linq;
+@using DinaZen.Shared
+@using Radzen.Blazor
+
+
+
+@if (FormList.IsNotNull())
+{
+
+	<div class="h-100 d-flex flex-column">
+		<div>
+
+			@foreach (var tab in FormList.Tabs)
+			{
+				@if (tab.TabName == "*")
+				{
+					<FormTabU Tab=tab OnTabChanged=@HandleTabChange @key=@(tab.TabToken + "-14")></FormTabU>
+				}
+			}
+		</div>
+
+		<div style="flex:1">
+			<RadzenTabs class="h-100" TabPosition="@tabPosition" RenderMode="TabRenderMode.Server">
+				<Tabs>
+					@foreach (var tab in FormList.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
+					{
+						<RadzenTabsItem class="h-100" Text="@tab.TabName" @key=@(tab.TabToken + "-93")>
+							<div style="height: 100%;overflow:scroll">
+								<FormTabU OnTabChanged=@HandleTabChange @key=@(tab.TabToken + "-94") Tab=tab></FormTabU>
+							</div>
+						</RadzenTabsItem>
+					}
+				</Tabs>
+			</RadzenTabs>
+		</div>
+
+		<div class="d-flex justify-content-end">
+			<RadzenButton Click=Cerrar Text="Cerrar" Icon="close" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger"></RadzenButton>
+		</div>
+
+	</div>
+
+
+}
+
+
+<style>
+	.rz-tabview-panel {
+		padding: 0px !important
+	}
+</style>
+@code {
+
+
+
+
+
+	private bool isClosed = false;
+
+	void Cerrar()
+	{
+		if (!isClosed)
+		{
+			isClosed = true;
+			DialogService.Close();
+		}
+	}
+
+	// bool DebugEnabled = false;
+
+	TabPosition tabPosition = TabPosition.Top;
+
+
+	[Parameter] public Dinaup.VirtualFormDTO.FormDetail FormList { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
+
+
+
+	protected override Task OnParametersSetAsync()
+	{
+
+		return base.OnParametersSetAsync();
+	}
+
+
+	private void HandleFormChanged(object sender, EventsNotifier.FormDetailChangedEventArgs e)
+	{
+		InvokeAsync(() =>
+		{
+			if (FormList.Token == e.NewValue.Token)
+			{
+				FormList = e.NewValue;
+				c_blnStopRendering = false;
+				StateHasChanged();
+				StateHasChanged();
+
+			}
+		});
+
+	}
+
+	private bool c_blnStopRendering = false;
+
+	protected override bool ShouldRender()
+	{
+		if (c_blnStopRendering == true) { return false; }
+		return base.ShouldRender();
+	}
+	void HandleTabChange(Dinaup.VirtualFormDTO.Tab newTab)
+	{
+
+		c_blnStopRendering = true;
+		OnTabChanged.InvokeAsync(newTab);
+
+	}
+
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		EventsNotifier.OnFormChanged += HandleFormChanged;
+	}
+
+	public void Dispose()
+	{
+		EventsNotifier.OnFormChanged -= HandleFormChanged;
+		if (true)
+			FormList = null;
+
+	}
+
+
+}

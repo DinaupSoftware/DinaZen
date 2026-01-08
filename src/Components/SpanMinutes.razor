@@ -1,0 +1,29 @@
+﻿@if (Value.HasValue)
+{
+	<span class="time-span" style="font-size:@FontSize; word-break: keep-all; white-space: nowrap">
+		@FormatMinutes((int)Value.Value)
+	</span>
+}
+
+@code {
+	[Parameter] public decimal? Value { get; set; } = 0;
+	[Parameter] public string FontSize { get; set; } = "16px";
+
+	private string FormatMinutes(int totalMinutes)
+	{
+		bool isNegative = totalMinutes < 0;
+		string sign = isNegative ? "-" : "";
+
+		totalMinutes = Math.Abs(totalMinutes);
+
+		if (totalMinutes < 60)
+			return $"{sign}{totalMinutes}m";
+
+		var hours = totalMinutes / 60;
+		var minutes = totalMinutes % 60;
+
+		return minutes == 0
+			? $"{sign}{hours}h"
+			: $"{sign}{hours}h {minutes}m";
+	}
+}

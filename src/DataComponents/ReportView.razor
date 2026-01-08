@@ -1,0 +1,449 @@
+﻿@using System.Net.Http
+@using System.Text
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@implements IDisposable
+
+
+
+@code {
+
+
+
+
+	[Parameter]
+	public string Title { get; set; }
+
+
+
+
+
+	[Parameter]
+	public Variant Variant { get; set; }
+
+
+	[Parameter]
+	public string Classs { get; set; }
+
+
+
+	[Parameter]
+	public RenderFragment<DinaupDynamicRowDTO> TemplateRowAction { get; set; }
+	[Parameter]
+	public RenderFragment TemplateToolbarExtension { get; set; }
+
+
+
+	[Parameter]
+	public RenderFragment EmptyContent { get; set; }
+	[Parameter]
+	public string EmptyText { get; set; }
+
+
+
+	[Parameter]
+	public EventCallback OnDataChanged { get; set; }
+
+
+
+	[Parameter]
+	public bool ShowToolBar { get; set; }
+
+	[Parameter]
+	public bool ShowToolBar_Add { get; set; } = true;
+
+
+
+	[Parameter]
+	public bool Filtrable { get; set; } = true;
+
+	[Parameter]
+	public bool FiltrableActive { get; set; } = true;
+
+
+
+	[Parameter]
+	public bool ShowTitle { get; set; }
+
+
+
+	[Parameter]
+	public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
+
+
+	[Parameter]
+	public string QuerySearch { get; set; }
+
+
+	[Parameter]
+	public string ReportId { get; set; }
+
+
+	[Parameter]
+	public bool CheckBoxMultipleSeleccion { get; set; }
+
+	[Parameter]
+	public EventCallback<List<DinaupDynamicRowDTO>> CheckBoxMultipleSeleccionCambiada { get; set; }
+
+
+
+	public bool EsEnvioDeEmail => Report.Category.EqualsIgnoreCase("funcionalidad") && Report.SubCategory.EqualsIgnoreCase("Lista de Correos");
+
+
+	[Parameter]
+	public Dinaup.DinaupReportDataDTO DataList { get; set; }
+
+	[Parameter]
+	public Dinaup.DinaupReportDTO Report { get; set; }
+
+
+	[Parameter]
+	public Dictionary<string, string> VariablesValues { get; set; }
+
+	[Parameter]
+	public EventCallback<Dictionary<string, string>> VariablesValuesChanged { get; set; }
+
+
+
+	[Parameter]
+	public List<FilterCondition> AdvancedFilter { get; set; }
+
+
+
+	[Parameter]
+	public Dictionary<string, bool> Orden { get; set; }
+
+	[Parameter]
+	public int MaxHeight { get; set; }
+	[Parameter]
+	public bool CardMode { get; set; }
+
+	[Parameter]
+	public List<string> TemplateColumns { get; set; }
+
+	[Parameter]
+	public int Limite { get; set; }
+
+	[Parameter]
+	public bool AutoSeleccionarPrimerElemento { get; set; }
+
+
+	[Parameter]
+	public bool AdminMode { get; set; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private bool showResponse;
+	private string documento;
+	private bool isLoading = true;
+
+
+	public async void UpdateSearch(string query)
+	{
+		if (this.QuerySearch == query)
+			return;
+
+		this.QuerySearch = query;
+		await InvokeAsync(OnQuerySearchChange);
+
+	}
+
+
+	// public async Task RefreshData()
+	// {
+
+	// 	await LoadDataAsync();
+	// }
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadDataAsync();
+		await base.OnInitializedAsync();
+
+	}
+
+
+
+
+	private bool isDebouncing = false;
+	private async Task OnQuerySearchChange()
+	{
+		if (isDebouncing) return;
+		isDebouncing = true;
+		await Task.Delay(800);
+		isDebouncing = false;
+		await LoadDataAsync();
+	}
+
+	private async Task Click_Agregar()
+	{
+
+
+
+
+	}
+
+
+
+
+
+
+	private string getColIdByColName(string colnbame)
+	{
+
+		if (!string.IsNullOrEmpty(colnbame))
+		{
+			if (colnbame.Contains("[\""))
+			{
+				colnbame = Dinaup.extensions.ParseBetween(ref colnbame, "[\"", "\"]");
+			}
+		}
+		if (this.DataList.IsNotNull())
+		{
+
+
+			var colX = this.DataList.ColumnsByKeyword.GetM(colnbame);
+
+			if (colX.IsNotNull())
+			{
+
+				if (colX.ReportColID.IsGUID())
+					return colX.ReportColID;
+				else
+					return colX.NativeName;
+
+			}
+
+
+		}
+
+		return colnbame;
+	}
+	private async void HandleLoadDataEvent(LoadDataArgs args)
+	{
+
+
+
+		LoadDataReportC retornar = new LoadDataReportC();
+		retornar.Skip = args.Skip;
+		retornar.Top = args.Top;
+		retornar.OrderBy = args.OrderBy;
+		retornar.Filter = args.Filter;
+		retornar.Filters = args.Filters?.Select(f => new FilterDescriptorC(getColIdByColName(f.Property), f.FilterValue, GetFunctino(f.FilterOperator), f.SecondFilterValue, GetFunctino(f.SecondFilterOperator), GetOperator(f.LogicalFilterOperator))).ToList();
+		retornar.Sorts = args.Sorts?.Select(s => new OrdenDescriptorC(getColIdByColName(s.Property), (OrderModeE)s.SortOrder)).ToList();
+		await LoadDataAsync(retornar);
+
+		// this./* Invalidate */();
+	}
+
+
+
+	FilterFunctionE GetFunctino(FilterOperator filterOperator)
+	{
+		if (filterOperator == FilterOperator.Equals) return FilterFunctionE.Equals;
+		if (filterOperator == FilterOperator.NotEquals) return FilterFunctionE.NotEquals;
+		if (filterOperator == FilterOperator.LessThan) return FilterFunctionE.LessThan;
+		if (filterOperator == FilterOperator.LessThanOrEquals) return FilterFunctionE.LessThanOrEqualTo;
+		if (filterOperator == FilterOperator.GreaterThan) return FilterFunctionE.GreaterThan;
+		if (filterOperator == FilterOperator.GreaterThanOrEquals) return FilterFunctionE.GreaterThanOrEqualTo;
+		if (filterOperator == FilterOperator.Contains) return FilterFunctionE.Contains;
+		if (filterOperator == FilterOperator.StartsWith) return FilterFunctionE.StartsWith;
+		if (filterOperator == FilterOperator.EndsWith) return FilterFunctionE.EndsWith;
+		if (filterOperator == FilterOperator.DoesNotContain) return FilterFunctionE.DoesNotContain;
+		if (filterOperator == FilterOperator.IsEmpty) return FilterFunctionE.IsEmpty;
+		if (filterOperator == FilterOperator.IsNotEmpty) return FilterFunctionE.IsNotEmpty;
+		return FilterFunctionE.Contains;
+	}
+
+
+
+	LogicalOperatorE GetOperator(LogicalFilterOperator logicalFilterOperator)
+	{
+		if (logicalFilterOperator == LogicalFilterOperator.And) return LogicalOperatorE.And;
+		if (logicalFilterOperator == LogicalFilterOperator.Or) return LogicalOperatorE.Or;
+		return LogicalOperatorE.And;
+	}
+
+
+
+
+
+
+
+
+	private void HandleVariableConfirm(Dictionary<string, string> _VariableValues)
+	{
+		this.VariablesValues = _VariableValues;
+		this.VariablesValuesChanged.InvokeAsync(_VariableValues);
+		InvokeAsync(async () => await UpdateAsync());
+	}
+
+	private LoadDataReportC lastFilter;
+
+	public async Task UpdateAsync()
+	{
+		await LoadDataAsync(lastFilter);
+	}
+	// public  async Task UpdateAsync(LoadDataReportC filter  )
+	// {
+	// 	await LoadDataAsync(filter);
+	// }
+	private async Task LoadDataAsync(LoadDataReportC filter = null)
+	{
+
+		if (Limite == 0)
+			Limite = 100;
+
+		if (filter.IsNull())
+		{
+			filter = new LoadDataReportC();
+			filter.Skip = 0;
+			filter.Top = Limite;
+
+		}
+
+
+		lastFilter = filter;
+
+		try
+		{
+
+
+
+			Dinaup.ReportResponse Response;
+
+
+
+
+
+			Response = await SessionUserContext.DinaupClient.ExecuteReport(ReportId, VariablesValues, QuerySearch, filter, AdvancedFilter, Limite, Orden, AdminMode);
+
+
+
+			if (Response.IsNotNull())
+			{
+				this.Report = Response.Report;
+				this.showResponse = Response.DataList.IsNull();
+				this.DataList = Response.DataList;
+
+				if (this.DataList.IsNotNull())
+				{
+					var ancho = this.DataList.Maximumcharacterspercolumn; // para que se recalcule antes
+				}
+
+
+				try
+				{
+					if (OnDataChanged.HasDelegate) { OnDataChanged.InvokeAsync(); }
+				}
+				catch (Exception)
+				{
+
+				}
+
+			}
+
+
+		}
+		catch (Exception ex)
+		{
+
+			documento = "Error loading document: " + ex.GetDescription();
+
+		}
+		finally
+		{
+			isLoading = false;
+
+		}
+
+	}
+
+
+
+	private Guid _lastToken;
+	bool needUpdate = false;
+
+
+	// public override async Task OnBulkNotifyAddOrUpdate(string srvKW, Dictionary<string, List<>> eventosPorSeccionId)
+	// {
+	// 	if (this.DataList.IsNull()) return;
+	// 	if (this.DataList.SectionId.IsEmpty()) return;
+
+	// 	if (eventosPorSeccionId.ContainsKey(this.DataList.SectionId))
+	// 		needUpdate = true;
+
+	// }
+
+
+
+	// public override async Task Tick()
+	// {
+	// 	if (needUpdate && _disposed == false)
+	// 	{
+	// 		needUpdate = false;
+	// 		await InvokeAsync(this.UpdateAsync);
+	// 	}
+	// }
+
+
+	/// <summary>
+	/// Elimina la fila de la interfaz
+	/// Esta función se utiliza cuando sabemos que la fila no debería aparecer. Y así nos ahorramos recargar el informe.
+	/// Osea, es para monitorizar datos.
+	/// </summary>
+	/// <param name="ID"></param>
+	/// <returns></returns>
+	public async Task RemoveRow_UI_Async(Guid ID)
+	{
+
+		// await controlGrid.RemoveRow_UI_Async(ID);
+
+	}
+
+
+	public void Dispose()
+	{
+		// Referencias internas
+		// controlGrid = null;
+		lastFilter = null;
+
+		// Estados internos
+		documento = null;
+		showResponse = false;
+		isLoading = false;
+
+		// Parámetros
+		DataList = null;
+		Report = null;
+		VariablesValues = null;
+		AdvancedFilter = null;
+		Orden = null;
+		TemplateColumns = null;
+		TemplateRowAction = null;
+		TemplateToolbarExtension = null;
+		// OnItemSelect = null;
+		// CheckBoxMultipleSeleccionCambiada = null;
+		// OnDataChanged = null;
+
+		// Cleanup base component si aplica
+		// base.Dispose();
+	}
+
+}

@@ -1,0 +1,54 @@
+﻿@using Microsoft.AspNetCore.Components
+@using Radzen
+
+@if (Type == BadgeType.Pro)
+{
+    <span class="badge-gradient badge-pro">
+        <RadzenIcon Icon="bolt" Style="font-size:14px" />
+        PRO
+    </span>
+}
+else if (Type == BadgeType.Beta)
+{
+    <span class="badge-gradient badge-beta">
+        <RadzenIcon Icon="science" Style="font-size:14px" />
+        Beta
+    </span>
+}
+else if (Type == BadgeType.New)
+{
+    <span class="badge-gradient badge-new">
+        <RadzenIcon Icon="celebration" Style="font-size:14px" />
+        Nuevo
+    </span>
+}
+else if (Type == BadgeType.Premium)
+{
+    <span class="badge-gradient badge-premium">
+        <RadzenIcon Icon="workspace_premium" Style="font-size:14px" />
+        Premium
+    </span>
+}else if( Type == BadgeType.IA)
+{
+    
+    <span class="badge-gradient badge-ia">
+        <RadzenIcon Icon="auto_awesome" Style="font-size:14px" />
+        IA
+    </span>
+
+}
+
+@code {
+    [Parameter] public BadgeType Type { get; set; }
+
+
+    public enum BadgeType
+    {
+        Pro,
+        Beta,
+        New,
+        IA,
+        Premium
+    }
+
+}

@@ -1,0 +1,49 @@
+﻿@if (Value.HasValue)
+{
+	<span class=@_class style=@_style>
+
+		@if (Value.Value > 1000)
+		{
+			@RegionService.ToStringDecimal(Math.Round(Value.Value / 1000, 2)) <span>Kg</span>
+			
+		}
+		else
+		{
+			@RegionService.ToStringDecimal(Value.Value) <span>gr</span>
+		}
+	</span>
+}
+
+@code {
+
+
+
+
+	[Parameter] public bool AutoColor { get; set; } = false;
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public decimal? Value { get; set; }
+	[Parameter] public string FontSize { get; set; } = "16px"; // Tamaño de fuente predeterminado
+
+
+	private string _class = "";
+	private string _style = "";
+
+	protected override Task OnParametersSetAsync()
+	{
+
+		string _color = "";
+
+		if (AutoColor && Value.HasValue && Value.Value > 1000)
+			_color = "color:#052547";
+		else  
+			_color = "color:#390B0E";
+
+		_class = Class + " numspan";
+		_style = $"font-size:{FontSize}; width: fit-content;word-break: keep-all; white-space: nowrap;{_color}";
+
+		return base.OnParametersSetAsync();
+
+	}
+
+}
+

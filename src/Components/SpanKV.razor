@@ -1,0 +1,66 @@
+﻿@using Radzen
+@using Radzen.Blazor
+
+@if (Visible == false) return;
+
+
+@if (Horizontal)
+{
+
+	<div class="@ContainerClass">
+		<RadzenIcon Icon=@Icon IconColor=@IconColor Style="font-size: 14px;" />
+		<small class="text-muted">@Key:</small>
+		<span class="fw-medium" style="@ValueStyle">@ChildContent</span>
+	</div>
+
+}
+else
+{
+
+
+	<div class="@ContainerClass">
+
+
+		@if (Icon.IsNotEmpty() && (Icon.StartsWith("/") || Icon.StartsWith("http")))
+		{
+			<img src=@Icon style="width:24px;height:24px" />
+		}
+		else if (Icon.IsNotEmpty())
+		{
+			<RadzenIcon class="ms-2 align-self-center" Icon="@Icon" IconColor=@IconColor />
+		}
+
+		<div class="w-100">
+				<span class="@LabelClass" style="@LabelStyle">@Key</span>
+				<div class="@ValueClass" style="@ValueStyle">
+					@ChildContent
+				</div>
+		</div>
+
+	</div>
+}
+
+@code {
+
+
+	[Parameter] public bool Visible { get; set; } = true;
+	[Parameter] public string Key { get; set; } = string.Empty;
+	[Parameter] public RenderFragment ChildContent { get; set; }
+	[Parameter] public bool Horizontal { get; set; } = false;
+	[Parameter] public string LabelWidth { get; set; }
+	[Parameter] public string Icon { get; set; }
+	[Parameter] public string IconColor { get; set; }
+	[Parameter] public string ValueColor { get; set; }
+
+	[Parameter] public bool TextRight { get; set; }
+
+	[Parameter] public string Class { get; set; }
+
+
+	private string ContainerClass => $"d-flex  flex-row  {Class} justify-content-between {(Horizontal ? "align-items-center align-content-center" : "align-items-center")} gap-2";
+	private string LabelClass => $"rz-text-caption text-muted m-0 p-0 {(Horizontal ? "me-2" : string.Empty)}";
+	private string ValueClass => Horizontal ? $"flex-fill{(TextRight ? " text-end" : string.Empty)}" : (TextRight ? "text-end" : string.Empty);
+	private string LabelStyle => string.IsNullOrWhiteSpace(LabelWidth) ? null : $"max-width:{LabelWidth};";
+	private string ValueStyle => string.IsNullOrWhiteSpace(ValueColor) ? null : $"color:{ValueColor};";
+
+}

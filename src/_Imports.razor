@@ -1,7 +1,16 @@
-﻿@using Microsoft.AspNetCore.Components.Web
+﻿@using System;
+@using System.Collections.Generic;
+@using System.Reflection;
+@using System.Linq;
+@using DinaZen.Components
+@using DinaZen.Shared
 @using Microsoft.JSInterop
 @using Radzen
-@using Radzen.Blazor
+@using Radzen.Blazor;
+@using Microsoft.AspNetCore.Components.Web
+@using Dinaup
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
 @inject DialogService DialogService
+@inject Dinaup.CultureService.ICultureService RegionService
 @inject IJSRuntime JS
-@using static Dinaup.extensions;

@@ -1,0 +1,144 @@
+﻿@using DinaZen.Forms.Components.Tab.Container
+@if (Container.IsNull()) return;
+
+
+
+<RadzenCard @key=@(Container.Token + "1742963010") style="@cardStyle" class="ctrlucont dnp-form-container">
+
+
+	@if (Container.Icon.IsNotEmpty())
+	{
+		<div style="@iconStyle"></div>
+	}
+
+
+	@if ((Container.TokenList).IsNotEmpty())
+	{
+
+
+
+		@if (Container.Botones.IsNotEmpty())
+		{
+			<div style="height:calc(100% - 40px)">
+				<ReportU @key=@(Container.Token + "-list") ReportId="@Container.TokenList" />
+			</div>
+
+			<div class="pt-2">
+				@foreach (var button in Container.Botones)
+				{
+
+					<ContainerButtonU OnMostrarDialogRequiereGuardar=@OnMostrarDialogRequiereGuardar @key=@(Container.Token + "-" + button.Id) Container=@Container OnButtonClick=@HanldeOnButtonClick ButtonData="button" />
+				}
+			</div>
+
+
+		}
+		else
+		{
+			<ReportU @key=@(Container.Token + "-plist") ReportId="@Container.TokenList" />
+		}
+
+	}
+	else if (Container.IsPrimaryList)
+	{
+
+		<FormPrimaryList @key=@(Container.Token + "-plist") FormComponent=FormComponent
+						 OnDeleteItemPrimaryList="HandleOnDeleteItemPrimaryList"
+						 OnTabChanged="HandleTabChanged"
+						 OnAddItem="HandleNewItemList"
+						 List="@Container.ParentForm.List" />
+
+	}
+</RadzenCard>
+@code {
+
+	public void Dispose()
+	{
+
+		if (true)
+		{
+			Container = null;
+			FormComponent = null;
+		}
+	}
+
+	[Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
+
+	[Parameter]
+	public DynamicFormU FormComponent { get; set; }
+
+
+	[Parameter]
+	public EventCallback<string> OnButtonClick { get; set; }
+
+	[Parameter]
+	public Dinaup.VirtualFormDTO.Container Container { get; set; }
+
+	private string cardStyle = "";
+	private string iconStyle = "";
+	private string reportKey = "";
+
+	protected override void OnParametersSet()
+	{
+		if (Container.IsNotNull())
+		{
+
+			cardStyle = $"position: absolute; left: {Container.X}px; top: {Container.Y}px; width: {(Container.MaxWidth ? "calc(100% - 100px)" : $"{Container.Width}px")}; height: {Container.Height}px;";
+			iconStyle = $"position: absolute; left: 30px; top: 0; width: 64px; height: {Container.Height}px; background-image: url('{Container.Icon}'); background-size: contain; background-repeat: no-repeat; background-position: center center;";
+			reportKey = $"{Container.Token}-66";
+
+
+
+		}
+	}
+
+
+	void HanldeOnButtonClick(string id)
+	{
+
+
+		OnButtonClick.InvokeAsync(id);
+
+	}
+
+
+
+}
+
+
+
+@code {
+
+
+
+
+
+	DateTime _OnInitialized = DateTime.Now;
+	protected override void OnInitialized()
+	{
+
+		_OnInitialized = DateTime.Now;
+		base.OnInitialized();
+	}
+
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
+	[Parameter] public EventCallback<string> OnDeleteItemPrimaryList { get; set; }
+	[Parameter] public EventCallback OnAddItem { get; set; }
+
+
+	private Task HandleOnDeleteItemPrimaryList(string deleteId)
+	{
+		return OnDeleteItemPrimaryList.InvokeAsync(deleteId);
+	}
+
+	private Task HandleTabChanged(Dinaup.VirtualFormDTO.Tab updateTab)
+	{
+		return OnTabChanged.InvokeAsync(updateTab);
+	}
+
+	async Task HandleNewItemList()
+	{
+		await OnAddItem.InvokeAsync();
+	}
+
+}

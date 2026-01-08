@@ -1,0 +1,50 @@
+﻿<RadzenCard Style=@Style class="d-flex gap-1 align-items-center align-content-center p-2" Variant=@Variant >
+
+	<div>
+		<RadzenIcon Style="font-size: 32px; min-height: 56px; min-width: 56px" Icon=@Icon IconColor=@IconColor />
+	</div>
+	<div class="flex-grow-1 d-flex flex-column justify-content-start align-items-start align-content-center ">
+		<span class="rz-text-overline">  @Tile </span>
+		<span class="rz-text-h5">  @Value </span>
+	</div>
+
+</RadzenCard>
+
+@code {
+
+	[Parameter]
+	public Variant Variant { get; set; } = Variant.Flat;
+
+
+	/// <summary>
+	/// Nombre del icono a mostrar (ej: "home", "person", etc.)
+	/// </summary>
+	[Parameter]
+	public string Icon { get; set; } = string.Empty;
+
+	/// <summary>
+	/// Color del icono
+	/// </summary>
+	[Parameter]
+	public string IconColor { get; set; } = Colors.Primary;
+
+	/// <summary>
+	/// Título o etiqueta del card
+	/// </summary>
+	[Parameter]
+	public string Tile { get; set; } = string.Empty;
+
+	/// <summary>
+	/// Valor principal a mostrar
+	/// </summary>
+	[Parameter]
+	public string Value { get; set; } = string.Empty;
+
+
+	/// <summary>
+	/// Valor principal a mostrar
+	/// </summary>
+	[Parameter]
+	public string Style { get; set; } = string.Empty;
+
+}

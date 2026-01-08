@@ -1,0 +1,65 @@
+﻿@using Microsoft.JSInterop
+@using Radzen
+@using System.Globalization
+@inject IJSRuntime JS
+
+
+<div class="d-flex justify-content-end gap-2">
+	<RadzenButton Icon="zoom_out" Size="ButtonSize.ExtraSmall" Click=@DecreaseScale Variant="Variant.Text" />
+	<RadzenButton Icon="zoom_in" Size="ButtonSize.ExtraSmall" Click=@IncreaseScale Variant="Variant.Text" />
+</div>
+
+<div @ref="wrapper">
+	@ChildContent
+</div>
+
+@code {
+	[Parameter, EditorRequired]
+	public string Key { get; set; }
+
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
+
+	private double scale = 1;
+	private readonly double step = 0.1;
+	private ElementReference wrapper;
+	private string storageKey => $"scalableBlockScale-{Key}";
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			var stored = await JS.InvokeAsync<string>("localStorage.getItem", storageKey);
+			if (double.TryParse(stored, NumberStyles.Any, CultureInfo.InvariantCulture, out var s))
+				scale = s;
+
+			await ApplyScale();
+			StateHasChanged();
+		}
+	}
+
+
+	private async Task DecreaseScale()
+	{
+		scale = Math.Max(0.5, scale - step);
+		await UpdateScaleAsync();
+	}
+
+	private async Task IncreaseScale()
+	{
+		scale = Math.Min(2, scale + step);
+		await UpdateScaleAsync();
+	}
+
+
+
+	private async Task UpdateScaleAsync()
+	{
+		await ApplyScale();
+		await JS.InvokeVoidAsync("localStorage.setItem", storageKey, scale.ToString(CultureInfo.InvariantCulture));
+	}
+
+	private ValueTask ApplyScale()
+		=> JS.InvokeVoidAsync("scalableBlock.setScale", wrapper, scale);
+}
+

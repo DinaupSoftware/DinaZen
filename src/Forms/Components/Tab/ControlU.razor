@@ -1,0 +1,335 @@
+﻿@inject Dinaup.CultureService.ICultureService RegionService;
+@inject ContextMenuService ContextMenuService;
+@using DinaZen.Forms.Components.Tab.Control
+@using Radzen.Blazor
+@using System.Collections.Generic
+
+
+<div    @key=@( DataControl.Token + "-ctrlu12")
+	 data-IsModified=@DataControl.IsModified.STR()
+	 data-IsLocked=@DataControl.IsLocked.STR()
+	 data-IsBig=@DataControl.IsGiant.STR()
+	 data-IsRequired=@DataControl.IsRequired.STR()
+	 data-IncorrectValueStatus=@DataControl.IncorrectValueStatus
+	 class="controlu"
+	 style="@(  (ModoCelda ? $"": $"position: absolute; left: {DataControl.X}px; top: {DataControl.Y}px; width: {DataControl.Width}px; height: {DataControl.Height}px;" ))">
+
+
+
+
+	@if (DataControl.FormatEnum == FieldFormatE.Guid || DataControl.DropDowList != null && DataControl.DropDowList.Any()) // Asumiendo que Formato 9 es para relaciones, por ejemplo.
+	{
+
+
+		<FormSelectorRelacionControlU ContextMenuAction=ShowContextMenuWithItems  ModoCelda=@ModoCelda OnDataControlChanged=HandleDatacontrolChanged @key=@(DataControl.Token + "-valor") DataControl=DataControl />
+
+
+	}
+	else if (DataControl.FormatEnum == FieldFormatE.BOOL) // Asumiendo que esto corresponde a un desplegable.
+	{
+
+
+
+
+		<div class="dup_input  dupch d-flex" style="overflow:visible">
+
+			<RadzenLabel ContextMenu=@ShowContextMenuWithItems class="d-flex gap-2 align-items-center align-content-center labelch" @key=@(DataControl.Token + "-eti")>
+				<RadzenCheckBox onclick=@(() => { if (DataControl.IsLocked) { NotificationService.Notify(NotificationSeverity.Warning, "Este campo está bloqueado y no puede rellenarse manualmente."); } }) Disabled=DataControl.IsLocked TValue="bool" Change=@(args => HandleDatacontrolChanged(DataControl.WithValue(args.ToString()))) @key=@(DataControl.Token + "-valor") Value=DataControl.Value_Bool ReadOnly=@DataControl.IsLocked />
+				@if (ModoCelda == false)
+				{
+					@DataControl.Label
+				}
+
+				<span class="ico_IsModified"></span>
+				<span class="ico_IsRequired"></span>
+			</RadzenLabel>
+		</div>
+
+
+
+	}
+	else
+	{
+
+		@if (DataControl.FieldRole == RoleFieldE.HTML_Editor)
+		{
+
+
+			<div class="dup_input dup_input_estandar d-flex flex-column h-100">
+				<RadzenLabel ContextMenu=@ShowContextMenuWithItems class="labelinput" for="@DataControl.Token">
+					@DataControl.Label
+					<span class="ico_IsModified"></span>
+					<span class="ico_IsRequired"></span>
+				</RadzenLabel>
+
+
+				<RadzenHtmlEditor class="flex-grow-1" @bind-value=@DataControl.Value @bind-value:after=@(() => HandleDatacontrolChanged( DataControl ) ) @key=@(DataControl.Token + "-valor")>
+					<RadzenHtmlEditorUndo />
+					<RadzenHtmlEditorRedo />
+					<RadzenHtmlEditorSeparator />
+					<RadzenHtmlEditorBold />
+					<RadzenHtmlEditorItalic />
+					<RadzenHtmlEditorUnderline />
+					<RadzenHtmlEditorStrikeThrough />
+
+
+					@if (DataControl.Width > 650 || DataControl.Height > 400)
+					{
+						<RadzenHtmlEditorSeparator />
+						<RadzenHtmlEditorAlignLeft />
+						<RadzenHtmlEditorAlignCenter />
+						<RadzenHtmlEditorAlignRight />
+
+
+						<RadzenHtmlEditorSeparator />
+						<RadzenHtmlEditorIndent />
+						<RadzenHtmlEditorOutdent />
+						<RadzenHtmlEditorUnorderedList />
+						<RadzenHtmlEditorOrderedList />
+
+						<RadzenHtmlEditorSeparator />
+						<RadzenHtmlEditorFontSize />
+						<RadzenHtmlEditorFormatBlock />
+						<RadzenHtmlEditorFontName />
+						<RadzenHtmlEditorImage />
+						<RadzenHtmlEditorSeparator />
+						<RadzenHtmlEditorColor />
+						<RadzenHtmlEditorBackground />
+						<RadzenHtmlEditorRemoveFormat />
+
+
+						<RadzenHtmlEditorSeparator />
+						<RadzenHtmlEditorLink />
+						<RadzenHtmlEditorUnlink />
+					}
+
+				</RadzenHtmlEditor>
+			</div>
+		}
+		else if (DataControl.IsMultiline)
+		{
+
+
+			<div class="dup_input dup_input_estandar d-flex flex-column h-100">
+				@if (ModoCelda == false)
+				{
+					@* <ControlUIconoU DataControl=@DataControl Width="22" /> *@
+					<RadzenLabel ContextMenu=@ShowContextMenuWithItems @key=@(DataControl.Token + "-eti") class="labelinput" for="@DataControl.Token">
+						@DataControl.Label
+						<span class="ico_IsModified"></span>
+						<span class="ico_IsRequired"></span>
+					</RadzenLabel>
+				}
+				<RadzenTextArea @bind-value=@DataControl.Value @bind-value:after=@(() => HandleDatacontrolChanged( DataControl ) ) @key=@(DataControl.Token + "-valor") Style="width:100%;flex:1" ReadOnly=@DataControl.IsLocked />
+			</div>
+
+
+		}
+		else if (DataControl.IsLabelLeft)
+		{
+
+			<div class="dup_input justify-content-between  dup_input_estandar align-content-center align-items-center d-flex align-items-center gap-2 flex-grow-1">
+				@if (ModoCelda == false)
+				{
+					@* <ControlUIconoU DataControl=@DataControl Width="16" /> *@
+					<RadzenLabel ContextMenu=@ShowContextMenuWithItems @key=@(DataControl.Token + "-eti") style=@($"width:{DataControl.LabelWidth}px") class="labelinput " for="@DataControl.Token">
+						@DataControl.Label
+						<span class="ico_IsModified"></span>
+						<span class="ico_IsRequired"></span>
+					</RadzenLabel>
+				}
+
+
+
+				@if (DataControl.FormatEnum == FieldFormatE.TIME || DataControl.FormatEnum == FieldFormatE.DATE || DataControl.FormatEnum == FieldFormatE.DateAndTime)
+				{
+					<RadzenDatePicker Culture=@RegionService.Culture @bind-value:after=@(() => HandleDatacontrolChangedDatePicket( DataControl ) ) @bind-value=@DataControl.Value_DateTime Style="width: none !important; flex:1" @key=@(DataControl.Token + "-valor") TValue="DateTime" ShowTime=DataControl.ShowTime ShowSeconds=DataControl.ShowSeconds TimeOnly=@(DataControl.FormatEnum == FieldFormatE.TIME) HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat=@DataControl.DateForma>
+
+					</RadzenDatePicker>
+				}
+				else
+				{
+					<RadzenTextBox Culture=@RegionService.Culture @bind-value=@DataControl.Value @bind-value:after=@(() => HandleDatacontrolChanged( DataControl ) ) class=@(ModoCelda ? "input-autosize" : "flex-grow-1") @key=@(DataControl.Token + "-valor") ReadOnly=@DataControl.IsLocked />
+				}
+
+			</div>
+		}
+		else
+		{
+			<div class="dup_input dup_input_estandar d-flex flex-column">
+				@if (ModoCelda == false)
+				{
+					<RadzenLabel ContextMenu=@ShowContextMenuWithItems @key=@(DataControl.Token + "-eti") class="labelinput" for="@DataControl.Token">
+						@DataControl.Label
+						<span class="ico_IsModified"></span>
+						<span class="ico_IsRequired"></span>
+					</RadzenLabel>
+				}
+
+				<div class="d-flex gap-1">
+					@* 	@if (ModoCelda == false)
+					{
+						<ControlUIconoU DataControl=@DataControl Width="22" />
+					} *@
+
+					@if (DataControl.IsGiant && DataControl.FieldRole == RoleFieldE.Moneda && DataControl.IsLocked)
+					{
+
+						<SpanMoney Amount=DataControl.Value.DEC_PN() />
+
+					}
+					else if (DataControl.FormatEnum == FieldFormatE.TIME || DataControl.FormatEnum == FieldFormatE.DATE || DataControl.FormatEnum == FieldFormatE.DateAndTime)
+					{
+
+
+
+
+						<RadzenDatePicker Culture=@RegionService.Culture @bind-value:after=@(() => {HandleDatacontrolChangedDatePicket( DataControl );} ) @bind-value=@DataControl.Value_DateTimeNullable TValue="DateTime?" Style="width: none !important; flex:1" @key=@(DataControl.Token + "-valor") ShowTime=DataControl.ShowTime ShowSeconds=DataControl.ShowSeconds TimeOnly=@(DataControl.FormatEnum == FieldFormatE.TIME) HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat=@DataControl.DateForma>
+							<FooterTemplate>
+
+								<div class="d-flex gap-2">
+									@if (DataControl.FormatEnum == FieldFormatE.DateAndTime)
+									{
+
+										<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now; HandleDatacontrolChangedDatePicket(DataControl); }) Text="Ahora" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+										<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now.AddDays(1); HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+
+									}
+									else if (DataControl.FormatEnum == FieldFormatE.DATE)
+									{
+										<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now.Date; HandleDatacontrolChangedDatePicket(DataControl); }) Text="Hoy" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+										<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now.Date.AddDays(1); HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+									}
+								</div>
+							</FooterTemplate>
+						</RadzenDatePicker>
+
+
+					}
+					else if (DataControl.FormatEnum == FieldFormatE.DEC)
+					{
+						<RadzenNumeric TValue="decimal" Culture=@RegionService.Culture ShowUpDown=false
+									   @bind-value=@DataControl.Value_Dec
+									   @bind-value:after=@(() => HandleDatacontrolChanged( DataControl ) )
+									   class=@(ModoCelda ? "input-autosize" : "flex-grow-1") @key=@(DataControl.Token + "-valor")
+									   ReadOnly=@DataControl.IsLocked Placeholder=@DataControl.Placeholder />
+
+					}
+					else
+					{
+
+						<RadzenTextBox @onkeyup=@((e) => controlKeyUp(e, DataControl)) @bind-value=@DataControl.Value @bind-value:after=@(() => HandleDatacontrolChanged( DataControl ) ) class=@(ModoCelda ? "input-autosize" : "flex-grow-1") @key=@(DataControl.Token + "-valor") ReadOnly=@DataControl.IsLocked Placeholder=@DataControl.Placeholder />
+					}
+
+				</div>
+			</div>
+
+		}
+
+
+	}
+
+
+</div>
+
+@code {
+
+
+	// @oncontextmenu=@VerHistorial
+
+	void ShowContextMenuWithItems(MouseEventArgs args)
+	{
+		ContextMenuService.Open(args,
+			new List<ContextMenuItem> {
+				new ContextMenuItem(){ Text = "Historial de cambios", Value = 1, Icon = "history" },
+		 }, OnMenuItemClick);
+	}
+
+	void OnMenuItemClick(MenuItemEventArgs args)
+	{
+		ContextMenuService.Close();
+		if (args.Value.Equals(1))
+		{
+			_= VerHistorial();
+		}
+	}
+
+}
+
+
+@code {
+
+
+	[Parameter] public bool ModoCelda { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
+	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+
+
+	public void Dispose()
+	{
+
+		
+			DataControl = null;
+	} 
+
+	void HandleDatacontrolChangedDatePicket(Dinaup.VirtualFormDTO.Control controlChanged)
+	{
+
+		if (controlChanged.Value.IsNotEmpty() && controlChanged.FormatEnum == FieldFormatE.DateAndTime)
+		{
+			var fechaX = controlChanged.Value.ToDateDesdeMySQLNulable();
+			if (fechaX.HasValue)
+				controlChanged.Value = RegionService.ToUtc(     fechaX.Value.KindToLocal()).ToSQL();
+		}
+
+
+
+
+		HandleDatacontrolChanged(controlChanged);
+	}
+	void HandleDatacontrolChanged(Dinaup.VirtualFormDTO.Control controlChanged)
+	{
+
+
+
+		DataControl = controlChanged;
+		OnDataControlChanged.InvokeAsync(controlChanged);
+
+	}
+
+
+
+	async Task controlKeyUp(KeyboardEventArgs eventArgs, Dinaup.VirtualFormDTO.Control controlChanged)
+	{
+
+
+		if (controlChanged.FieldRole ==    RoleFieldE.CodigoSubcuenta)
+		{
+
+
+			if (eventArgs.Key == "Enter")
+			{
+
+				// var nuevoValor  = await  pymesService.FormatearCodigoCuenta(controlChanged.Value );
+
+				// if (nuevoValor != controlChanged.Value)
+				// {
+				// 	controlChanged.Value = nuevoValor;
+				// 	OnDataControlChanged.InvokeAsync(controlChanged);
+
+				// }
+				// controlChanged.Value = 
+
+			}
+
+		}
+
+		 
+	}
+
+	public async Task VerHistorial( )
+	{
+	// await	  UpDialogs.Historial(  DataControl.ParentForm.Section.ID , DataControl.ParentForm.RowID.ToGUID(), DataControl.Id );
+	} 
+
+}

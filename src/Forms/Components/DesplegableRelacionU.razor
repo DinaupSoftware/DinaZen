@@ -1,0 +1,36 @@
+﻿
+<SelectorDatoRelacionadoU Label=@Label
+						  DefaultID=@Value
+						  ReportId=@ReportId.STR()
+						  SelectedRow=@selectedRow
+						  SelectedRowChanged=@OnSelectedRowChanged />
+
+
+
+
+@code {
+
+	[Parameter, EditorRequired]
+	public Guid ReportId { get; set; }
+
+	[Parameter, EditorRequired]
+	public string Label { get; set; }
+
+ 
+
+	[Parameter]
+	public Guid Value { get; set; }
+
+	[Parameter]
+	public EventCallback<Guid> ValueChanged { get; set; }
+
+
+	private IDinaupRow selectedRow;
+
+	void OnSelectedRowChanged(IDinaupRow selectedRow)
+	{
+		this.selectedRow = selectedRow;
+		ValueChanged.InvokeAsync(selectedRow?.Id ?? Guid.Empty);
+	}
+
+}

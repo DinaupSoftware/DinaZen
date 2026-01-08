@@ -1,0 +1,1040 @@
+﻿@using DinaZen.Shared
+@implements IDisposable
+
+
+
+
+@if (ShowOk)
+{
+
+	<RadzenAlert AllowClose="false" AlertStyle="AlertStyle.Success" Variant="Variant.Flat" Shade="Shade.Lighter">
+		Datos guardados correctamente.
+	</RadzenAlert>
+
+}
+else if (Caducado)
+{
+
+
+	<RadzenAlert class="m-4" AllowClose="false" AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter">
+		Ha caducado la sesión de edición.
+	</RadzenAlert>
+
+
+}
+else if (VirtualForm.IsNull())
+{
+	<Loader />
+}
+else if (VirtualForm.IsNotNull())
+{
+
+
+	<DialogLayout @key=(VirtualForm.Token) ContentStyle="display: grid; grid-template-rows: auto 1fr auto; overflow: scroll;">
+
+		<TitleContent>
+
+
+			<div class="d-flex justify-content-between align-items-center flex-grow-1 ">
+				<div class="rz-text-subtitle2 align-items-center d-flex gap-2">
+					<img src=@($"https://cdn.dinaup.com/public/{VirtualForm.MainForm.Section.IconoID.STR()}.png") width="20px" class="" />
+					<span>@VirtualForm.MainForm.Section.Label</span>
+				</div>
+
+
+				@* 	@if (Environment.debug)
+				{
+					<RadzenButton ContextMenu=@(args => MostrarOpcionesEnDesarrollo(args)) Class="bg-light bg-gradient" ButtonStyle="ButtonStyle.Light" Size=ButtonSize.Small>
+						<RadzenIcon Icon="labs" />
+					</RadzenButton>
+				} *@
+
+				@if (VirtualForm.MainForm.RowID.IsGUID())
+				{
+
+					<div class="d-flex justify-content-end gap-3">
+						<RadzenButton Class="bg-light bg-gradient" ButtonStyle="ButtonStyle.Light" Size=ButtonSize.Small Click="PrintCurrent">
+							<RadzenIcon Icon="print" />
+							<RadzenBadge BadgeStyle=@(VirtualForm.MainForm.Count_PrintDynamicDocumentoList == 0 ? BadgeStyle.Light : BadgeStyle.Secondary) IsPill="@true" Text=@(VirtualForm.MainForm.Count_PrintDynamicDocumentoList.STR()) class="rz-ml-2" />
+						</RadzenButton>
+						<RadzenButton Class="bg-light bg-gradient" ButtonStyle="ButtonStyle.Light" Size=ButtonSize.Small Click=@((x) => OpenAnnotations(VirtualForm.MainForm.Section.ID, VirtualForm.MainForm.RowID.ToGUID(), AnnotationTypeE.Comments))>
+							<RadzenIcon Icon="chat" />
+							<RadzenBadge BadgeStyle=@(VirtualForm.MainForm.Count_Comments == 0 ? BadgeStyle.Light : BadgeStyle.Secondary) IsPill="@true" Text=@(VirtualForm.MainForm.Count_Comments.STR()) class="rz-ml-2" />
+						</RadzenButton>
+						<RadzenButton Class="bg-light bg-gradient" ButtonStyle="ButtonStyle.Light" Size=ButtonSize.Small Click=@((x) => OpenAnnotations(VirtualForm.MainForm.Section.ID, VirtualForm.MainForm.RowID.ToGUID(), AnnotationTypeE.Files))>
+							<RadzenIcon Icon="attach_file" />
+							<RadzenBadge BadgeStyle=@(VirtualForm.MainForm.Count_AttachedFiles == 0 ? BadgeStyle.Light : BadgeStyle.Secondary) IsPill="@true" Text=@(VirtualForm.MainForm.Count_AttachedFiles.STR()) class="rz-ml-2" />
+						</RadzenButton>
+						<RadzenButton Class="bg-light bg-gradient" ButtonStyle="ButtonStyle.Light" Size=ButtonSize.Small Click=@((x) => OpenAnnotations(VirtualForm.MainForm.Section.ID, VirtualForm.MainForm.RowID.ToGUID(), AnnotationTypeE.PublicGallery))>
+							<RadzenIcon Icon="public" />
+							<RadzenBadge BadgeStyle=@(VirtualForm.MainForm.Count_Gallery == 0 ? BadgeStyle.Light : BadgeStyle.Secondary) IsPill="@true" Text=@(VirtualForm.MainForm.Count_Gallery.STR()) class="rz-ml-2" />
+						</RadzenButton>
+					</div>
+				}
+			</div>
+
+		</TitleContent>
+
+		<BodyContent>
+
+
+
+			<div class="m-4">
+				@foreach (var tab in VirtualForm.MainForm.Tabs.Where((x) => x.TabName == "*"))
+				{
+					<FormTabU @key=@($"x{VirtualForm.MainForm.Token}-tabs-{tab.TabName}-*") OnAddItem=List_AddNewItem Tab=tab OnTabChanged=HandleTabChange />
+				}
+		</div>
+
+
+		@code {
+			int currentTab;
+		}
+		<RadzenTabs @key=@($"x{VirtualForm.MainForm.Token}-tabs") TabPosition="@tabPosition" @bind-SelectedIndex=@currentTab RenderMode="TabRenderMode.Server" style=" flex: 1;overflow: auto;">
+			<Tabs>
+				@foreach (var tab in VirtualForm.MainForm.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
+				{
+					<RadzenTabsItem @key=@($"x{VirtualForm.MainForm.Token}-tabs-{tab.TabName}") Text=@(VirtualForm.MainForm.Tabs.Count == 2 ? "" : tab.TabName)>
+						<FormTabU @key=@($"x{VirtualForm.MainForm.Token}-tabs-{tab.TabName}-tabu") OnMostrarDialogRequiereGuardar=@OnMostrarDialogRequiereGuardar FormComponent=this OnButtonClick=OnButtonClick OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnAddItem=List_AddNewItem OnTabChanged=HandleTabChange Tab=tab />
+					</RadzenTabsItem>
+				}
+			</Tabs>
+		</RadzenTabs>
+
+
+	</BodyContent>
+
+	<FooterContent>
+
+
+		<div class="d-flex justify-content-between align-items-end ml-2   ">
+
+			<div class="d-flex justify-content-start gap-1  " style="padding-left:10px">
+
+				<span>
+					Extensiones
+				</span>
+				@* <FormExtensionsButtomsU @ref=extensionComponent Display="Services.AppExtensionsService.DisplayPositionE.Footer" FormComponent=this /> *@
+
+			</div>
+
+			<div class="d-flex justify-content-end gap-1  align-items-center " style="margin-right:20px">
+
+				@if (guardando)
+				{
+
+					<Loader />
+
+				}
+				else if (VirtualForm.HasChanged())
+				{
+
+					<RadzenButton IsBusy=@guardando ButtonStyle=ButtonStyle.Success Icon="check" Class="ml-auto" Text="Guardar" Click="@Save" />
+					<RadzenButton Variant="Variant.Text" IsBusy=@guardando ButtonStyle=ButtonStyle.Danger Icon="close" Class="ml-auto" Text="Cancelar" Click="@Cancelar" />
+				}
+				else
+				{
+					<RadzenButton Variant="Variant.Outlined" IsBusy=@guardando ButtonStyle=ButtonStyle.Success Icon="check" Class="ml-auto" Text="Guardar" Click="@Save" />
+					<RadzenButton Variant="Variant.Text" IsBusy=@guardando ButtonStyle=ButtonStyle.Danger Icon="close" Class="ml-auto" Text="Cerrar" Click="@Cancelar" />
+				}
+			</div>
+
+		</div>
+
+	</FooterContent>
+
+</DialogLayout>
+
+
+
+
+}
+else
+{
+	<Loader />
+}
+
+<style>
+	.rz-tabview-panel {
+		min-height: 100%
+	}
+</style>
+
+@* 
+@if (DebugEnabled && updateWindowsResult.IsNotNull())
+{
+	<ChangesPreview Result=updateWindowsResult />
+}
+ *@
+@code {
+
+	public async Task OpenAnnotations(Guid sectionId, Guid rowId, AnnotationTypeE annotationType)
+	{
+
+
+		// await UpDialogs.OpenAnottations(VirtualForm.MainForm.Section.ID, VirtualForm.MainForm.RowID.ToGUID(), AnnotationTypeE.Comments))
+
+	}
+
+
+	public async Task OnMostrarDialogRequiereGuardar()
+	{
+
+
+		await DialogService.Confirm("Se requiere guardar para ejecutar esta acción", "Confirmación", new ConfirmOptions
+		{
+			OkButtonText = "Guardar",
+			CancelButtonText = "Cancelar"
+		})
+			.ContinueWith(async (t) =>
+			{
+				if (t.Result.HasValue && t.Result.Value)
+				{
+					await ApplyChanges();
+				}
+			});
+
+
+	}
+
+
+
+	static HashSet<string> todosLosTokensCerrado = new();
+
+
+	[Parameter] public EventCallback<System.Guid> OnDeleteItemPrimaryList { get; set; }
+
+
+	bool Caducado = false;
+
+
+
+	public bool guardando { get; set; }
+	bool DebugEnabled = false;
+
+
+
+	TabPosition tabPosition = TabPosition.Top;
+
+
+	[Parameter]
+	public Dinaup.VirtualFormDTO VirtualForm { get; set; }
+
+
+
+	[Parameter]
+	public Dinaup.DinaupClientC DinaupClient { get; set; }
+
+
+
+
+	private Dictionary<string, object> _fieldValues = new Dictionary<string, object>();
+
+	DateTime _OnInitialized = DateTime.Now;
+	protected override void OnInitialized()
+	{
+		try
+		{
+			_OnInitialized = DateTime.Now;
+
+			base.OnInitialized();
+			OpenFormsManager.Add(this);
+			lastCompletedSync = DateTime.UtcNow;
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+
+		RecuperarIDDelForm();
+
+
+	}
+
+	protected override Task OnParametersSetAsync()
+	{
+
+		RecuperarIDDelForm();
+		InvokeAsync(this.StateHasChanged);
+		return base.OnParametersSetAsync();
+	}
+
+
+	public async Task SetForm(Dinaup.VirtualFormDTO VirtualForm)
+	{
+		this.VirtualForm = VirtualForm;
+		_ = InvokeAsync(this.StateHasChanged);
+
+	}
+
+	void HandleTabChange(Dinaup.VirtualFormDTO.Tab newTab)
+	{
+
+		RecuperarIDDelForm();
+
+
+		try
+		{
+			if (Caducado) return;
+
+			eSync(VirtualForm.WithUpdatedForm(VirtualForm.GetFormByTabToken(newTab.TabToken).WithTab(newTab)));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+
+	}
+
+	private void RecuperarIDDelForm()
+	{
+
+		if (resultRowID.IsNotEmpty()) return;
+		try
+		{
+			if (VirtualForm?.MainForm?.RowID?.IsGUID() ?? false)
+				resultRowID = VirtualForm.MainForm.RowID.ToGUID();
+
+		}
+		catch (Exception ex)
+		{
+		}
+
+
+	}
+
+
+	public async Task<Boolean> Ping()
+	{
+
+		RecuperarIDDelForm();
+
+
+
+		try
+		{
+			if (Caducado) return false;
+
+
+			var seconds = 25;
+
+			if (lastCompletedSync.AddSeconds(seconds) < DateTime.UtcNow)
+			{
+				Console.WriteLine("PING: " + this.VirtualForm.Token);
+				lastIniSync = DateTime.Now;
+				eSync(this.VirtualForm);
+				return true;
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		return false;
+
+	}
+
+
+
+
+
+	public async Task OnButtonClick(string tokenOId)
+	{
+		try
+		{
+			if (Caducado) return;
+			if (tokenOId.IsEmpty()) return;
+
+
+
+
+			var buttom = VirtualForm.GetButton(tokenOId);
+
+
+			// if (VirtualForm.HasChanged())
+			// {
+			// 	await ApplyChanges();
+			// }
+
+
+			var elForm = await SessionUserContext.DinaupClient.FormSendClick(SessionUserContext, VirtualForm, tokenOId);
+			await RevisarYAbrirModales(elForm);
+			eSync(this.VirtualForm);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+
+
+	}
+
+
+
+
+	public DateTime lastIniSync;
+	public DateTime lastCompletedSync;
+	UpdateWindowsResult updateWindowsResult;
+	private async Task eSync(VirtualFormDTO VForm)
+	{
+
+
+
+
+		RecuperarIDDelForm();
+
+
+		if (Caducado) return;
+
+
+
+
+
+
+		try
+		{
+
+			var x = new System.Diagnostics.Stopwatch();
+			x.Start();
+
+
+			Console.WriteLine("Iniciando Sync");
+			// Sincronizado = true;
+			var antVirtualForm = VForm;
+			var antForms = VForm.GetAllFormsByToken();
+			var newVirtualForm = await SessionUserContext.DinaupClient.FormUpdate(SessionUserContext, VForm);
+			updateWindowsResult = newVirtualForm;
+
+
+			VirtualForm = newVirtualForm.NewForm;
+
+			// if (VirtualForm.CompareEsDiferente(newVirtualForm.NewForm))
+			// 	VirtualForm = newVirtualForm.NewForm;
+			// else
+			// 	VirtualForm.CopyMetadataFrom(newVirtualForm.NewForm);
+
+
+
+			var newListform = VirtualForm.GetAllFormsByToken();
+			// EventsNotifier.NotifyVirtualFormChanged(antVirtualForm, VirtualForm);
+			EventsNotifier.NotifyFormChanged(antVirtualForm.MainForm, VirtualForm.MainForm);
+
+			foreach (var item in antForms)
+				if (newListform.ContainsKey(item.Key))
+					EventsNotifier.NotifyFormChanged(item.Value, newListform.GetM(item.Key));
+
+
+			// Sincronizado = false;
+			lastCompletedSync = DateTime.UtcNow;
+			x.Stop();
+			await InvokeAsync(StateHasChanged);
+			Console.WriteLine($"Fin Sync: {x.ElapsedMilliseconds}");
+
+
+
+
+		}
+		catch (Exception ex)
+		{
+
+			Caducado = true;
+			await InvokeAsync(StateHasChanged);
+
+		}
+
+
+		Task.Delay(100).ContinueWith((e) => { InvokeAsync(StateHasChanged); });
+
+
+
+
+	}
+
+
+
+	private async Task ApplyChanges()
+	{
+
+		RecuperarIDDelForm();
+
+
+
+		InvokeAsync(async () =>
+						{
+							await mApplyChanges();
+							DialogService.Close(this.resultRowID);
+						});
+
+		await UpDialogs.BusyDialog("Aplicando cambios...");
+
+
+	}
+
+
+
+
+	private Guid resultRowID;
+	private async Task mApplyChanges()
+	{
+
+
+		// if (VirtualForm.HasChanged() == false)
+		// 	return;
+
+
+		RecuperarIDDelForm();
+
+		guardando = true;
+		TriggerRender();
+
+		try
+		{
+			bool esNuevo = VirtualForm.MainForm.RowID.IsEmpty();
+			var resultX = await SessionUserContext.DinaupClient.FormSave(SessionUserContext,VirtualForm);
+			var newVirtualForm = resultX.Item1;
+			var okResult = resultX.Item2;
+
+			if (resultRowID.IsEmpty() && okResult.IsNotNull())
+				resultRowID = okResult.RowID.ToGUID();
+
+
+			if (newVirtualForm != null && !string.IsNullOrWhiteSpace(newVirtualForm.Aviso))
+			{
+
+				NotificationService.Notify(new NotificationMessage
+				{
+					Severity = NotificationSeverity.Warning,
+					Duration = 40000,
+					SummaryContent = ns =>@<p><RadzenText TextStyle="TextStyle.H6">Ups!</RadzenText> <p>@newVirtualForm.Aviso</p></p> });
+
+				}
+			else if (newVirtualForm == null)
+				{
+
+
+
+					this.VirtualForm = await SessionUserContext.DinaupClient.FormOpenAsync(SessionUserContext,okResult.SectionID, okResult.RowID,"", null);
+					Console.WriteLine("Fin Sync");
+
+
+
+				}
+			}
+		catch (Exception ex)
+		{
+
+			NotificationService.Notify(NotificationSeverity.Error, "Error al guardar", ex.Message);
+		}
+
+		guardando = false;
+		TriggerRender();
+
+
+	}
+
+
+
+
+	public bool ShowOk;
+	private async void Save()
+	{
+
+		RecuperarIDDelForm();
+
+		if (Caducado) return;
+
+		guardando = true;
+		TriggerRender();
+
+		try
+		{
+
+			string token = VirtualForm.MainForm.Token;
+
+			var re = await SessionUserContext.DinaupClient.FormSave(SessionUserContext,VirtualForm);
+			var newVirtualForm = re.Item1;
+			if (newVirtualForm.IsNotNull() && newVirtualForm.Aviso.IsNotEmpty())
+			{
+
+				NotificationService.Notify(new NotificationMessage
+				{
+					Severity = NotificationSeverity.Warning,
+					Duration = 40000,
+					SummaryContent = ns =>@<p><RadzenText TextStyle="TextStyle.H6">Ups!</RadzenText> <p>@newVirtualForm.Aviso</p></p> });
+
+				}
+			else if (newVirtualForm == null)
+				{
+
+
+					if (VirtualForm.MainForm.RowID.IsGUID())
+						resultRowID = VirtualForm.MainForm.RowID.ToGUID();
+
+
+					if (re.Item2.RowID.IsGUID())
+						resultRowID = re.Item2.RowID.ToGUID();
+
+
+
+					ShowOk = true;
+					DialogService.Close(resultRowID);
+
+				}
+
+				lock (todosLosTokensCerrado)
+					todosLosTokensCerrado.Add(token);
+
+
+			}
+		catch (Exception ex)
+		{
+
+			NotificationService.Notify(NotificationSeverity.Error, "Error al guardar", ex.Message);
+		}
+
+		guardando = false;
+		TriggerRender();
+
+
+
+	}
+	private async void Cancelar()
+	{
+		try
+		{
+			lock (todosLosTokensCerrado)
+				todosLosTokensCerrado.Add(VirtualForm.Token);
+
+			await SessionUserContext.DinaupClient.FormCancel(SessionUserContext,VirtualForm);
+			Cerrar();
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+
+	}
+
+
+
+
+	private bool isClosed = false;
+
+	void Cerrar()
+	{
+		if (!isClosed)
+		{
+			isClosed = true;
+			DialogService.Close(resultRowID);
+		}
+	}
+
+
+	private async Task ReOpenAsync()
+	{
+
+		guardando = true;
+		TriggerRender();
+		try
+		{
+
+			lock (todosLosTokensCerrado)
+				todosLosTokensCerrado.Add(VirtualForm.Token);
+
+
+			string sectionId = VirtualForm.MainForm.Section.ID.STR();
+			string rowId = VirtualForm.MainForm.RowID;
+
+
+
+			try
+			{
+				await SessionUserContext.DinaupClient.FormCancel(SessionUserContext, VirtualForm);
+			}
+			catch (Exception) { }
+			this.VirtualForm = await SessionUserContext.DinaupClient.FormOpenAsync(SessionUserContext, sectionId, rowId,"",  null);
+
+
+		}
+		catch (Exception) { }
+		guardando = false;
+		TriggerRender();
+
+	}
+
+
+
+
+
+	async Task PrintCurrent()
+	{
+		if (Caducado) return;
+		try
+		{
+
+			var responseVariablesX = new Dictionary<string, string>();
+			responseVariablesX.Add(VirtualForm.MainForm.PrintDynamicDocumentoList.First().VariableList.Variables.First().Key, VirtualForm.MainForm.RowID);
+			await UpDialogs.OpenDynamicDocument(VirtualForm.MainForm.PrintDynamicDocumentoList.First().ID.STR(), responseVariablesX, VirtualForm.MainForm.PrintDynamicDocumentoList);
+
+
+		}
+		catch (Exception ex)
+		{
+
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
+		}
+
+
+	}
+
+
+	public async Task List_AddNewItem()
+	{
+		await List_AddNewItem(null);
+	}
+	public async Task List_AddNewItem(Dictionary<string, string> addvalues)
+	{
+
+
+		if (Caducado) return;
+
+		try
+		{
+			await eSync(await SessionUserContext.DinaupClient.FormNewListItem(SessionUserContext,VirtualForm, addvalues));
+		}
+		catch (Exception ex)
+		{
+
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
+		}
+	}
+
+
+	async Task HandleOnDeleteItemPrimaryList(string tokeListID)
+	{
+		if (Caducado) return;
+		try
+		{
+			await eSync(await SessionUserContext.DinaupClient.FormRemoveListItem(SessionUserContext, VirtualForm, tokeListID));
+
+
+		}
+		catch (Exception ex)
+		{
+
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
+		}
+	}
+
+
+
+
+
+
+	async Task DataFlow_OnOpenPopUp(Dinaup.DataFlowChildDTO Destinador)
+	{
+
+
+		// await this.mApplyChanges();
+
+
+
+
+		if (VirtualForm.MainForm.RowID.IsNotEmpty())
+		{
+
+			// if (VirtualForm.MainForm.Section.ID == DemoUp.MyDinaup.SectionsD.PresupuestosDeVentaD._SectionIDGUID)
+			// 	UpDialogs.Abrir_FlujoPresupuestoVenta(VirtualForm.MainForm.RowID.ToGUID());
+			// else if (VirtualForm.MainForm.Section.ID == DemoUp.MyDinaup.SectionsD.VentasIngresosD._SectionIDGUID)
+			// 	UpDialogs.Abrir_FlujoVentaAsync(VirtualForm.MainForm.RowID.ToGUID());
+			// else
+			// 	UpDialogs.Abrir_FlujoCompra(VirtualForm.MainForm.RowID.ToGUID());
+
+		}
+
+
+	}
+
+
+
+	async Task DataFlow_OnViewRelations(Dinaup.DataFlowChildDTO Destinador)
+	{
+		try
+		{
+
+			if (Caducado) return;
+			if (VirtualForm.HasChanged())
+				await ApplyChanges();
+
+			if (VirtualForm.HasChanged())
+			{
+				NotificationService.Notify(NotificationSeverity.Error, "Ups!", "No se han podido guardar los cambios automáticamente. Se requiere guardar antes de utilizar los flujos de datos.");
+			}
+			else
+			{
+
+				EventCallback<Dinaup.DataFlowChildDTO> onAddCallback = EventCallback.Factory.Create<Dinaup.DataFlowChildDTO>(this, DataFlow_OnAddRelaions);
+				// UpDialogs.OpenDataFlowModalAsync(VirtualForm, Destinador, onAddCallback);
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+	}
+
+
+
+	async Task DataFlow_OnAddRelaions(Dinaup.DataFlowChildDTO Destinador)
+	{
+
+		try
+		{
+			if (Caducado) return;
+			if (VirtualForm.HasChanged())
+				await ApplyChanges();
+
+			if (VirtualForm.HasChanged())
+			{
+
+				NotificationService.Notify(NotificationSeverity.Error, "Ups!", "No se han podido guardar los cambios automáticamente. Se requiere guardar antes de utilizar los flujos de datos.");
+
+			}
+			else if (Destinador.DataFlow.DataFlowType == DataFlowTypeE.ListaAListador)
+			{
+
+
+
+
+				var resultado = await SessionUserContext.DinaupClient.FormAutoCumpleteDataFlow(SessionUserContext, Destinador.DataFlow.ID, VirtualForm.MainForm.RowID);
+				if (resultado.TieneDatos())
+					foreach (var item in resultado)
+						if (item.ErrorResult.IsNotEmpty())
+							NotificationService.Notify(NotificationSeverity.Error, item.Title ?? "Ups", item.ErrorResult);
+
+
+
+				await ReOpenAsync();
+
+
+
+			}
+			else
+			{
+				await UpDialogs.OpenModalAddFormAsync(Destinador.Section.ID.STR(), Destinador.AddDic);
+				await ReOpenAsync();
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+
+	}
+
+
+
+
+
+
+
+
+
+	void MostrarOpcionesEnDesarrollo(MouseEventArgs args)
+	{
+		try
+		{
+			// @if (PlayConfig.IsDevMode == false) return;
+
+			// ContextMenuService.Open(args,
+			// 	new List<ContextMenuItem> {
+			// 	new ContextMenuItem(){ Text = "Cerrar y caducar", Value = 1, Icon = "warning" },
+			// 	new ContextMenuItem(){ Text = "Debug dialog", Value = 2, Icon = "" },
+			// 																																											 }, OnMenuItemClick);
+
+
+
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+
+
+	}
+
+	void OnMenuItemClick(MenuItemEventArgs args)
+	{
+
+
+		try
+		{
+
+
+			if (args.Value.Equals(1))
+			{
+				SessionUserContext.DinaupClient.FormCancel(SessionUserContext, VirtualForm);
+				eSync(this.VirtualForm);
+			}
+
+			// if (args.Value.Equals(2))
+			// {
+			// 	DialogService.Open<Forms.DebugInfo.VirtualFormDebugInfoDialog>("debug", new() { { nameof(Forms.DebugInfo.VirtualFormDebugInfoDialog.VirtualForm), this } });
+			// 	eSync(this.VirtualForm);
+			// }
+			ContextMenuService.Close();
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+
+
+	}
+}
+
+
+
+
+@code {
+
+
+
+
+	HashSet<System.Guid> TokensAbiertos = new();
+
+	private async Task RevisarYAbrirModales(VirtualFormDTO elForm)
+	{
+
+		try
+		{
+
+			if (elForm.IsNull()) return;
+			if (elForm.MainForm.IsNull()) return;
+
+
+			if (elForm.MainForm.DialogList_FromAdd.IsNotEmpty())
+			{
+
+				foreach (var item in elForm.MainForm.DialogList_FromAdd)
+				{
+					if (TokensAbiertos.Add(item.Token) == false) continue;
+					await UpDialogs.OpenModalAddFormAsync(item.SectionId, item.DataPrimary);
+				}
+
+
+			}
+
+			if (elForm.MainForm.DialogList_ReportOpen.IsNotEmpty())
+			{
+				foreach (var item in elForm.MainForm.DialogList_ReportOpen)
+				{
+					if (TokensAbiertos.Add(item.Token) == false) continue;
+
+					if (item.IsDynamicDocument)
+						await UpDialogs.OpenDynamicDocument(item.ID.ToString(), item.Variables);
+					else
+						await UpDialogs.OpenReport(item.ID.ToString(), item.Variables);
+
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.GetDescription());
+		}
+		;
+
+
+	}
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+@code {
+
+
+	public void Dispose()
+	{
+		OpenFormsManager.Remove(this);
+		_objRef?.Dispose();
+		_objRef = null;
+		VirtualForm?.Dispose();
+		VirtualForm = null;
+		extensionComponent = null;
+		updateWindowsResult = null;
+	}
+	public FormExtensionsButtomsU extensionComponent;
+
+
+
+	private DotNetObjectReference<DynamicFormU> _objRef;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_objRef = DotNetObjectReference.Create(this);
+			await JS.InvokeVoidAsync("addKeyboardShortcutListener", _objRef);
+		}
+	}
+
+
+
+
+
+
+
+	[JSInvokable]
+	public void OnKeyF1()
+	{
+		// extensionComponent.keyPress("f1");
+	}
+
+	[JSInvokable]
+	public void OnKeyF2()
+	{
+		// extensionComponent.keyPress("f2");
+	}
+
+	[JSInvokable]
+	public void OnKeyF3()
+	{
+		// extensionComponent.keyPress("f3");
+	}
+
+	[JSInvokable]
+	public void OnKeyF4()
+	{
+		// extensionComponent.keyPress("f4");
+	}
+
+
+
+
+
+
+	async Task TriggerRender()
+	{
+		await InvokeAsync(StateHasChanged);
+	}
+
+}

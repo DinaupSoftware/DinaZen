@@ -1,0 +1,25 @@
+<RadzenCard class="p-3 d-flex justify-content-around align-items-center flex-wrap gap-3" Variant=@Variant>
+
+    @foreach (var stat in Statistics ?? new())
+    {
+        <StatsDisplay_Item Value="@stat.Value" Label="@stat.Label" Unit="@stat.Unit" @key=@stat />
+    }
+
+</RadzenCard>
+
+@code {
+
+    [Parameter]
+    public Variant Variant { get; set; } 
+
+    [Parameter, EditorRequired]
+    public List<StatisticModel> Statistics { get; set; } = new();
+
+ 
+    public class StatisticModel
+    {
+        public string Value { get; set; }
+        public string Label { get; set; }
+        public string Unit { get; set; }
+    }
+}

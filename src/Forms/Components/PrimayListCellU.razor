@@ -1,0 +1,85 @@
+﻿@using static Dinaup.VirtualFormDTO
+
+
+@if (Control.IsNotNull())
+{
+
+	<div class="d-flex align-items-center align-content-center justify-content-between">
+		<div>
+
+
+			@if (Control.Value_Img.IsNotEmpty())
+			{
+				<img src="@Control.Value_Img" style=@( (Control.Value_ImgRound ? "border-radius:100%":"") + ";max-width:24px;max-height:100%" ) />
+			}
+
+
+			@if (Control.Value_Text.IsNotEmpty())
+			{
+
+				@Control.Value_Text
+
+			}
+			else
+			{
+
+				@Valor
+
+			}
+
+		</div>
+		<div>
+			@* 	<RadzenIcon Icon="lock" IconColor="orange" Style="font-size:12px;opacity:0.4">
+			</RadzenIcon> *@
+		</div>
+	</div>
+
+
+}
+else
+{
+
+	@Valor
+
+}
+
+
+
+
+
+
+
+@code {
+
+
+
+	public void Dispose()
+	{
+		ListItem = null;
+		Column = null;
+		Control = null;
+	}
+
+
+
+
+	[Parameter] public ListItem.ListItemRow ListItem { get; set; }
+	[Parameter] public string ColumnName { get; set; }
+	[Parameter] public DinaupFieldDTO Column { get; set; }
+
+
+	Dinaup.VirtualFormDTO.Control Control;
+	string Valor;
+
+
+	protected async override Task OnParametersSetAsync()
+	{
+		Control = ListItem?.ListForm?.GetControl(Column?.NativeName)?.Item2;
+		Valor = ListItem?.Values?.GetM(ColumnName);
+		await base.OnParametersSetAsync();
+	}
+
+
+
+
+}

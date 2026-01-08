@@ -1,0 +1,47 @@
+﻿@using Microsoft.AspNetCore.Components
+@implements IDisposable
+
+<div class="d-flex rz-background-color-white rz-border-color-base-700 px-2 py-1" style="border-radius:10px">
+	<RadzenIcon Icon="search" /> 
+	<input type="text" placeholder="Buscar..." @bind="Value" @oninput="OnInput" style="border:none; ;" class="rz-background-color-white" />
+</div>
+
+@code {
+
+	[Parameter]
+	public string Value { get; set; }
+
+	[Parameter]
+	public EventCallback<string> ValueChanged { get; set; }
+	[Parameter]
+	public EventCallback<string> BounceValueChanged { get; set; }
+
+
+	private Dinaup.Debouncer debouncer;
+	protected override Task OnInitializedAsync()
+	{
+		debouncer = new(triggerDebounceChanged, 500);
+		return base.OnInitializedAsync();
+	}
+
+
+	private async Task triggerDebounceChanged()
+	{
+		await BounceValueChanged.InvokeAsync(Value);
+	}
+	private async Task OnInput(ChangeEventArgs e)
+	{
+		Value = e.Value?.ToString();
+		await ValueChanged.InvokeAsync(Value);
+		debouncer.Debounce();
+	}
+
+
+	void IDisposable.Dispose()
+	{
+		debouncer?.Dispose();
+		debouncer= null;
+	}
+
+
+}

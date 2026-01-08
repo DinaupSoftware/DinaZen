@@ -1,0 +1,308 @@
+﻿@using Radzen.Blazor.Rendering
+
+
+
+<style>
+	.obli label {
+		color: red !important
+	}
+
+		.obli label::after {
+			content: "*";
+			font-size: 0.8em;
+			margin-left: 4px;
+		}
+
+
+	.obli .rz-form-field-content {
+		background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
+		border-bottom: 2px solid #ffb0b0;
+	}
+</style>
+
+
+<ErrorBoundary>
+
+
+
+
+	<RadzenFormField Text=@Label Variant="Variant.Flat" class=@("dropdown-menu-component" + (Pequeno ? "-min" : "") + ((Obligatorio && SelectedRow.IsEmpty()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " " + Class) Style=@Style>
+		<Start>
+			@if (Icon.IsNotEmpty())
+			{
+				<RadzenIcon Icon=@Icon />
+			}
+		</Start>
+		<ChildContent>
+
+			@if (iniciando && DefaultID.IsNotEmpty())
+			{
+				<div style="width:100%; margin-top: 13px" class=" d-flex  justify-content-center align-items-center align-content-center">
+					<SkeletonU Lines="1" MaxWidth="80%" />
+				</div>
+			}
+			else
+			{
+
+				<div @ref=elDivX @onclick=@(args => Activar()) class="d-flex align-items-center" style=" min-height:54.6px; padding-right:4px; border-radius:6px;flex:1; padding: 4px 10px">
+					<span class="d-flex justify-content-between flex-grow-1 dropdown-menu-text" style="cursor:pointer;padding-top: 20px">
+						<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 200px;" class="dropdown-menu-text flex-grow-1">
+							@SelectedRow?.Label
+						</span>
+					</span>
+				</div>
+
+			}
+
+
+		</ChildContent>
+		<End>
+			@if (Disabled == false)
+			{
+				<div style=" margin-top: -15px; " class="d-flex align-content-center align-items-center gap-1">
+
+					<RadzenIcon Icon="arrow_drop_down" @onclick=@(args => Activar()) />
+
+					@if (SelectedRow.IsNotEmpty())
+					{
+						<div class="d-flex flex-column gap-1">
+							<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" onclick=@(() => OnRemoveClick()) />
+
+							@if (SelectedRow.SectionID.IsNotEmpty())
+							{
+								<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" onclick=@(() => OnOpenClick()) />
+
+							}
+						</div>
+					}
+					else
+					{
+
+						@if (OnAdd.HasDelegate)
+						{
+							<RadzenButton Icon="add" Style="font-size:13px;" ButtonStyle=" ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
+						}
+					}
+				</div>
+			}
+		</End>
+	</RadzenFormField>
+</ErrorBoundary>
+
+<Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
+	<ErrorBoundary>
+		<RadzenTextBox @ref=textBox @onkeydown=@OnKeyDown id=@idsearch Placeholder="Escribe para buscar..." Style="width:100%;" @oninput=@OnInput />
+		<ReportView AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter AutoSeleccionarPrimerElemento=true @ref=InformeControl OnItemSelect=@(async (x) => { await this.Asignar(x); }) ReportId=@ReportId Limite="20" />
+	</ErrorBoundary>
+</Popup>
+
+
+
+@code {
+
+	string idsearch = Guid.NewGuid().ToString().Replace("-", "");
+
+
+	[Parameter]
+	public string Icon { get; set; }
+
+	[Parameter]
+	public bool AdminMode { get; set; } = false;
+
+
+	public async Task Activar()
+	{
+
+		if (Disabled) return;
+		await popup.ToggleAsync(elDivX);
+	}
+
+
+	async Task OnKeyDown(KeyboardEventArgs args)
+	{
+		// await InformeControl.ProcessOnKeyDown(args, popup, textBox);
+	}
+
+
+	[Parameter] public bool Pequeno { get; set; }
+	[Parameter] public string Class { get; set; } = "";
+
+
+	private void OnInput(ChangeEventArgs args)
+	{
+		if (Disabled) return;
+		InformeControl.UpdateSearch(args.Value?.ToString() ?? string.Empty);
+		InvokeAsync(this.StateHasChanged);
+	}
+
+
+	[Parameter] public string AtajoTeclado { get; set; }
+
+	string estiloTextbox;
+
+
+
+
+
+	DataComponents.ReportView InformeControl;
+	ElementReference elDivX; // eso lo usa el desplegble para saber la posicion X e Y sobre la pantalla
+	Popup popup;
+	RadzenTextBox textBox;
+	string searchString = "";
+
+
+	[Parameter] public string Style { get; set; } = "flex:1";
+
+	[Parameter] public string Placeholder { get; set; }
+
+
+	[Parameter] public EventCallback<IDinaupRow> SelectedRowChanged { get; set; }
+	[Parameter] public IDinaupRow SelectedRow { get; set; }
+	[Parameter] public string Label { get; set; }
+	[Parameter] public string ReportId { get; set; }
+
+	[Parameter] public bool Obligatorio { get; set; }
+	[Parameter] public bool Disabled { get; set; }
+
+
+	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
+
+	[Parameter]
+	public EventCallback<Guid> OnAdd { get; set; }
+
+	[Parameter] public Guid DefaultID { get; set; }
+
+
+	bool iniciando = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		if (DefaultID.IsNotEmpty())
+		{
+			await AsignarPorID(DefaultID);
+		}
+		iniciando = false;
+
+	}
+
+	protected override Task OnParametersSetAsync()
+	{
+
+		if (Obligatorio && SelectedRow.IsNull())
+		{
+			estiloTextbox = ";border: 1px solid red";
+
+
+		}
+		else
+		{
+			estiloTextbox = "";
+		}
+
+		return base.OnParametersSetAsync();
+	}
+
+
+	public async Task Asignar(Dinaup.DinaupBasicInformation datos)
+	{
+		await Asignar(datos.ToDinaupDynamicRowDTO());
+	}
+
+
+	public async Task Asignar(SelectorDatoRelacionadoU datos)
+	{
+
+		await Asignar(datos.SelectedRow);
+
+	}
+
+
+	public async Task AsignarPorID(Guid ID)
+	{
+
+		if (ID.IsNotEmpty())
+		{
+
+
+			var paramsX = new ReportRequestParameters(ReportId, 1);
+			paramsX.AddFilter("id", "=", ID);
+			paramsX.AdminMode = true;
+
+			var result = await SessionUserContext.DinaupClient.Report_GetAsync(SessionUserContext, paramsX);
+
+			var rwos = result.DataList.GetDynamicsRowsOBJ();
+			if (rwos.IsNotEmpty())
+			{
+				await Asignar(rwos.FirstOrDefault());
+			}
+
+		}
+
+	}
+
+
+
+	public async Task Asignar(IDinaupRow dataRow)
+	{
+
+		if (dataRow.IsNull())
+		{
+			SelectedRow = null;
+			InvokeAsync(this.StateHasChanged);
+			SelectedRowChanged.InvokeAsync(null);
+		}
+		else
+		{
+			SelectedRow = dataRow;
+			InvokeAsync(this.StateHasChanged);
+			SelectedRowChanged.InvokeAsync(dataRow);
+		}
+
+
+		try
+		{
+			await popup.CloseAsync();
+		}
+		catch (Exception)
+		{
+
+		}
+	}
+
+
+
+	async Task OnOpen()
+	{
+		if (Disabled) return;
+		await JS.InvokeVoidAsync("eval", "setTimeout(function(){ document.getElementById('" + idsearch + "').focus(); }, 200)");
+	}
+
+
+
+	private async Task OnAddClick()
+	{
+
+		if (Disabled) return;
+		if (OnAdd.HasDelegate)
+			await OnAdd.InvokeAsync();
+
+	}
+
+	private async Task OnRemoveClick()
+	{
+
+		Asignar((IDinaupRow)null);
+
+	}
+
+	private async Task OnOpenClick()
+	{
+
+		if (this.SelectedRow.IsNotNull())
+			await UpDialogs.OpenModalForm(this.SelectedRow);
+
+	}
+
+}

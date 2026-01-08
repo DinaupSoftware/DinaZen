@@ -1,0 +1,77 @@
+﻿@using System.Text
+@using System.Text.Json
+
+
+<DialogLayout>
+	<TitleContent>
+
+		@if (Type == AnnotationTypeE.Files)
+		{
+			<h3><RadzenIcon Icon="attach_file"></RadzenIcon> Archivos</h3>
+		}
+		else if (Type == AnnotationTypeE.Comments)
+		{
+			<h3><RadzenIcon Icon="chat"></RadzenIcon> Comentarios</h3>
+		}
+		else
+		{
+			<h3><RadzenIcon Icon="public"></RadzenIcon> Galería pública</h3>
+		}
+
+	</TitleContent>
+	<BodyContent>
+		<div class="h-100 d-flex flex-column justify-content-between flex-grow-1">
+			<div class="d-flex flex-column h-100 align-content-between justify-content-between flex-grow-1">
+
+				<div class="d-flex flex-column gap-3 p-3  " style="max-width:700px;background:#F1F1F1;flex:1;border-radius:10px">
+					@if (Comments != null && Comments.Annotations.TieneDatos())
+					{
+						@foreach (var item in Comments.Annotations)
+						{
+							<AnotationU Anotation=item />
+						}
+					}
+				</div>
+
+			</div>
+
+			<div>
+				<RedactarU rowId=@rowId sectionId=@sectionId Type=@Type OnAnnotationSended=@(async () => await ActualizarComentarios()) />
+			</div>
+		</div>
+	</BodyContent>
+</DialogLayout>
+
+
+@code {
+
+
+
+
+	[Parameter] public System.Guid rowId { get; set; }
+	[Parameter] public System.Guid sectionId { get; set; }
+	[Parameter] public AnnotationTypeE Type { get; set; }
+
+
+
+	public AnnotationGetResponse Comments { get; set; }
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		Comments = await SessionUserContext.DinaupClient.Annotations_GetAsync(SessionUserContext, sectionId, rowId, Type);
+		await base.OnInitializedAsync();
+	}
+
+
+	async Task ActualizarComentarios()
+	{
+		Comments = await SessionUserContext.DinaupClient.Annotations_GetAsync(SessionUserContext, sectionId, rowId, Type);
+		InvokeAsync(this.StateHasChanged);
+	}
+
+
+
+
+}

@@ -1,0 +1,55 @@
+﻿ 
+@if (true)
+{
+	
+}else if(DataControl.IconFieldURL.IsNotEmpty())
+{
+
+
+	<img src="@DataControl.IconFieldURL" width="@($"{Width}px")" height="@($"{Width}px")" style="opacity:0.5" />
+}
+else if(DataControl.FieldRole == RoleFieldE.Moneda)
+{
+	<RadzenIcon Icon="payments" style="opacity:0.5" ></RadzenIcon>
+}
+else if (DataControl.FieldRole == RoleFieldE.Pass)
+{
+	<RadzenIcon Icon="password" style="opacity:0.5" ></RadzenIcon>
+}
+else if (DataControl.FieldRole == RoleFieldE.Porcentaje)
+{
+	<RadzenIcon Icon="percent" style="opacity:0.5" ></RadzenIcon>
+}
+else if (DataControl.FormatEnum == FieldFormatE.DATE)
+{
+	<RadzenIcon Icon="calendar_month" style="opacity:0.5" ></RadzenIcon>
+
+}
+else if (DataControl.FormatEnum == FieldFormatE.DateAndTime)
+{
+
+	<RadzenIcon Icon="payments" style="opacity:0.5" ></RadzenIcon>
+}
+else if (DataControl.FormatEnum == FieldFormatE.TIME)
+{
+
+	<RadzenIcon Icon="schedule" style="opacity:0.5" ></RadzenIcon>
+
+}else{
+
+	<RadzenIcon Icon="shoppingmode" style="opacity:0.3" ></RadzenIcon>
+
+}  
+
+
+@code {
+	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+	[Parameter] public int Width { get; set; }
+
+
+
+	public void Dispose()
+	{
+		DataControl = null;
+	}
+}

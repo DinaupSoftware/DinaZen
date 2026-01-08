@@ -1,0 +1,29 @@
+﻿@using Microsoft.Extensions.Diagnostics.HealthChecks
+@inject HealthCheckService HealthCheckService
+
+@if (_isHealthy)
+{
+    @ChildContent
+}
+else
+{
+    <div class="text-gray-500 text-sm italic">
+        (Servicio no disponible en este momento.)
+    </div>
+}
+
+@code {
+    [Parameter] public string CheckName { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool _isHealthy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var report = await HealthCheckService.CheckHealthAsync();
+        var entry = report.Entries.FirstOrDefault(x =>
+            string.Equals(x.Key, CheckName, StringComparison.OrdinalIgnoreCase));
+
+        _isHealthy = entry.Value.Status == HealthStatus.Healthy;
+    }
+}

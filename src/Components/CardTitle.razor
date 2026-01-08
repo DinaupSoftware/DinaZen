@@ -1,0 +1,89 @@
+﻿<RadzenText TextStyle="TextStyle.H6" class="d-flex gap-2 justify-content-between mb-2">
+
+	<div>
+
+		@if (Icon.IsEmpty())
+		{
+	
+		}
+		else if (Icon.StartsWith("/") || Icon.StartsWith("https://"))
+		{
+			<img height=44 width=44 Src=@Icon />
+		}
+		else
+		{
+			<RadzenIcon IconStyle=@IconStyle Icon=@Icon class="rz-me-1" />
+		}
+
+		@Title
+		@if (Beta)
+		{
+			<RadzenBadge Style="margin-left:10px" Text="Beta" BadgeStyle="BadgeStyle.Danger" />
+		}
+
+
+	</div>
+	<div>
+		@if (HelpContent.IsNotNull())
+		{
+			@if (helpIsVisible)
+			{
+
+			}
+			else
+			{
+				<RadzenIcon Icon="info"  IconColor="#005395" Style="cursor:pointer" @onclick=@(( ) => {helpIsVisible = !helpIsVisible; InvokeAsync(this.StateHasChanged);}) />
+			}
+
+		}
+		else if (HelpLink.IsNotEmpty())
+		{
+			<a href=@HelpLink target="_blank">
+				<RadzenIcon Icon="info"  IconColor="#005395" Style="cursor:pointer" />
+			</a>
+
+		}
+	</div>
+
+</RadzenText>
+
+
+@if (helpIsVisible && HelpContent.IsNotNull())
+{
+	<RadzenCard Variant="Variant.Outlined" class="d-flex  gap-2 align-items-center mb-2">
+		<RadzenIcon Icon="info" IconColor="#005395" Style="font-size:30px" />
+		<div class="flex-grow-1">
+			@HelpContent
+			<div class="d-flex justify-content-end">
+				<RadzenButton Size="ButtonSize.ExtraSmall" Text="Ocultar" Variant="Variant.Text" Icon="keyboard_arrow_up" Click=@(( ) => {helpIsVisible = !helpIsVisible; InvokeAsync(this.StateHasChanged);}) />
+			</div>
+		</div>
+	</RadzenCard>
+}
+
+
+@code {
+
+
+	[Parameter]
+	public IconStyle IconStyle { get; set; }
+
+	public bool helpIsVisible;
+
+	[Parameter]
+	public string HelpLink { get; set; }
+
+	[Parameter]
+	public RenderFragment HelpContent { get; set; }
+
+	[Parameter]
+	public string Icon { get; set; }
+
+	[Parameter]
+	public string Title { get; set; }
+
+	[Parameter]
+	public bool Beta { get; set; }
+
+
+}

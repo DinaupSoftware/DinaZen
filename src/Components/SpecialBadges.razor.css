@@ -1,0 +1,51 @@
+﻿/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+ 
+/* Badges modernos con degradado */
+.badge-gradient {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-pro {
+    background: linear-gradient(135deg, #7c4dff 0%, #448aff 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(124, 77, 255, 0.35);
+}
+.badge-beta {
+    background: linear-gradient(135deg, #e53935 0%, #ff7043 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.4);
+}
+
+
+.badge-new {
+    background: linear-gradient(135deg, #00e5ff 0%, #2979ff 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 229, 255, 0.35);
+}
+
+.badge-premium {
+    background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+    color: #333;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.35);
+}
+.badge-ia {
+    background: linear-gradient(135deg, #56e16a 0%, #00c1ff 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(86, 225, 106, 0.35);
+}

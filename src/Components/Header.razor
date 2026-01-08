@@ -1,0 +1,10 @@
+﻿@using System.Reflection
+
+<link rel="stylesheet" href="@($"_content/DinaZen/dinazen.css?v={Version}")">
+<script src="@($"_content/DinaZen/dinazen.js?v={Version}")"></script>
+<script src="@($"_content/DinaZen/lottie.min.js?v={Version}")"></script>
+<script type="module" src="@($"_content/DinaZen/dotlottie-player.js?v={Version}")"></script>
+
+@code {
+    private static readonly string Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0.0";
+}

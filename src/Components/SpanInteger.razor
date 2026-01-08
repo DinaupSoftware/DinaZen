@@ -1,0 +1,16 @@
+﻿@if (Value.HasValue)
+{
+	<span class="numspan" style="font-size:@FontSize; word-break: keep-all; white-space: nowrap">
+		@((int)(Value.Value)).STR()
+	</span>
+}
+
+
+@code {
+
+
+	[Parameter] public decimal? Value { get; set; }
+	[Parameter] public string FontSize { get; set; } = "16px";  
+
+
+}

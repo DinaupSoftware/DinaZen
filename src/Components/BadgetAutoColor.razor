@@ -1,0 +1,155 @@
+﻿@using DemoUp.MyDinaup
+@if (Visible == false) return;
+
+
+
+@if (string.IsNullOrWhiteSpace(Value) == false)
+{
+	<span class="@CssClass" style=@cacheStyle onclick=@Click>
+		@Value
+	</span>
+}
+
+
+@code {
+
+
+
+	[Parameter]
+	public DemoUp.MyDinaup.EnumEstilosTextoEE Color { get; set; }
+
+
+	[Parameter]
+	public bool Visible { get; set; } = true;
+
+
+	[Parameter]
+	public string Style { get; set; }
+	[Parameter]
+	public string Value { get; set; }
+
+	[Parameter]
+	public Dictionary<string, int> BadgetStyle { get; set; }
+
+	[Parameter]
+	public EventCallback Click { get; set; }
+
+	private string CssClass => GetCssClass(Value);
+
+	private string cacheStyle;
+
+	protected override Task OnParametersSetAsync()
+	{
+		this.cacheStyle = this.Style;
+
+		if (Click.HasDelegate)
+			cacheStyle = cacheStyle + ";cursor:pointer;";
+
+		return base.OnParametersSetAsync();
+	}
+
+
+	private string GetCssClass(string value)
+	{
+		try
+		{
+
+			if (string.IsNullOrWhiteSpace(value))
+				return "badge-type badge-default";
+
+
+			int styleX;
+
+
+			if (Color != EnumEstilosTextoEE.Indefinido)
+				return "badge e" + ((int)Color).STR();
+
+
+
+			if (BadgetStyle.IsNotNull() && BadgetStyle.TryGetValue(value.Trim(), out styleX))
+				return "badge e" + styleX.STR();
+
+
+			var exactMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+		{
+			{ "pendiente", "badge e19" },
+			{ "tramitado", "badge badge-success" },
+			{ "cancelado", "badge badge-danger" },
+			{ "hoy", "badge badge-type e14" },
+			{ "ayer", "badge badge-type e20" },
+			{ "pasado", "badge badge-type e2" },
+			{ "futuro", "badge badge-type e5" },
+			{ "mañana", "badge badge-type e15" },
+			{ "venta", "badge-type e4" },
+			{ "compra", "badge-type e2" },
+			{ "movimiento bancario", "badge-type  e5" },
+			{ "pago de compra", "badge-type  e2" },
+			{ "cobro de venta", "badge-type  e4" },
+			{ "abierto", "badge e19" },
+			{ "sin conciliar", "badge e19" },
+			{ "abierta", "badge e19" },
+			{ "parcialmente", "badge e19" },
+			{ "operativo", "badge badge-success" },
+			{ "positivo", "badge badge-success" },
+			{ "positivos", "badge badge-success" },
+			{ "operativa", "badge badge-success" },
+			{ "conciliado", "badge badge-success" },
+			{ "vigente", "badge badge-success" },
+			{ "prorrateo activo", "badge badge-success" },
+			{ "activa", "badge badge-success" },
+			{ "activo", "badge badge-success" },
+			{ "activado", "badge badge-success" },
+			{ "prorrateo activado", "badge badge-success" },
+			{ "pagado", "badge badge-success" },
+			{ "pagada", "badge badge-success" },
+			{ "presente", "badge badge-success" },
+			{ "pendiente de pago", "badge e19" },
+			{ "pago pendiente", "badge e19" },
+			{ "esperando inicio", "badge e19" },
+			{ "esperando pago", "badge e19" },
+			{ "ausencia", "badge badge-danger" },
+			{ "prorrateo desactivado", "badge badge-danger" },
+			{ "desactivado", "badge badge-danger" },
+			{ "desactivados", "badge badge-danger" },
+			{ "vencida", "badge badge-danger" },
+			{ "negativo", "badge badge-danger" },
+			{ "negativos", "badge badge-danger" },
+			{ "vencido", "badge badge-danger" },
+			{ "nacional", "badge badge-type e8" },
+			{ "mensual", "badge badge-type e5" },
+			{ "mrr", "badge badge-type e5" },
+			{ "mes", "badge badge-type e5" },
+			{ "simplificada", "badge badge-type e5" },
+			{ "anual", "badge badge-type e6" },
+			{ "arr", "badge badge-type e6" },
+			{ "año", "badge badge-type e6" },
+			{ "intracomunitaria", "badge badge-type e6" },
+			{ "exportacion", "badge badge-type e20" },
+			{ "importacion", "badge badge-type e20" },
+			{ "ticket", "badge badge-type e10" },
+			{ "completado", "badge badge-success" },
+			{ "incompleto", "badge e19" },
+			{ "subcuenta", "badge e5" },
+			{ "cuenta", "badge e11" },
+			{ "grupo nivel 1", "badge e11" },
+			{ "exceso", "badge badge-danger" }
+		};
+
+
+			if (exactMappings.TryGetValue(value.Trim().ToLower(), out var cssClass))
+				return cssClass;
+
+			if (value.Contains("sin factura"))
+				return "badge badge-workitemtype e10";
+
+
+			return "badge badge-default";
+
+		}
+		catch (Exception ex)
+		{
+
+			return "badge badge-default";
+		}
+	}
+}

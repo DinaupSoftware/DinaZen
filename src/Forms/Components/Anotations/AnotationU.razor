@@ -1,0 +1,30 @@
+﻿@using DinaZen.Components
+
+
+<RadzenCard class="d-flex flex-column px-3 py-2">
+	<div class="d-flex justify-content-between my-2">
+		<span class="rz-text-caption" style="font-weight: bold">@Anotation.Autor.Name : </span>
+		<span class="rz-text-overline">  @RegionService.ToLocalFriendlyDateTime(Anotation.AnnotationDate)  </span>
+	</div>
+
+	@if (Anotation.Text.IsNotEmpty())
+	{
+		<div>
+			@Anotation.Text
+		</div>
+	}
+
+	@foreach (var item in Anotation.AttachedFiles.OrEmpty())
+	{
+		<FileName @key=item FileName=@item.Name FileSize=@item.SizeInBytes DownloadURL=@item.url_original />
+	}
+
+
+</RadzenCard>
+
+@code {
+
+	[Parameter]
+	public Dinaup.DinaupAnnotationDTO Anotation { get; set; }
+
+}

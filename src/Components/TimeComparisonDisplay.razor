@@ -1,0 +1,87 @@
+﻿<div class="d-flex justify-content-between align-content-center gap-3">
+    @if (PlannedTime != 0 || ActualTime != 0)
+    {
+        @if (PlannedTime != 0 && ActualTime != 0)
+        {
+            <span>
+                @(FormatMinutes(ActualTime.INT())) / @(FormatMinutes(PlannedTime.INT()))
+            </span>
+
+            string  diffText = GetDiffText();
+            if (diffText.IsNotEmpty())
+            {
+                <span style=@(diffText.Contains("+") ? "color:red" : "color:green")>
+                    @diffText
+                </span>
+            }
+        }
+        else
+        {
+            <span>
+                @(FormatMinutes(ActualTime.INT()))
+            </span>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public decimal PlannedTime { get; set; } = 0;
+    [Parameter] public decimal ActualTime { get; set; } = 0;
+
+    /// <summary>
+    /// Converts total minutes to "Xh Ym".
+    /// </summary>
+    private string FormatMinutes(int totalMinutes)
+    {
+        if (totalMinutes <= 0) return "0m";
+        if (totalMinutes < 60) return $"{totalMinutes}m";
+
+        var hours = totalMinutes / 60;
+        var minutes = totalMinutes % 60;
+
+        return minutes == 0 ? $"{hours}h" : $"{hours}h {minutes}m";
+    }
+
+    /// <summary>
+    /// Returns the diff text (+/-Xm) if relevant.
+    /// </summary>
+    private string GetDiffText()
+    {
+        int plan = PlannedTime.INT();
+        int actual = ActualTime.INT();
+        int diff = actual - plan;
+
+        if (diff == 0) return "";
+        return diff > 0 ? $"+{diff}m" : $"{diff}m";
+    }
+
+    /// <summary>
+    /// Returns a css class based on the comparison.
+    /// </summary>
+    private string GetColorClass()
+    {
+        if (PlannedTime == 0 || ActualTime == 0)
+            return "";
+
+        int plan = PlannedTime.INT();
+        int actual = ActualTime.INT();
+        int diff = actual - plan;
+
+        if (Math.Abs(diff) == 0) return "time-on-time";
+        if (diff > 0) return "time-late";
+        return "time-early";
+    }
+
+    /// <summary>
+    /// Optional tooltip message for clarity.
+    /// </summary>
+    private string GetTooltip()
+    {
+        var diffText = GetDiffText();
+        if (diffText.IsEmpty()) return "";
+
+        return diffText.StartsWith("+")
+            ? "Se pasó del tiempo planificado"
+            : "Terminó antes de lo planificado";
+    }
+}

@@ -1,0 +1,38 @@
+﻿@if (Value.HasValue)
+{
+	<span class=@_class style=@_style>
+		@RegionService.ToStringDecimal(Value.Value) @(Symbol)
+	</span>
+}
+
+@code {
+
+
+	[Parameter] public string Symbol { get; set; } = "";
+
+
+	[Parameter] public bool AutoColor { get; set; } = false;
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public decimal? Value { get; set; }
+	[Parameter] public string FontSize { get; set; } = "16px"; // Tamaño de fuente predeterminado
+
+
+	private string _class = "";
+	private string _style = "";
+
+	protected override Task OnParametersSetAsync()
+	{
+
+		string _color = "";
+
+		if (AutoColor && Value.HasValue && Value.Value > 0)
+			_color = "color:#086F0C";
+		else if (AutoColor && Value.HasValue && Value.Value < 0)
+			_color = "color:#6A0808";
+
+		_class = Class + " numspan";
+		_style = $"font-size:{FontSize};     width: fit-content;word-break: keep-all; white-space: nowrap;{_color}";
+		return base.OnParametersSetAsync();
+	}
+
+}

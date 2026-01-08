@@ -1,0 +1,118 @@
+﻿<style>
+	.status-dot {
+		--dot-size: 14px;
+		--ring-thickness: 2px;
+		--dot-color: #62bd19;
+
+		position: relative;
+		display: inline-grid;
+		place-items: center;
+		width: var(--ring-size);
+		height: var(--ring-size);
+		box-sizing: content-box;
+		vertical-align: middle;
+		flex: 0 0 auto;
+		contain: layout paint;
+	}
+	.status-dot__core {
+		width: var(--dot-size);
+		height: var(--dot-size);
+		border-radius: 50%;
+		background: var(--dot-color);
+	}
+
+	.status-dot--pulse::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%) scale(1);
+		width: var(--dot-size);
+		height: var(--dot-size);
+		border-radius: 50%;
+		border: var(--ring-thickness) solid var(--dot-color);
+		opacity: 0.6;
+		animation: status-pulse 1.2s ease-out infinite;
+		pointer-events: none;
+	}
+
+	@@keyframes status-pulse {
+		0%
+
+	{
+		transform: translate(-50%, -50%) scale(1);
+		opacity: 0.6;
+	}
+
+	70% {
+		transform: translate(-50%, -50%) scale(1.8);
+		opacity: 0;
+	}
+
+	100% {
+		transform: translate(-50%, -50%) scale(1.8);
+		opacity: 0;
+	}
+
+	}
+
+
+	@@media (prefers-reduced-motion: reduce) {
+		.status-dot--pulse::after
+
+	{
+		animation: none;
+		opacity: .3;
+	}
+
+	}
+</style>
+
+<span class="@ContainerClass"
+	  style="--dot-size:@SizePx; --dot-color:@ColorHex; --ring-thickness:@RingThicknessPx; --ring-size:@RingSizePx;"
+	  role="img"
+	  title="@Title">
+	<span class="status-dot__core"></span>
+</span>
+
+@code {
+	public enum PulseColor
+	{
+		Green,
+		Yellow,
+		Red,
+		Gray
+	}
+
+	[Parameter, EditorRequired]
+	public PulseColor Color { get; set; }
+
+	[Parameter]
+	public bool Pulse { get; set; } = true;
+
+	[Parameter]
+	public int Size { get; set; } = 14;
+
+	[Parameter]
+	public int RingPadding { get; set; } = 6;
+	[Parameter]
+	public int RingThickness { get; set; } = 2;
+	[Parameter]
+	public string   Title { get; set; }
+
+	private string ContainerClass => Pulse ? "status-dot status-dot--pulse" : "status-dot";
+	private string SizePx => $"{Size}px";
+	private string RingThicknessPx => $"{RingThickness}px";
+	private string RingSizePx => $"{Size + (RingPadding * 2)}px";
+
+	private string ColorHex => Color switch
+	{
+		PulseColor.Green => "#62bd19",
+		PulseColor.Yellow => "#FFD700",
+		PulseColor.Red => "#FF0000",
+		PulseColor.Gray => "#333333",
+		_ => "#000000"
+	};
+
+ 
+}

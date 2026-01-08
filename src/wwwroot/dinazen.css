@@ -1,0 +1,103 @@
+﻿
+.badge {
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 0.25rem;
+    color: #fff;
+    margin-right: 0.5rem;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"
+}
+
+.badge-success {
+    color: rgb(33, 112, 5);
+    background-color: rgb(209, 250, 179);
+}
+
+.badge-warning {
+    color: rgb(33, 112, 5);
+    background-color: rgb(209, 250, 179);
+}
+
+.badge-danger {
+    background-color: rgb(251, 211, 220);
+    color: rgb(192, 18, 60);
+}
+
+.badge-info {
+    background-color: rgb(203, 245, 253);
+    color: rgb(4, 90, 208);
+}
+
+.badge-primary {
+    color: rgb(4, 90, 208);
+    background-color: rgb(167, 231, 252);
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+}
+
+.badge-new {
+    background-color: #fd7e14;
+}
+
+.badge-default {
+    color: rgb(89, 97, 113);
+    background-color: rgb(235, 238, 241);
+}
+
+
+.loaderu {
+    width: 80px;
+    height: 80px;
+}
+
+    .loaderu hr {
+        border: 0;
+        margin: 0;
+        width: 30px !important;
+        height: 30px !important;
+        opacity: 1 !important;
+        position: absolute;
+        border-radius: 50%;
+        animation: spin 2s ease infinite;
+    }
+
+    .loaderu :first-child {
+        background: #01c0ff;
+        animation-delay: -1.5s;
+    }
+
+    .loaderu :nth-child(2) {
+        background: #fd6550;
+        animation-delay: -1s;
+    }
+
+    .loaderu :nth-child(3) {
+        background: #55df68;
+        animation-delay: -0.5s;
+    }
+
+    .loaderu :last-child {
+        background: #fcd819;
+    }
+
+@keyframes spin {
+    0%, 100% {
+        transform: translate(0);
+    }
+
+    25% {
+        transform: translate(160%);
+    }
+
+    50% {
+        transform: translate(160%, 160%);
+    }
+
+    75% {
+        transform: translate(0, 160%);
+    }
+}

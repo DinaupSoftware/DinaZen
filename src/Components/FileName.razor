@@ -1,0 +1,138 @@
+﻿@using System.IO
+@using Microsoft.AspNetCore.Components
+<RadzenBadge BadgeStyle="BadgeStyle.Light" Style="width:fit-content;margin:10px">
+	<div class="d-flex gap-2  align-content-center align-items-center px-3 py-2 " Style="width:fit-content">
+		<img src="@IconUrl" alt="@FileNameDisplay" width="24" height="24" />
+		<div class="d-flex flex-column justify-content-start align-content-start align-items-start ">
+			<b>@FileNameDisplay </b>
+			@if (FileSize.HasValue)
+			{
+				<span>
+					<small>Tamaño: @FormatFileSize(FileSize.Value)</small>
+				</span>
+			}
+		</div>
+
+
+		@if (DownloadURL.IsNotEmpty())
+		{
+
+			<div style="margin-left: 13px;">
+				<a href=@DownloadURL target="_blank"><RadzenButton Icon="downloading" /> </a>
+			</div>
+		} else if (OnClick.HasDelegate){
+
+
+			<div style="margin-left: 13px;">
+				<RadzenButton Icon=@OnClick_Icon Click=@OnClick />
+			</div>
+
+		}
+	</div>
+</RadzenBadge>
+
+
+@code {
+	
+
+	[Parameter] 
+	public EventCallback OnClick { get; set; }
+	[Parameter] 
+	public string OnClick_Icon { get; set; } = "arrow_right";
+
+
+	[Parameter]
+	public string DownloadURL { get; set; }
+
+
+	[Parameter]
+	public string FileNameDisplay { get; set; }
+
+	[Parameter]
+	public long? FileSize { get; set; }
+
+
+	private string extension;
+	private string iconFileName;
+	private string IconUrl => $"https://cdn.dinaup.com/play/img/{iconFileName}";
+
+	private static readonly Dictionary<string, string> ExtensionToIconMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+	{
+		{ ".css", "003-css.svg" },
+		{ ".disc", "004-disc.svg" },
+		{ ".doc", "005-doc.svg" },
+		{ ".docx", "030-word.svg" },
+		{ ".xls", "031-xls.svg" },
+		{ ".xlsx", "006-excel.svg" },
+		{ ".csv", "006-excel.svg" },
+		{ ".ttf", "025-ttf.svg" },
+		{ ".iso", "008-iso.svg" },
+		{ ".jpg", "010-image.svg" },
+		{ ".jpeg", "010-image.svg" },
+		{ ".png", "010-image.svg" },
+		{ ".gif", "010-image.svg" },
+		{ ".bmp", "010-image.svg" },
+		{ ".svg", "023-svg.svg" },
+		{ ".webp", "010-image.svg" },
+		{ ".mp3", "013-mp3.svg" },
+		{ ".wav", "015-music.svg" },
+		{ ".mp4", "014-video.svg" },
+		{ ".avi", "029-video.svg" },
+		{ ".pdf", "016-pdf.svg" },
+		{ ".php", "017-php.svg" },
+		{ ".ppt", "019-ppt.svg" },
+		{ ".pptx", "018-powerpoint.svg" },
+		{ ".txt", "026-txt.svg" },
+		{ ".zip", "032-zip.svg" },
+		{ ".sql", "022-sql.svg" },
+		{ ".js", "009-javascript.svg" },
+		{ ".json", "011-js file.svg" },
+		{ ".psd", "020-psd.svg" },
+		{ ".html", "007-font file.svg" },
+		{ ".vector", "028-vector.svg" },
+		{ ".mail", "012-mail.svg" },
+	};
+
+	private const string DefaultIcon = "004-disc.svg";
+
+	protected override void OnParametersSet()
+	{
+		if (FileNameDisplay.IsNotEmpty())
+		{
+			extension = Path.GetExtension(FileNameDisplay);
+			iconFileName = GetIconForExtension(extension);
+		}
+		else
+		{
+			iconFileName = DefaultIcon;
+		}
+	}
+
+
+	private string GetIconForExtension(string ext)
+	{
+		if (ExtensionToIconMap.TryGetValue(ext, out var icon))
+			return icon;
+		return DefaultIcon;
+	}
+
+	private string FormatFileSize(long bytes)
+	{
+		try
+		{
+			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+			double len = bytes;
+			int order = 0;
+			while (len >= 1024 && order < sizes.Length - 1)
+			{
+				order++;
+				len /= 1024;
+			}
+			return $"{len:0.##} {sizes[order]}";
+		}
+		catch (Exception ex)
+		{
+			return "";
+		}
+	}
+}

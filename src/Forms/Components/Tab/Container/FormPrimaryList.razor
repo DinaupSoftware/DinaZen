@@ -1,0 +1,449 @@
+﻿@using System.Text
+@using System.Text.Json
+@using static Dinaup.VirtualFormDTO
+@inject NavigationManager Navigation
+
+
+
+<div class="d-flex gap-3 mb-2">
+
+
+	<RadzenButton ButtonStyle="ButtonStyle.Success" class="rz-border-radius-10 rz-shadow-6 d-flex" Click="@OnAddNewItem" Size="ButtonSize.Small">
+		<RadzenIcon Icon="add_circle" />
+		<RadzenLabel Text="Agregar" Style="color:white" />
+		<RadzenBadge Text="F2" BadgeStyle="BadgeStyle.Secondary" />
+	</RadzenButton>
+
+	<RadzenTextBox Change=@(async (x) => { this.UpdateSearchAsync(x); }) Placeholder="Buscar..." Style="width: 400px" id="search" />
+	
+		<span style="color:red"> Exstensión </span>
+	@* <FormExtensionsButtomsU FormComponent=FormComponent Display="Services.AppExtensionsService.DisplayPositionE.PrimayLitToolbar" /> *@
+</div>
+
+
+@if (  true)
+{
+
+	<div class="d-flex flex-grow-1 flex-column  justify-content-between dnp-rz-table-density-0" style=" height: calc(100% - 40px); ">
+		<RadzenTable class=" d-flex flex-grow-1" style="min-width: 100% !important;">
+			<RadzenTableHeader>
+				<RadzenTableHeaderRow>
+
+					@foreach (var column in List.Columns.Where((e) => e.Value.IsNotNull()))
+					{
+						<RadzenTableHeaderCell Style=@($"min-width:{WidthPorcol.GetM(column.Key)};width:{WidthPorcol.GetM(column.Key)};max-width:{WidthPorcol.GetM(column.Key)}")>
+							<ErrorBoundary>
+
+								@if (column.IsNull())
+								{
+
+								}
+								else if (column.Value.IsNull())
+								{
+								}
+								else if (column.Value.Format == FieldFormatE.INT || column.Value.Format == FieldFormatE.DEC)
+								{
+									<div class="d-flex justify-content-end">
+
+										<span>			@column.Key</span>
+									</div>
+
+								}
+								else
+								{
+									@column.Key
+								}
+							</ErrorBoundary>
+						</RadzenTableHeaderCell>
+					}
+					<RadzenTableHeaderCell style="width:100px; text-align: right;"></RadzenTableHeaderCell>
+
+				</RadzenTableHeaderRow>
+			</RadzenTableHeader>
+			<RadzenTableBody>
+				@foreach (var row in PagedRows.OrEmpty())
+				{
+					<RadzenTableRow>
+						@foreach (var column in List.Columns.Where((e ) => e.Value.IsNotNull()))
+						{
+							<RadzenTableCell>
+								@if (row.ListForm.GetControl(column.Value.NativeName) != null)
+								{
+
+									@if (column.Value.Format == FieldFormatE.INT || column.Value.Format == FieldFormatE.DEC)
+									{
+
+										<div class="d-flex justify-content-end">
+
+											<ControlU ModoCelda="true" @key="row.ListForm.GetControl(column.Value.NativeName).Item2.Token"
+													  DataControl="row.ListForm.GetControl(column.Value.NativeName).Item2"
+													  OnDataControlChanged="@(args => HandleControlChanged(row, column.Key, column.Value, args))" />
+										</div>
+
+									}
+									else
+									{
+
+										<ControlU ModoCelda="true" @key="row.ListForm.GetControl(column.Value.NativeName).Item2.Token"
+												  DataControl="row.ListForm.GetControl(column.Value.NativeName).Item2"
+												  OnDataControlChanged="@(args => HandleControlChanged(row, column.Key, column.Value, args))" />
+									}
+
+								}
+								else
+								{
+									<PrimayListCellU Column="column.Value" ColumnName="column.Key" ListItem="row" />
+								}
+							</RadzenTableCell>
+						}
+						<RadzenTableCell class="text-end">
+							<RadzenButton Click=@(args => ClickRow(row)) Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" @onclick:stopPropagation="true" />
+							<RadzenButton Click=@(async args => await DeleteRowAsync(row)) ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true" />
+						</RadzenTableCell>
+					</RadzenTableRow>
+				}
+			</RadzenTableBody>
+		</RadzenTable>
+
+		<RadzenPager @ref=PagerX PageSize=@pageSize Count=@List.Rows.Count PageChanged=@PageChanged ShowPagingSummary=true HorizontalAlign="HorizontalAlign.Right" />
+
+	</div>
+
+
+}
+else
+{
+
+	<RadzenDataGrid GridLines=DataGridGridLines.Both Style="height: calc(100% - 40px); min-width: 100% !important" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedItem
+					PageSize="200" AllowAlternatingRows="true" AllowPaging="true" AllowColumnPicking="false" AllowSorting="false" AllowFiltering="false" AllowColumnResize="true" ShowPagingSummary="false"
+					Data=@List.Rows TItem="ListItem.ListItemRow" LogicalFilterOperator="LogicalFilterOperator.And" FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterMode="FilterMode.Advanced"
+					RowUpdate="@OnUpdateRow" CellClick="@OnCellClick">
+
+		<Columns>
+
+
+			@foreach (var column in List.Columns)
+			{
+				@if (column.Value.IsNotNull())
+				{
+					<RadzenDataGridColumn MinWidth=@WidthPorcol.GetM(column.Key) Width=@WidthPorcol.GetM(column.Key) Property=@column.Key TItem="ListItem.ListItemRow" Title=@column.Key IsInEditMode=@IsEditing>
+						<Template>
+
+							@if (context.ListForm.GetControl(column.Value.NativeName) != null)
+							{
+
+								<ControlU ModoCelda=true @key=context.ListForm.GetControl(column.Value.NativeName).Item2.Token
+										  DataControl=context.ListForm.GetControl(column.Value.NativeName).Item2
+										  OnDataControlChanged=@((args) => HandleControlChanged(context, column.Key, column.Value, args)) />
+							}
+							else
+							{
+								<PrimayListCellU Column=@column.Value ColumnName=@column.Key ListItem=context></PrimayListCellU>
+							}
+
+						</Template>
+					</RadzenDataGridColumn>
+				}
+			}
+
+
+			<RadzenDataGridColumn Resizable=false Width="100px" Context="context" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+				<Template Context="context">
+
+					<RadzenButton Click=@(args => ClickRow(context)) Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.ExtraSmall" @onclick:stopPropagation="true" />
+					<RadzenButton Click=@(async args => await DeleteRowAsync(context)) ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.ExtraSmall" class="rz-my-1 rz-ms-1" @onclick:stopPropagation="true" />
+
+				</Template>
+			</RadzenDataGridColumn>
+
+		</Columns>
+	</RadzenDataGrid>
+}
+
+
+@code {
+
+
+
+	[Parameter]
+	public DynamicFormU FormComponent { get; set; }
+
+
+
+	public Dictionary<string, string> WidthPorcol { get; set; } = new();
+
+
+
+
+	[Parameter] public ListItem List { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
+	[Parameter] public EventCallback<string> OnDeleteItemPrimaryList { get; set; }
+	[Parameter] public EventCallback OnAddItem { get; set; }
+	[Parameter] public IList<ListItem.ListItemRow> selectedItem { get; set; }
+
+
+
+	public void Dispose()
+	{
+
+		if (true)
+		{
+			List = null;
+			FormComponent = null;
+		}
+	}
+
+
+
+	private void HandleControlChanged(ListItem.ListItemRow dataRow, string columnKey, Dinaup.DinaupFieldDTO column, Dinaup.VirtualFormDTO.Control newvalue)
+	{
+
+		var controlTab = dataRow.ListForm.GetControl(column.NativeName);
+		var newtabl = controlTab.Item1.WithUpdatedControl(newvalue);
+		OnTabChanged.InvokeAsync(newtabl);
+
+
+	}
+
+
+
+	DateTime _OnInitialized = DateTime.Now;
+	protected override void OnInitialized()
+	{
+
+		_OnInitialized = DateTime.Now;
+		base.OnInitialized();
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+
+		WidthPorcol = new();
+		bool primera = true;
+		foreach (var item in List.Columns)
+		{
+
+			if (item.Value.IsNull())
+				WidthPorcol.Add(item.Key, "150px");
+			else if (item.Value.Format == FieldFormatE.DEC || item.Value.Format == FieldFormatE.INT)
+				WidthPorcol.Add(item.Key, "100px");
+			else if (primera && item.Value.isFieldVisible)
+				WidthPorcol.Add(item.Key, primera ? "200px" : "150px");
+			else if (item.Value.Label == "Impuestos" || item.Value.Label == "Retenciones" || item.Value.Label == "Medida")
+				WidthPorcol.Add(item.Key, "120px");
+			else
+				WidthPorcol.Add(item.Key, "200px");
+
+
+			primera = false;
+
+		}
+
+		UpdateSearchAsync("");
+		await base.OnParametersSetAsync();
+
+
+	}
+
+	async Task OnAddNewItem()
+	{
+
+		if (List.ParentForm.MainForm.RowID.IsNotEmpty())
+		{
+			if (List.ParentForm.MainForm.Section.ID == DemoUp.MyDinaup.SectionsD.VentasIngresosD._SectionIDGUID)
+			{
+				NotificationService.Notify(NotificationSeverity.Error, "No se puede eliminar el concepto", "Para corregir datos ya emitidos, genera una factura rectificativa en su lugar.");
+				return;
+			}
+		}
+
+
+		_ = InvokeAsync(async () =>
+				{
+					await Task.Delay(100);
+					await OnAddItem.InvokeAsync();
+					DialogService.Close();
+				});
+
+
+		await UpDialogs.BusyDialog("Agregando...");
+
+
+	}
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+
+	}
+
+
+	public void ClickRow(DataGridRowMouseEventArgs<ListItem.ListItemRow> itemData)
+	{
+		// _ = UpDialogs.OpenModalListForm(itemData.Data.ListForm, OnTabChanged);
+	}
+	public void ClickRow(ListItem.ListItemRow itemData)
+	{
+
+		// _ = UpDialogs.OpenModalListForm(itemData.ListForm, OnTabChanged);
+	}
+
+
+	async Task DeleteRowAsync(ListItem.ListItemRow itemData)
+	{
+
+		if (List.ParentForm.MainForm.RowID.IsNotEmpty())
+		{
+			if (itemData.ListForm.Section.ID == DemoUp.MyDinaup.SectionsD.VentasIngresosListaD._SectionIDGUID)
+			{
+				NotificationService.Notify(NotificationSeverity.Error, "No se puede eliminar el concepto", "Para corregir datos ya emitidos, genera una factura rectificativa en su lugar.");
+				return;
+			}
+		}
+
+		InvokeAsync(async () =>
+		{
+			await Task.Delay(200);
+			await OnDeleteItemPrimaryList.InvokeAsync(itemData.Token);
+			DialogService.Close();
+		});
+
+
+		await UpDialogs.BusyDialog("Eliminado...");
+
+
+	}
+
+
+
+
+
+
+	private bool isClosed = false;
+
+	void Cerrar()
+	{
+		if (!isClosed)
+		{
+			isClosed = true;
+			DialogService.Close();
+		}
+	}
+
+
+	IEnumerable<ListItem.ListItemRow> PagedRows;
+	IEnumerable<ListItem.ListItemRow> MatchedRows;
+
+
+
+	RadzenPager PagerX;
+	int currentPage = 0;
+	int pageSize = 10;
+	private string querybusqueda;
+
+	void PageChanged(PagerEventArgs args)
+	{
+		currentPage = args.PageIndex;
+		_ = UpdateSearchAsync(querybusqueda);
+	}
+
+	async Task UpdateSearchAsync(string query)
+	{
+		try
+		{
+
+			if (query.IsEmpty())
+				MatchedRows = List.Rows;
+			else
+				MatchedRows = List.Rows.Where((e) => string.Join(" ", e.Values.Values).ContainsWebSearchMode(querybusqueda));
+
+			if (querybusqueda != query)
+			{
+				querybusqueda = query;
+				PagerX?.GoToPage(0);
+			}
+
+			PagedRows = MatchedRows.Skip(currentPage * pageSize).Take(pageSize);
+
+			_ = InvokeAsync(StateHasChanged);
+		}
+		catch (Exception ex)
+		{
+
+		}
+	}
+
+
+}
+
+
+
+
+
+@code {
+
+
+
+
+
+
+	string columnEditing;
+	List<KeyValuePair<string, string>> editedFields = new List<KeyValuePair<string, string>>();
+	List<ListItem.ListItemRow> ordersToUpdate = new List<ListItem.ListItemRow>();
+
+	bool IsEditing(string columnName, ListItem.ListItemRow dataItem)
+	{
+		return columnEditing == columnName && ordersToUpdate.Contains(dataItem);
+	}
+
+	string IsEdited(RadzenDataGridColumn<ListItem.ListItemRow> column, ListItem.ListItemRow dataItem)
+	{
+		return editedFields.Where(c => c.Key == dataItem.Token && c.Value == column.Property).Any() ? "table-cell-edited" : string.Empty;
+	}
+
+	void OnCellClick(DataGridCellMouseEventArgs<ListItem.ListItemRow> args)
+	{
+		// Record the previous edited field, if you're not using IRevertibleChangeTracking to track object changes
+		if (ordersToUpdate.Any())
+			editedFields.Add(new(ordersToUpdate.First().Token, columnEditing));
+
+		// This sets which column is currently being edited.
+		columnEditing = args.Column.Property;
+
+		// This triggers a save on the previous edit. This can be removed if you are going to batch edits through another method.
+		if (ordersToUpdate.Any())
+			OnUpdateRow(ordersToUpdate.First());
+
+		// This sets the Item to be edited.
+		EditRow(args.Data);
+	}
+
+	void Reset(ListItem.ListItemRow order = null)
+	{
+		if (order != null)
+			ordersToUpdate.Remove(order);
+		else
+			ordersToUpdate.Clear();
+	}
+
+	void EditRow(ListItem.ListItemRow order)
+	{
+		Reset();
+		ordersToUpdate.Add(order);
+	}
+
+	void OnUpdateRow(ListItem.ListItemRow order)
+	{
+		Reset(order);
+	}
+
+
+
+
+
+}
+
+

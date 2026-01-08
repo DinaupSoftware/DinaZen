@@ -1,0 +1,50 @@
+﻿<RadzenButton Click=OnClickAsync Text=@ButtonData.Label style="@ButtonStyle" Size="ButtonSize.Small">
+</RadzenButton>
+
+@code {
+
+
+	[Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
+
+	[Parameter]
+	public Dinaup.VirtualFormDTO.ContainerButton ButtonData { get; set; }
+
+	[Parameter]
+	public Dinaup.VirtualFormDTO.Container Container { get; set; }
+
+	[Parameter]
+	public EventCallback<string> OnButtonClick { get; set; }
+
+
+
+	private string ButtonStyle { get; set; }
+
+	protected override void OnParametersSet()
+	{
+		ButtonStyle = "";
+	}
+
+
+	async Task OnClickAsync()
+	{
+		if (Container.ParentForm.ParentVirtualForm.HasChanged() && ButtonData.NeedSaveToClick)
+			await OnMostrarDialogRequiereGuardar.InvokeAsync("Se requiere guardar para ejecutar esta acción");
+		else
+			await OnButtonClick.InvokeAsync(ButtonData.Id);
+	}
+
+
+	public void Dispose()
+	{
+
+		if (true)
+		{
+			ButtonData = null;
+			Container = null;
+		}
+	}
+
+
+
+
+}

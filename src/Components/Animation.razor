@@ -1,0 +1,72 @@
+﻿@inject IJSRuntime JS
+@inject IHttpClientFactory HttpClientFactory
+
+
+
+@if (Src?.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) == true)
+{
+    <video width="@width" height="@height" preload="none" style="background: transparent"
+           autoplay loop muted playsinline>
+        <source src="@Src" type="video/mp4">
+    </video>
+}
+else if (Src?.EndsWith(".lottie", StringComparison.OrdinalIgnoreCase) == true)
+{
+    <dotlottie-player src="@Src" autoplay loop style="width:@($"{width}px");height:@($"{height}px")"></dotlottie-player>
+}
+else
+{
+    <div id="@animationId" style="width:@($"{width}px");height:@($"{height}px")"></div>
+}
+
+@code {
+
+
+    [Parameter] public int width { get; set; } = 300;
+    [Parameter] public int height { get; set; } = 300;
+    [Parameter] public string Src { get; set; } = default!;
+
+    private string animationId = $"lottie-{Guid.NewGuid()}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        if (string.IsNullOrWhiteSpace(Src)) return;
+
+        // .mp4 y .lottie ya están cubiertos en el markup
+        if (Src.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+#if DEBUG
+            await IniDebug();
+#else
+            // En producción dejamos que lottie-web haga el fetch por 'path'
+            await JS.InvokeVoidAsync("window.loadLottie", animationId, Src);
+#endif
+        }
+    }
+
+    // ↓ Solo en DEBUG: descargamos JSON desde el servidor para evitar CORS en navegadores estrictos
+    private async Task IniDebug()
+    {
+        if (Src.EndsWith(".json", StringComparison.OrdinalIgnoreCase) == false) return;
+
+        try
+        {
+            if (Src.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || Src.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                var http = HttpClientFactory.CreateClient();
+                http.Timeout = TimeSpan.FromSeconds(10);
+                var json = await http.GetStringAsync(Src);
+                await JS.InvokeVoidAsync("window.loadLottie", animationId, json);
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("window.loadLottie", animationId, Src);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error descargando Lottie : {ex.Message}");
+        }
+    }
+}

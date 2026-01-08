@@ -5,15 +5,10 @@ namespace DinaZen
 {
 	public static class Extensions
 	{
-		public static string Normalized(this string? value) => value?.Trim().ToLowerInvariant().LimpiarCaracteresEspecialesSTR() ?? string.Empty;
+		public static string Normalized(this string? value) => value?.Trim().ToLowerInvariant().RemoveSpecialCharacters() ?? string.Empty;
 
 
-		public static async Task LoadReportDataAsync<T>(
-			Dinaup.DinaupClientC client,
-			IUserSession user,
-			Dinaup.DinaupReportBase<T> report,
-			LoadDataArgs args,
-			ReportRequestOptions options = null)
+		public static async Task LoadReportDataAsync<T>( Dinaup.DinaupClientC client, IUserSession user, Dinaup.DinaupReportBase<T> report, LoadDataArgs args, ReportRequestOptions options = null)
 		{
 			if (args.IsNull())
 			{	

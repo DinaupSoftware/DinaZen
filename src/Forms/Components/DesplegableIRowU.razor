@@ -1,0 +1,46 @@
+﻿@typeparam T where T : IDinaupRow
+
+
+
+
+<IRowSelector T="T" Disabled=@Disabled TextProperty=@nameof(Dinaup.IDinaupRow.Label) Data=@Data Etiqueta=@Label Selected=@selectedRow SelectedChanged=@((e) => OnSelectedRowChanged(e)) />
+
+
+@code {
+
+
+	[Parameter]
+	public bool Disabled { get; set; }
+
+	[Parameter, EditorRequired]
+	public List<T> Data { get; set; }
+
+	[Parameter, EditorRequired]
+	public string Label { get; set; }
+
+	[Parameter]
+	public Guid Value { get; set; }
+
+	[Parameter]
+	public EventCallback<Guid> ValueChanged { get; set; }
+
+	private T selectedRow;
+
+	protected override void OnParametersSet()
+	{
+		// Si el valor ha cambiado externamente y hay datos disponibles para buscar
+		if (Value != (selectedRow?.Id ?? Guid.Empty) && Data != null && Data.Count > 0)
+		{
+			// Busca el elemento que coincide con el Value
+			selectedRow = Data.FirstOrDefault(item => item.Id == Value);
+		}
+
+		base.OnParametersSet();
+	}
+
+	void OnSelectedRowChanged(T selectedRow)
+	{
+		this.selectedRow = selectedRow;
+		ValueChanged.InvokeAsync(selectedRow?.Id ?? Guid.Empty);
+	}
+}

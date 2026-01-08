@@ -1,0 +1,31 @@
+﻿<style>
+	.stepper-vertical {
+		--stepper-dot: 28px;
+		--stepper-line: 2px;
+		--stepper-gap: 2rem;
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: var(--stepper-gap);
+	}
+
+		.stepper-vertical::before {
+			content: "";
+			position: absolute;
+			left: 15px;
+			top: calc(var(--stepper-dot) / 2);
+			bottom: calc(var(--stepper-dot) / 2 - 20px );
+			width: var(--stepper-line);
+			background: #d1d5db;
+			transform: translateX(-50%);
+		}
+
+</style>
+
+<div class="stepper-vertical">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment  ChildContent { get; set; }
+}
