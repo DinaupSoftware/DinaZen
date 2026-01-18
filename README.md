@@ -492,6 +492,132 @@ The demo includes 25+ example pages with interactive documentation.
 
 ---
 
+## Docker Deployment
+
+DinaZen.Demo can be deployed using Docker with SSL/TLS support.
+
+### Prerequisites
+
+Create NuGet credentials for private packages:
+
+```bash
+mkdir -p .secrets
+echo 'your-github-username' > .secrets/nuget_username.txt
+echo 'ghp_yourPersonalAccessToken' > .secrets/nuget_token.txt
+```
+
+### Quick Start with Docker Compose
+
+```bash
+docker-compose up
+```
+
+Access the application at:
+- **HTTP**: http://localhost:5000
+- **HTTPS**: https://localhost:5001
+
+### Manual Build
+
+```bash
+# Using the build script
+./docker-build.sh
+
+# Or manually
+docker build \
+    --secret id=nuget_username,src=.secrets/nuget_username.txt \
+    --secret id=nuget_token,src=.secrets/nuget_token.txt \
+    --build-arg PFX_PASSWORD=dinazen-dev \
+    -t dinazen-demo:latest \
+    .
+
+# Run the container
+docker run -p 5000:80 -p 5001:443 dinazen-demo:latest
+```
+
+### SSL Certificates
+
+The Dockerfile automatically generates self-signed certificates for local development:
+
+- **Root CA**: DinaZen Local Dev CA
+- **Server Certificate**: Valid for 825 days
+- **SANs Included**:
+  - `dinazen.dinaup.com`, `dinazen.dinaup.live`, `dinazen.dinaup.dev`
+  - All `*.dinaup.com`, `*.dinaup.live`, `*.dinaup.dev` domains
+  - `localhost`, `127.0.0.1`, `::1`
+
+**Import Root CA (Optional):**
+
+```bash
+# Extract rootCA from container
+docker cp <container-id>:/https/rootCA.crt ./rootCA.crt
+
+# Windows: Import to Trusted Root Certification Authorities
+certutil -addstore -f "ROOT" rootCA.crt
+
+# macOS: Import to System Keychain
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain rootCA.crt
+
+# Linux: Copy to trusted certificates
+sudo cp rootCA.crt /usr/local/share/ca-certificates/dinazen-dev.crt
+sudo update-ca-certificates
+```
+
+### Production Configuration
+
+For production, replace self-signed certificates with valid SSL certificates:
+
+```dockerfile
+# In Dockerfile, modify the RUNTIME stage:
+COPY path/to/your/production.pfx /https/server.pfx
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password="your-production-password"
+```
+
+Or mount certificates as volumes in docker-compose:
+
+```yaml
+volumes:
+  - ./certs/production.pfx:/https/server.pfx:ro
+environment:
+  - ASPNETCORE_Kestrel__Certificates__Default__Password=your-production-password
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ASPNETCORE_ENVIRONMENT` | `Production` | Application environment |
+| `ASPNETCORE_URLS` | `https://+:443;http://+:80` | Listening URLs |
+| `ASPNETCORE_Kestrel__Certificates__Default__Path` | `/https/server.pfx` | SSL certificate path |
+| `ASPNETCORE_Kestrel__Certificates__Default__Password` | `dinazen-dev` | Certificate password |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | `true` | Enable proxy headers |
+
+### Troubleshooting
+
+**Port binding issues:**
+```bash
+# If port 443 is already in use, change the mapping:
+docker run -p 5000:80 -p 8443:443 dinazen-demo:latest
+```
+
+**NuGet restore fails:**
+```bash
+# Verify secrets are readable:
+cat .secrets/nuget_username.txt
+cat .secrets/nuget_token.txt
+
+# Ensure GitHub PAT has correct permissions:
+# - read:packages
+```
+
+**Certificate trust issues:**
+```bash
+# Export and import the rootCA certificate (see SSL Certificates section above)
+# Or disable SSL verification (not recommended for production):
+docker run -p 5000:80 dinazen-demo:latest  # Use HTTP only
+```
+
+---
+
 ## Contributing
 
 This is a component library for internal use within Dinaup applications. For issues or feature requests, contact the development team.

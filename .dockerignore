@@ -1,0 +1,47 @@
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# Test results
+**/TestResults/
+*.trx
+*.coverage
+
+# NuGet packages
+**/packages/
+*.nupkg
+*.snupkg
+
+# Build logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+**/tmp/
+**/temp/
+**/.tmp/
+
+# Claude Code
+.claude/
