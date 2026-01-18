@@ -398,3 +398,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 *.bat
+
+# Claude Code temporary files
+tmpclaude-*
+.claude/settings.local.json
