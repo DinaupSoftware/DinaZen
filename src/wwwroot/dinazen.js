@@ -1,10 +1,84 @@
-﻿window.setIframeBlob = (iframeId, htmlContent) => {
+// ============================================
+// DinaZen JavaScript Library
+// All functions under window.DinaZen namespace
+// ============================================
+
+window.DinaZen = window.DinaZen || {};
+
+// ============================================
+// IFrame Management
+// ============================================
+
+window.DinaZen.setIframeBlob = (iframeId, htmlContent) => {
 	var blob = new Blob([htmlContent], { type: "text/html" });
 	var url = URL.createObjectURL(blob);
 	document.getElementById(iframeId).src = url;
 };
 
-window.setDialogWidth = function (element, width) {
+window.DinaZen.printIframe = function (id) {
+	var iframe = document.getElementById(id);
+
+	if (!iframe) {
+		console.warn("[DinaZen] El iframe no existe:", id);
+		return;
+	}
+
+	var src = iframe.src;
+
+	// Verificar que tiene un contenido válido (evita imprimir si está vacío)
+	if (!src || src === "about:blank") {
+		console.warn("[DinaZen] El iframe no tiene contenido cargado:", id);
+		return;
+	}
+
+	// Intentar imprimir solo si hay contenido válido
+	if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body.innerHTML.trim().length > 0) {
+		iframe.contentWindow.focus();
+		iframe.contentWindow.print();
+	} else {
+		console.warn("[DinaZen] El iframe no tiene contenido imprimible:", id);
+	}
+};
+
+window.DinaZen.printIframeOnce = function (iframe) {
+	try {
+		if (!iframe) {
+			console.warn("[DinaZen] El iframe no existe");
+			return;
+		}
+
+		var src = iframe.src;
+
+		// Verificar que tiene un contenido válido (evita imprimir si está vacío)
+		if (!src || src === "about:blank") {
+			console.warn("[DinaZen] El iframe no tiene contenido cargado");
+			return;
+		}
+
+		// Intentar imprimir solo si hay contenido válido
+		if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body.innerHTML.trim().length > 0) {
+			iframe.onload = "";
+			iframe.contentWindow.focus();
+			iframe.contentWindow.print();
+
+			setTimeout(() => {
+				window.focus();
+				const element = document.querySelector('[tabindex], button, a, input, textarea, select');
+				if (element) element.focus();
+			}, 500);
+		} else {
+			console.warn("[DinaZen] El iframe no tiene contenido imprimible");
+		}
+	} catch (e) {
+		console.error("[DinaZen] Error al imprimir iframe:", e);
+	}
+};
+
+// ============================================
+// Dialog Management
+// ============================================
+
+window.DinaZen.setDialogWidth = function (element, width) {
 	if (!element) return;
 	const dialog = element.closest(".rz-dialog");
 	if (dialog) {
@@ -12,7 +86,7 @@ window.setDialogWidth = function (element, width) {
 	}
 };
 
-window.setDialogHeight = function (element, height) {
+window.DinaZen.setDialogHeight = function (element, height) {
 	if (!element) return;
 	const dialog = element.closest(".rz-dialog");
 	if (dialog) {
@@ -20,9 +94,11 @@ window.setDialogHeight = function (element, height) {
 	}
 };
 
+// ============================================
+// Focus Management
+// ============================================
 
-
-window.focusNextElement = () => {
+window.DinaZen.focusNextElement = () => {
 	const active = document.activeElement;
 	if (!active) return;
 
@@ -44,11 +120,14 @@ window.focusNextElement = () => {
 	}
 };
 
+// ============================================
+// Lottie Animation (legacy - kept for compatibility)
+// ============================================
 
-window.loadLottie = function (containerId, srcOrData, options) {
+window.DinaZen.loadLottie = function (containerId, srcOrData, options) {
 	const container = document.getElementById(containerId);
 	if (!container) {
-		console.error(`[lottie] container #${containerId} no encontrado`);
+		console.error(`[DinaZen] lottie container #${containerId} no encontrado`);
 		return null;
 	}
 
@@ -91,7 +170,7 @@ window.loadLottie = function (containerId, srcOrData, options) {
 			if (data && data.result) data = data.result;
 			if (data && data.default) data = data.default;
 		} catch (e) {
-			console.error("[lottie] JSON inválido:", e);
+			console.error("[DinaZen] lottie JSON inválido:", e);
 			return null;
 		}
 		animConfig.animationData = data;
@@ -100,85 +179,21 @@ window.loadLottie = function (containerId, srcOrData, options) {
 		animConfig.path = srcOrData;
 	}
 
+	if (typeof lottie === 'undefined') {
+		console.error("[DinaZen] lottie library not loaded");
+		return null;
+	}
+
 	const anim = lottie.loadAnimation(animConfig);
 	container.__lottieAnim = anim;
 	return anim;
 };
 
-
-function printIframeOnce(iframe) {
-
-
-	try {
-
-
-
-	if (!iframe) {
-		console.warn("El iframe no existe:");
-		return;
-	}
-
-	var src = iframe.src;
-
-	// Verificar que tiene un contenido válido (evita imprimir si está vacío)
-	if (!src || src === "about:blank") {
-		console.warn("El iframe no tiene contenido cargado:");
-		return;
-	}
-
-	// Intentar imprimir solo si hay contenido válido
-	if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body.innerHTML.trim().length > 0) {
-		iframe.onload = "";
-		iframe.contentWindow.focus();
-		iframe.contentWindow.print();
-
-		setTimeout(() => {
-			window.focus();
-			const element = document.querySelector('[tabindex], button, a, input, textarea, select');
-			if (element) element.focus();
-		}, 500);
-
-
-	} else {
-		console.warn("El iframe no tiene contenido imprimible:");
-	}
-	} catch (e) { }
-
-}
-
-
-
-function printIframe(id) {
-	var iframe = document.getElementById(id);
-
-	if (!iframe) {
-		console.warn("El iframe no existe:", id);
-		return;
-	}
-
-	var src = iframe.src;
-
-	// Verificar que tiene un contenido válido (evita imprimir si está vacío)
-	if (!src || src === "about:blank") {
-		console.warn("El iframe no tiene contenido cargado:", id);
-		return;
-	}
-
-	// Intentar imprimir solo si hay contenido válido
-	if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body.innerHTML.trim().length > 0) {
-		iframe.contentWindow.focus();
-		iframe.contentWindow.print();
-	} else {
-		console.warn("El iframe no tiene contenido imprimible:", id);
-	}
-}
-
-
 // ============================================
 // Highlight.js - Syntax Highlighting
 // ============================================
 
-window.highlightCode = function () {
+window.DinaZen.highlightCode = function () {
 	if (typeof hljs === 'undefined') {
 		console.warn('[DinaZen] highlight.js not loaded');
 		return;
@@ -188,7 +203,7 @@ window.highlightCode = function () {
 	});
 };
 
-window.highlightElement = function (element) {
+window.DinaZen.highlightElement = function (element) {
 	if (typeof hljs === 'undefined' || !element) return;
 	hljs.highlightElement(element);
 };
@@ -197,10 +212,34 @@ window.highlightElement = function (element) {
 // ScalableBlock - Zoom functionality
 // ============================================
 
-window.scalableBlock = {
+window.DinaZen.scalableBlock = {
 	setScale: function (element, scale) {
 		if (element) {
 			element.style.zoom = scale;
 		}
 	}
 };
+
+// ============================================
+// Backward Compatibility (deprecated)
+// Keep old global functions for compatibility
+// Will be removed in future versions
+// ============================================
+
+window.setIframeBlob = window.DinaZen.setIframeBlob;
+window.setDialogWidth = window.DinaZen.setDialogWidth;
+window.setDialogHeight = window.DinaZen.setDialogHeight;
+window.focusNextElement = window.DinaZen.focusNextElement;
+window.loadLottie = window.DinaZen.loadLottie;
+window.highlightCode = window.DinaZen.highlightCode;
+window.highlightElement = window.DinaZen.highlightElement;
+window.scalableBlock = window.DinaZen.scalableBlock;
+
+// Global functions (callable without window prefix)
+function printIframe(id) {
+	return window.DinaZen.printIframe(id);
+}
+
+function printIframeOnce(iframe) {
+	return window.DinaZen.printIframeOnce(iframe);
+}
