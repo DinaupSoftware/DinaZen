@@ -1,0 +1,60 @@
+@page "/examples/ScalableBlockExample"
+
+<PageTitle>ScalableBlock</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="ScalableBlock" Subtitle="Bloque con zoom (+ / -). Escala persistida en localStorage." Icon="zoom_in" />
+</RadzenCard>
+
+<ExampleCard Title="Demo Interactivo" Description="Usa los botones de zoom para escalar el contenido" Code="@exampleCode">
+    <ChildContent>
+        <ScalableBlock Key="demo-scalable-block">
+            <RadzenCard Variant="Variant.Outlined">
+                <h4>Contenido Escalable</h4>
+                <p>Este contenido se puede escalar usando los botones de zoom arriba.</p>
+                <p>La escala se guarda en localStorage y persiste entre sesiones.</p>
+                <div class="badge-row">
+                    <RadzenBadge Text="Badge 1" BadgeStyle="BadgeStyle.Primary" />
+                    <RadzenBadge Text="Badge 2" BadgeStyle="BadgeStyle.Success" />
+                    <RadzenBadge Text="Badge 3" BadgeStyle="BadgeStyle.Warning" />
+                </div>
+            </RadzenCard>
+        </ScalableBlock>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="En una Tabla" Description="Escala tablas de datos" Code="@tableExampleCode">
+    <ChildContent>
+        <ScalableBlock Key="demo-scalable-table">
+            <table class="params-table">
+                <tr><th>Nombre</th><th>Email</th><th>Estado</th></tr>
+                <tr><td>Juan Garcia</td><td>juan@example.com</td><td><RadzenBadge Text="Activo" BadgeStyle="BadgeStyle.Success" /></td></tr>
+                <tr><td>Maria Lopez</td><td>maria@example.com</td><td><RadzenBadge Text="Pendiente" BadgeStyle="BadgeStyle.Warning" /></td></tr>
+                <tr><td>Pedro Martinez</td><td>pedro@example.com</td><td><RadzenBadge Text="Inactivo" BadgeStyle="BadgeStyle.Danger" /></td></tr>
+            </table>
+        </ScalableBlock>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Key</code></td><td>string</td><td>Clave unica para localStorage (requerido)</td></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>Contenido a escalar</td></tr>
+    </table>
+
+    <CardTitle Title="Caracteristicas" Icon="info" />
+    <ul>
+        <li>Rango de escala: 0.5x a 2x</li>
+        <li>Pasos de 0.1</li>
+        <li>Persistencia automatica en localStorage</li>
+        <li>Key en localStorage: <code>scalableBlockScale-{Key}</code></li>
+    </ul>
+</RadzenCard>
+
+@code {
+    private string exampleCode = "<ScalableBlock Key=\"mi-bloque-unico\">\n    <RadzenCard>\n        <h4>Contenido Escalable</h4>\n        <p>Este contenido se puede escalar.</p>\n    </RadzenCard>\n</ScalableBlock>";
+
+    private string tableExampleCode = "<ScalableBlock Key=\"mi-tabla\">\n    <table>\n        <tr><th>Nombre</th><th>Email</th></tr>\n        <tr><td>Juan</td><td>juan@example.com</td></tr>\n    </table>\n</ScalableBlock>";
+}

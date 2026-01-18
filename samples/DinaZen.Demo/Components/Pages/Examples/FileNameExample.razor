@@ -1,0 +1,127 @@
+@page "/examples/FileNameExample"
+
+<PageTitle>FileName</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="FileName" Subtitle="Muestra archivo con icono segun extension, tamano formateado y enlace de descarga." Icon="insert_drive_file" />
+</RadzenCard>
+
+<ExampleCard Title="Basico" Description="Mostrar archivos con icono y tamano" Code="@(@"<FileName FileNameDisplay=""documento.pdf"" />
+<FileName FileNameDisplay=""imagen.jpg"" FileSize=""524288"" />")">
+    <ChildContent>
+        <div class="examples-grid">
+            <FileName FileNameDisplay="documento.pdf" />
+            <FileName FileNameDisplay="imagen.jpg" FileSize="524288" />
+            <FileName FileNameDisplay="datos.xlsx" FileSize="2097152" />
+            <FileName FileNameDisplay="texto.txt" FileSize="1024" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Con Descarga" Description="Enlace de descarga" Code="@(@"<FileName FileNameDisplay=""documento.pdf""
+          FileSize=""1048576""
+          DownloadURL=""https://example.com/doc.pdf"" />")">
+    <ChildContent>
+        <div class="examples-grid">
+            <FileName FileNameDisplay="informe.pdf" FileSize="1048576" DownloadURL="#" />
+            <FileName FileNameDisplay="backup.zip" FileSize="10485760" DownloadURL="#" />
+            <FileName FileNameDisplay="plantilla.docx" FileSize="256000" DownloadURL="#" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Con Click" Description="Evento click personalizado" Code="@(@"<FileName FileNameDisplay=""preview.pdf""
+          FileSize=""500000""
+          OnClick=""@HandleClick""
+          OnClick_Icon=""visibility"" />
+
+@code {
+    void HandleClick() => Console.WriteLine(""Archivo clickeado"");
+}")">
+    <ChildContent>
+        <div class="examples-grid">
+            <FileName FileNameDisplay="preview.pdf" FileSize="500000" OnClick="@HandleClick" OnClick_Icon="visibility" />
+            <span class="rz-text-secondary-color">@clickMessage</span>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Tipos de Archivo" Description="Iconos automaticos segun extension" Code="@(@"@* Documentos *@
+<FileName FileNameDisplay=""documento.pdf"" />
+<FileName FileNameDisplay=""informe.docx"" />
+
+@* Imagenes *@
+<FileName FileNameDisplay=""foto.jpg"" />
+<FileName FileNameDisplay=""logo.png"" />
+
+@* Codigo *@
+<FileName FileNameDisplay=""script.js"" />
+<FileName FileNameDisplay=""config.json"" />")">
+    <ChildContent>
+        <h6>Documentos</h6>
+        <div class="examples-grid rz-mb-3">
+            <FileName FileNameDisplay="documento.pdf" FileSize="1000000" />
+            <FileName FileNameDisplay="informe.docx" FileSize="500000" />
+            <FileName FileNameDisplay="datos.xlsx" FileSize="750000" />
+            <FileName FileNameDisplay="presentacion.pptx" FileSize="2000000" />
+        </div>
+
+        <h6>Imagenes</h6>
+        <div class="examples-grid rz-mb-3">
+            <FileName FileNameDisplay="foto.jpg" FileSize="300000" />
+            <FileName FileNameDisplay="logo.png" FileSize="50000" />
+            <FileName FileNameDisplay="icono.svg" FileSize="5000" />
+        </div>
+
+        <h6>Codigo</h6>
+        <div class="examples-grid rz-mb-3">
+            <FileName FileNameDisplay="script.js" FileSize="10000" />
+            <FileName FileNameDisplay="config.json" FileSize="2000" />
+            <FileName FileNameDisplay="query.sql" FileSize="5000" />
+            <FileName FileNameDisplay="styles.css" FileSize="8000" />
+        </div>
+
+        <h6>Otros</h6>
+        <div class="examples-grid">
+            <FileName FileNameDisplay="backup.zip" FileSize="50000000" />
+            <FileName FileNameDisplay="cancion.mp3" FileSize="5000000" />
+            <FileName FileNameDisplay="video.mp4" FileSize="100000000" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>FileNameDisplay</code></td><td>string</td><td>null</td><td>Nombre del archivo (determina el icono)</td></tr>
+        <tr><td><code>FileSize</code></td><td>long?</td><td>null</td><td>Tamano en bytes (auto-formatea a KB/MB/GB)</td></tr>
+        <tr><td><code>DownloadURL</code></td><td>string</td><td>null</td><td>URL de descarga (muestra boton)</td></tr>
+        <tr><td><code>OnClick</code></td><td>EventCallback</td><td>-</td><td>Evento click (alternativa a DownloadURL)</td></tr>
+        <tr><td><code>OnClick_Icon</code></td><td>string</td><td>"arrow_right"</td><td>Icono del boton OnClick</td></tr>
+    </table>
+
+    <CardTitle Title="Extensiones Soportadas" Icon="folder_open" Subtitle="Iconos automaticos por tipo" />
+    <HighlightCode Language="text" Code="@extensionesCode" />
+</RadzenCard>
+
+@code {
+    private string clickMessage = "";
+
+    private string extensionesCode = @"Documentos: .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .txt
+Imagenes: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp
+Codigo: .css, .js, .json, .php, .html, .sql
+Audio: .mp3, .wav
+Video: .mp4, .avi
+Otros: .zip, .iso, .psd, .ttf";
+
+    private void HandleClick()
+    {
+        clickMessage = "Archivo clickeado!";
+        StateHasChanged();
+    }
+}
+
+<style>
+    .examples-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+</style>

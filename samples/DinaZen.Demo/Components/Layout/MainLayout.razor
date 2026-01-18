@@ -1,0 +1,84 @@
+@inherits LayoutComponentBase
+
+<RadzenComponents />
+
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            <RadzenLabel Text="DinaZen" Style="font-size: 1.25rem; font-weight: 600; margin-left: 12px;" />
+        </RadzenStack>
+    </RadzenHeader>
+
+    <RadzenSidebar @bind-Expanded="@sidebarExpanded" Style="width: 260px;">
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Inicio" Icon="home" Path="/" />
+
+            @* ══════ DISPLAY ══════ *@
+            <RadzenPanelMenuItem Text="Display" Icon="text_fields" Expanded="false">
+                <RadzenPanelMenuItem Text="SpanDate" Path="/examples/SpanDateExample" />
+                <RadzenPanelMenuItem Text="SpanDateTime" Path="/examples/SpanDateTimeExample" />
+                <RadzenPanelMenuItem Text="SpanDecimal" Path="/examples/SpanDecimalExample" />
+                <RadzenPanelMenuItem Text="SpanMoney" Path="/examples/SpanMoneyExample" />
+                <RadzenPanelMenuItem Text="SpanMinutes" Path="/examples/SpanMinutesExample" />
+                <RadzenPanelMenuItem Text="SpanGrams" Path="/examples/SpanGramsExample" />
+                <RadzenPanelMenuItem Text="SpanKV" Path="/examples/SpanKVExample" />
+                <RadzenPanelMenuItem Text="FileName" Path="/examples/FileNameExample" />
+                <RadzenPanelMenuItem Text="TimeComparisonDisplay" Path="/examples/TimeComparisonDisplayExample" />
+            </RadzenPanelMenuItem>
+
+            @* ══════ BADGES ══════ *@
+            <RadzenPanelMenuItem Text="Badges" Icon="label" Expanded="false">
+                <RadzenPanelMenuItem Text="BadgetAutoColor" Path="/examples/BadgetAutoColorExample" />
+                <RadzenPanelMenuItem Text="SpecialBadges" Path="/examples/SpecialBadgesExample" />
+                <RadzenPanelMenuItem Text="PulseDotAnimation" Path="/examples/PulseDotAnimationExample" />
+            </RadzenPanelMenuItem>
+
+            @* ══════ CARDS ══════ *@
+            <RadzenPanelMenuItem Text="Cards" Icon="dashboard" Expanded="false">
+                <RadzenPanelMenuItem Text="Banner" Path="/examples/BannerExample" />
+                <RadzenPanelMenuItem Text="CardKV" Path="/examples/CardKVExample" />
+                <RadzenPanelMenuItem Text="CardTitle" Path="/examples/CardTitleExample" />
+                <RadzenPanelMenuItem Text="StatsDisplay" Path="/examples/StatsDisplayExample" />
+            </RadzenPanelMenuItem>
+
+            @* ══════ LAYOUT ══════ *@
+            <RadzenPanelMenuItem Text="Layout" Icon="view_quilt" Expanded="false">
+                <RadzenPanelMenuItem Text="StepperU" Path="/examples/StepperUExample" />
+                <RadzenPanelMenuItem Text="ScalableBlock" Path="/examples/ScalableBlockExample" />
+                <RadzenPanelMenuItem Text="FooterPoweredBy" Path="/examples/FooterPoweredByExample" />
+            </RadzenPanelMenuItem>
+
+            @* ══════ INPUTS ══════ *@
+            <RadzenPanelMenuItem Text="Inputs" Icon="input" Expanded="false">
+                <RadzenPanelMenuItem Text="SearchInput" Path="/examples/SearchInputExample" />
+            </RadzenPanelMenuItem>
+
+            @* ══════ GANTT ══════ *@
+            <RadzenPanelMenuItem Text="Gantt" Icon="view_timeline" Expanded="false">
+                <RadzenPanelMenuItem Text="GenericGantt" Path="/examples/GenericGanttExample" />
+            </RadzenPanelMenuItem>
+
+            @* ══════ UTILITIES ══════ *@
+            <RadzenPanelMenuItem Text="Utilities" Icon="build" Expanded="false">
+                <RadzenPanelMenuItem Text="Loader" Path="/examples/LoaderExample" />
+                <RadzenPanelMenuItem Text="HealthSection" Path="/examples/HealthSectionExample" />
+                <RadzenPanelMenuItem Text="HighlightCode" Path="/examples/HighlightCodeExample" />
+            </RadzenPanelMenuItem>
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+
+    <RadzenBody>
+        <div class="rz-p-4">
+            @Body
+        </div>
+    </RadzenBody>
+    <RadzenFooter>
+        <FooterPoweredBy></FooterPoweredBy>
+    </RadzenFooter>
+</RadzenLayout>
+
+
+@code {
+    bool sidebarExpanded = true;
+}

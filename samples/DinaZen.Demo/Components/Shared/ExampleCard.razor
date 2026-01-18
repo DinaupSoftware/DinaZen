@@ -1,0 +1,32 @@
+<RadzenCard class="example-card rz-mb-4">
+    <CardTitle Title="@Title" Subtitle="@Description" Icon="@Icon" />
+
+    <div class="example-result">
+        @ChildContent
+    </div>
+
+    <HighlightCode Code="@Code" Language="@Language" />
+</RadzenCard>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "code";
+    [Parameter] public string Code { get; set; } = "";
+    [Parameter] public string Language { get; set; } = "razor";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+}
+
+<style>
+    .example-card {
+        overflow: hidden;
+    }
+
+    .example-result {
+        padding: 1.5rem;
+        background: var(--rz-base-100);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--rz-base-200);
+    }
+</style>

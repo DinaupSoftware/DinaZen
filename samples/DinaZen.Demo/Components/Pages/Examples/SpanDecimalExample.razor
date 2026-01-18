@@ -1,0 +1,58 @@
+@page "/examples/SpanDecimalExample"
+
+<PageTitle>SpanDecimal</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="SpanDecimal" Subtitle="Numeros decimales formateados con auto-color opcional." Icon="pin" />
+</RadzenCard>
+
+<ExampleCard Title="Uso basico" Description="Diferentes valores decimales" Code="@(@"<SpanDecimal Value=""1234.56m"" />
+<SpanDecimal Value=""-500.00m"" />
+<SpanDecimal Value=""0m"" />
+<SpanDecimal Value=""999999.99m"" />")">
+    <ChildContent>
+        <div class="examples-row">
+            <div><span class="label">Positivo:</span> <SpanDecimal Value="1234.56m" /></div>
+            <div><span class="label">Negativo:</span> <SpanDecimal Value="-500.00m" /></div>
+            <div><span class="label">Cero:</span> <SpanDecimal Value="0m" /></div>
+            <div><span class="label">Grande:</span> <SpanDecimal Value="999999.99m" /></div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="AutoColor" Description="Verde para positivos, rojo para negativos" Code="@(@"<SpanDecimal Value=""1234.56m"" AutoColor=""true"" />
+<SpanDecimal Value=""-500.00m"" AutoColor=""true"" />
+<SpanDecimal Value=""0m"" AutoColor=""true"" />")">
+    <ChildContent>
+        <div class="examples-row">
+            <div><span class="label">Positivo (verde):</span> <SpanDecimal Value="1234.56m" AutoColor="true" /></div>
+            <div><span class="label">Negativo (rojo):</span> <SpanDecimal Value="-500.00m" AutoColor="true" /></div>
+            <div><span class="label">Cero:</span> <SpanDecimal Value="0m" AutoColor="true" /></div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Con Simbolo" Description="Agrega unidad o simbolo al valor" Code="@(@"<SpanDecimal Value=""50m"" Symbol=""%"" />
+<SpanDecimal Value=""100m"" Symbol=""uds"" />
+<SpanDecimal Value=""25.5m"" Symbol=""m"" />")">
+    <ChildContent>
+        <div class="examples-row">
+            <div><span class="label">Porcentaje:</span> <SpanDecimal Value="50m" Symbol="%" /></div>
+            <div><span class="label">Unidades:</span> <SpanDecimal Value="100m" Symbol="uds" /></div>
+            <div><span class="label">Metros:</span> <SpanDecimal Value="25.5m" Symbol="m" /></div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Value</code></td><td>decimal?</td><td>null</td><td>Numero a mostrar</td></tr>
+        <tr><td><code>AutoColor</code></td><td>bool</td><td>false</td><td>Verde positivo, rojo negativo</td></tr>
+        <tr><td><code>Symbol</code></td><td>string</td><td>""</td><td>Simbolo/unidad a mostrar</td></tr>
+        <tr><td><code>Class</code></td><td>string</td><td>""</td><td>Clases CSS adicionales</td></tr>
+        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Tamano de fuente</td></tr>
+    </table>
+</RadzenCard>
+

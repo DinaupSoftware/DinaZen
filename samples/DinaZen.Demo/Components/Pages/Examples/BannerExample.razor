@@ -1,0 +1,173 @@
+@page "/examples/BannerExample"
+
+<PageTitle>Banner</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="Banner" Subtitle="Banners llamativos con 11 estilos para diferentes contextos." Icon="campaign" />
+</RadzenCard>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="Estilos Principales" Icon="palette" />
+
+    <h4 class="rz-mt-4 rz-mb-2">Primary</h4>
+    <Banner Style="Banner.BannerStyle.Primary"
+            Icon="update"
+            Title="Dinaup 4.2 ya esta aqui"
+            ButtonText="Ver novedades"
+            ButtonUrl="#">
+        <p>Dashboard rediseñado, <strong>50% mas rapido</strong>. Ya activo en tu cuenta.</p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Gold</h4>
+    <Banner Style="Banner.BannerStyle.Gold"
+            Icon="workspace_premium"
+            Title="Desbloquea Dinaup Business"
+            ButtonText="Upgrade"
+            ButtonUrl="#">
+        <p>Multi-empresa, usuarios ilimitados y soporte prioritario <strong>24/7</strong>.</p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Love</h4>
+    <Banner Style="Banner.BannerStyle.Love"
+            Icon="favorite"
+            Title="San Valentin: -30% en todos los planes"
+            ButtonText="Canjear"
+            ButtonUrl="#">
+        <p>Codigo <strong>LOVE2025</strong> valido hasta el 14 de febrero.</p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Danger</h4>
+    <Banner Style="Banner.BannerStyle.Danger"
+            Icon="error"
+            Title="Tu suscripcion caduca en 3 dias"
+            ButtonText="Renovar"
+            ButtonUrl="#">
+        <p>Renueva ahora para no perder acceso a tus datos.</p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Success</h4>
+    <Banner Style="Banner.BannerStyle.Success"
+            Icon="check_circle"
+            Title="Configuracion completada!"
+            ButtonText="Empezar"
+            ButtonUrl="#">
+        <p>Tu cuenta esta lista. Empieza a crear tu primera factura.</p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Warning</h4>
+    <Banner Style="Banner.BannerStyle.Warning"
+            Icon="warning"
+            Title="Mantenimiento programado esta noche"
+            ButtonText="Mas info"
+            ButtonUrl="#">
+        <p>El servicio estara no disponible de <strong>02:00 a 04:00</strong>.</p>
+    </Banner>
+</RadzenCard>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="Estilos Badge" Icon="sell" />
+
+    <h4 class="rz-mt-4 rz-mb-2">Pro</h4>
+    <Banner Style="Banner.BannerStyle.Pro"
+            Icon="bolt"
+            Title="Desbloquea informes avanzados"
+            ButtonText="Activar PRO"
+            ButtonUrl="#">
+        <p>Analisis predictivo, exportacion masiva y dashboards. <strong>Solo PRO.</strong></p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Beta</h4>
+    <Banner Style="Banner.BannerStyle.Beta"
+            Icon="science"
+            Title="Prueba el nuevo editor de facturas"
+            ButtonText="Probar beta"
+            ButtonUrl="#">
+        <p>Version beta disponible. <strong>Tu feedback es clave.</strong></p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">New</h4>
+    <Banner Style="Banner.BannerStyle.New"
+            Icon="auto_awesome"
+            Title="Nuevo: Modulo de inventario"
+            ButtonText="Explorar"
+            ButtonUrl="#">
+        <p>Control de stock en tiempo real y sincronizacion con TPV.</p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">Premium</h4>
+    <Banner Style="Banner.BannerStyle.Premium"
+            Icon="diamond"
+            Title="Flash Sale: 50% en Plan Anual"
+            ButtonText="Comprar"
+            ButtonUrl="#">
+        <p>Solo 24 horas. <strong>No volvera este precio.</strong></p>
+    </Banner>
+
+    <h4 class="rz-mt-4 rz-mb-2">IA</h4>
+    <Banner Style="Banner.BannerStyle.IA"
+            Icon="psychology"
+            Title="Copilot IA ya disponible"
+            ButtonText="Activar IA"
+            ButtonUrl="#">
+        <p>Tu asistente de contabilidad. Preguntale sobre tus finanzas.</p>
+    </Banner>
+</RadzenCard>
+
+<ExampleCard Title="Uso Basico" Description="Banner con todos los parametros" Language="razor" Code="@basicUsage">
+    <ChildContent>
+        <Banner Style="Banner.BannerStyle.Love"
+                Icon="favorite"
+                Title="San Valentin: -30%"
+                ButtonText="Canjear"
+                ButtonUrl="#">
+            <p>Codigo <strong>LOVE2025</strong> valido hasta el 14 de febrero.</p>
+        </Banner>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Sin Boton" Description="Banner solo informativo" Language="razor" Code="@noBtnUsage">
+    <ChildContent>
+        <Banner Style="Banner.BannerStyle.Primary"
+                Icon="info"
+                Title="Banner informativo">
+            <p>Este banner no tiene boton, ideal para <strong>mensajes informativos</strong>.</p>
+        </Banner>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Style</code></td><td>BannerStyle</td><td>Primary</td><td>Estilo visual del banner</td></tr>
+        <tr><td><code>Icon</code></td><td>string?</td><td>null</td><td>Icono Material Symbols</td></tr>
+        <tr><td><code>Title</code></td><td>string?</td><td>null</td><td>Titulo del banner</td></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment?</td><td>null</td><td>Contenido HTML del banner</td></tr>
+        <tr><td><code>ButtonText</code></td><td>string?</td><td>null</td><td>Texto del boton</td></tr>
+        <tr><td><code>ButtonUrl</code></td><td>string?</td><td>null</td><td>URL del boton</td></tr>
+        <tr><td><code>OpenInNewTab</code></td><td>bool</td><td>true</td><td>Abrir enlace en nueva pestana</td></tr>
+        <tr><td><code>AdditionalClass</code></td><td>string?</td><td>null</td><td>Clases CSS adicionales</td></tr>
+    </table>
+
+    <CardTitle Title="BannerStyle Enum" Icon="list" Subtitle="Estilos disponibles" />
+    <table class="params-table">
+        <tr><th>Valor</th><th>Descripcion</th></tr>
+        <tr><td><code>Primary</code></td><td>Azul Dinaup - Updates, versiones, destacados</td></tr>
+        <tr><td><code>Gold</code></td><td>Dorado con destello - Premium, upgrade</td></tr>
+        <tr><td><code>Love</code></td><td>Rosa corazon - Amor, San Valentin, bodas</td></tr>
+        <tr><td><code>Danger</code></td><td>Rojo urgente - Critico, ultimas horas</td></tr>
+        <tr><td><code>Success</code></td><td>Verde exito - Completado, verificado</td></tr>
+        <tr><td><code>Warning</code></td><td>Naranja aviso - Alertas graves, mantenimiento</td></tr>
+        <tr><td><code>Pro</code></td><td>Violeta/Azul - Funcionalidades PRO</td></tr>
+        <tr><td><code>Beta</code></td><td>Rojo/Naranja - Experimental, beta</td></tr>
+        <tr><td><code>New</code></td><td>Cyan/Azul - Novedades, lanzamientos</td></tr>
+        <tr><td><code>Premium</code></td><td>Dorado elegante - Ofertas premium</td></tr>
+        <tr><td><code>IA</code></td><td>Verde/Cyan - Inteligencia Artificial</td></tr>
+    </table>
+</RadzenCard>
+
+@code {
+    string basicUsage = "<Banner Style=\"Banner.BannerStyle.Love\"\n        Icon=\"favorite\"\n        Title=\"San Valentin: -30%\"\n        ButtonText=\"Canjear\"\n        ButtonUrl=\"https://dinaup.com/promo\">\n    <p>Codigo <strong>LOVE2025</strong> valido hasta el 14 de febrero.</p>\n</Banner>";
+
+    string noBtnUsage = "<Banner Style=\"Banner.BannerStyle.Primary\"\n        Icon=\"info\"\n        Title=\"Banner informativo\">\n    <p>Este banner no tiene boton.</p>\n</Banner>";
+}

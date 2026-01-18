@@ -1,0 +1,70 @@
+@page "/examples/SpanKVExample"
+
+<PageTitle>SpanKV</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="SpanKV" Subtitle="Par clave-valor con icono opcional. El valor se pasa como contenido hijo." Icon="format_list_bulleted" />
+</RadzenCard>
+
+<ExampleCard Title="Vertical" Description="Layout vertical (por defecto)" Code="@(@"<SpanKV Key=""Estado"">Activo</SpanKV>
+<SpanKV Key=""Email"" Icon=""mail"">user@example.com</SpanKV>
+<SpanKV Key=""Tel"" Icon=""phone"">+34 600 123 456</SpanKV>")">
+    <ChildContent>
+        <div class="examples-grid">
+            <SpanKV Key="Estado">Activo</SpanKV>
+            <SpanKV Key="Email" Icon="mail">user@example.com</SpanKV>
+            <SpanKV Key="Telefono" Icon="phone">+34 600 123 456</SpanKV>
+            <SpanKV Key="Ubicacion" Icon="location_on">Madrid, Espana</SpanKV>
+            <SpanKV Key="Empresa" Icon="business">Dinaup S.L.</SpanKV>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Horizontal" Description="Layout en linea" Code="@(@"<SpanKV Key=""Estado"" Horizontal=""true"">Activo</SpanKV>")">
+    <ChildContent>
+        <div class="examples-grid">
+            <SpanKV Key="Estado" Horizontal="true">Activo</SpanKV>
+            <SpanKV Key="Email" Icon="mail" Horizontal="true">user@example.com</SpanKV>
+            <SpanKV Key="Total" Icon="payments" Horizontal="true">1.500,00 EUR</SpanKV>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Con Color" Description="Colores personalizados para icono y valor" Code="@(@"<SpanKV Key=""Saldo"" Icon=""account_balance"" IconColor=""green"" ValueColor=""green"">
+    +1.500,00 EUR
+</SpanKV>")">
+    <ChildContent>
+        <div class="examples-grid">
+            <SpanKV Key="Saldo" Icon="account_balance" IconColor="green" ValueColor="green">+1.500,00 EUR</SpanKV>
+            <SpanKV Key="Deuda" Icon="warning" IconColor="red" ValueColor="red">-500,00 EUR</SpanKV>
+            <SpanKV Key="Pendiente" Icon="schedule" IconColor="orange" ValueColor="orange">En proceso</SpanKV>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="TextRight" Description="Valor alineado a la derecha" Code="@(@"<SpanKV Key=""Total"" TextRight=""true"">1.500,00 EUR</SpanKV>")">
+    <ChildContent>
+        <div class="examples-grid" style="width: 300px;">
+            <SpanKV Key="Subtotal" TextRight="true">1.000,00 EUR</SpanKV>
+            <SpanKV Key="IVA (21%)" TextRight="true">210,00 EUR</SpanKV>
+            <SpanKV Key="Total" TextRight="true" ValueColor="#005395"><b>1.210,00 EUR</b></SpanKV>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Key</code></td><td>string</td><td>""</td><td>Etiqueta/clave</td></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>-</td><td>Contenido (valor)</td></tr>
+        <tr><td><code>Icon</code></td><td>string</td><td>null</td><td>Icono Material o URL imagen</td></tr>
+        <tr><td><code>IconColor</code></td><td>string</td><td>null</td><td>Color del icono</td></tr>
+        <tr><td><code>ValueColor</code></td><td>string</td><td>null</td><td>Color del valor</td></tr>
+        <tr><td><code>Horizontal</code></td><td>bool</td><td>false</td><td>Layout horizontal</td></tr>
+        <tr><td><code>TextRight</code></td><td>bool</td><td>false</td><td>Alinea valor a la derecha</td></tr>
+        <tr><td><code>LabelWidth</code></td><td>string</td><td>null</td><td>Ancho maximo del label</td></tr>
+        <tr><td><code>Visible</code></td><td>bool</td><td>true</td><td>Muestra/oculta</td></tr>
+        <tr><td><code>Class</code></td><td>string</td><td>null</td><td>Clases CSS adicionales</td></tr>
+    </table>
+</RadzenCard>

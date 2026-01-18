@@ -1,0 +1,71 @@
+@page "/examples/SpanGramsExample"
+
+<PageTitle>SpanGrams</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="SpanGrams" Subtitle="Muestra peso en gramos o Kg segun cantidad (>1000g = Kg)." Icon="scale" />
+</RadzenCard>
+
+<ExampleCard Title="Basico" Description="Conversion automatica de gramos a Kg" Code="@(@"<SpanGrams Value=""250m"" />    @* 250 gr *@
+<SpanGrams Value=""500m"" />    @* 500 gr *@
+<SpanGrams Value=""1000m"" />   @* 1000 gr (limite) *@
+<SpanGrams Value=""1500m"" />   @* 1.5 Kg *@
+<SpanGrams Value=""5000m"" />   @* 5 Kg *@")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div>
+                <span class="example-label">250g (gramos):</span>
+                <SpanGrams Value="250m" />
+            </div>
+            <div>
+                <span class="example-label">500g (gramos):</span>
+                <SpanGrams Value="500m" />
+            </div>
+            <div>
+                <span class="example-label">1000g (limite):</span>
+                <SpanGrams Value="1000m" />
+            </div>
+            <div>
+                <span class="example-label">1500g (Kg):</span>
+                <SpanGrams Value="1500m" />
+            </div>
+            <div>
+                <span class="example-label">5000g (Kg):</span>
+                <SpanGrams Value="5000m" />
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="AutoColor" Description="Azul para Kg, Rojo para gramos" Code="@(@"<SpanGrams Value=""500m"" AutoColor=""true"" />    @* Rojo (gramos) *@
+<SpanGrams Value=""2000m"" AutoColor=""true"" />   @* Azul (Kg) *@")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div>
+                <span class="example-label">500g (rojo):</span>
+                <SpanGrams Value="500m" AutoColor="true" />
+            </div>
+            <div>
+                <span class="example-label">2000g (azul):</span>
+                <SpanGrams Value="2000m" AutoColor="true" />
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Value</code></td><td>decimal?</td><td>null</td><td>Peso en gramos</td></tr>
+        <tr><td><code>AutoColor</code></td><td>bool</td><td>false</td><td>Azul si mayor a 1000g, Rojo si menor</td></tr>
+        <tr><td><code>Class</code></td><td>string</td><td>""</td><td>Clases CSS adicionales</td></tr>
+        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Tamano de fuente</td></tr>
+    </table>
+
+    <CardTitle Title="Comportamiento" Icon="info" />
+    <ul>
+        <li>&lt;= 1000g: Muestra en gramos (ej: "500 gr")</li>
+        <li>&gt; 1000g: Convierte a Kg (ej: "1.5 Kg")</li>
+    </ul>
+</RadzenCard>

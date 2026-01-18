@@ -1,0 +1,41 @@
+@page "/examples/SearchInputExample"
+
+<PageTitle>SearchInput</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="SearchInput" Subtitle="Input de busqueda con debounce de 500ms." Icon="search" />
+</RadzenCard>
+
+<ExampleCard Title="Ejemplo interactivo" Description="El callback se dispara 500ms despues de dejar de escribir" Code="@(@"<SearchInput @bind-Value=""@searchTerm"" />
+
+<SearchInput Value=""@searchTerm""
+             ValueChanged=""@OnSearch"" />
+
+@code {
+    string searchTerm = """";
+
+    void OnSearch(string value)
+    {
+        // Se ejecuta 500ms despues de dejar de escribir
+        Console.WriteLine($""Buscando: {value}"");
+    }
+}")">
+    <ChildContent>
+        <SearchInput @bind-Value="@searchValue" />
+        <p class="rz-mt-2">Valor: <strong>@searchValue</strong></p>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Value</code></td><td>string</td><td>""</td><td>Valor del input (two-way)</td></tr>
+        <tr><td><code>ValueChanged</code></td><td>EventCallback&lt;string&gt;</td><td>-</td><td>Callback instantaneo</td></tr>
+        <tr><td><code>BounceValueChanged</code></td><td>EventCallback&lt;string&gt;</td><td>-</td><td>Callback con debounce 500ms</td></tr>
+    </table>
+</RadzenCard>
+
+@code {
+    string searchValue = "";
+}

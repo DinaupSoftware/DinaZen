@@ -1,0 +1,62 @@
+@page "/examples/StatsDisplayExample"
+
+<PageTitle>StatsDisplay</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="StatsDisplay" Subtitle="Contenedor responsive para mostrar multiples estadisticas." Icon="bar_chart" />
+</RadzenCard>
+
+<ExampleCard Title="Default" Description="Estilo por defecto" Code="@(@"@code {
+    List<StatsDisplay.StatisticModel> stats = new()
+    {
+        new() { Value = ""1,234"", Label = ""Usuarios"", Unit = """" },
+        new() { Value = ""567"", Label = ""Pedidos"", Unit = ""hoy"" },
+        new() { Value = ""89.5"", Label = ""Satisfaccion"", Unit = ""%"" }
+    };
+}
+
+<StatsDisplay Statistics=""@stats"" />")">
+    <ChildContent>
+        <StatsDisplay Statistics="@stats1" />
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Outlined" Description="Con borde" Code="@(@"<StatsDisplay Statistics=""@stats"" Variant=""Variant.Outlined"" />")">
+    <ChildContent>
+        <StatsDisplay Statistics="@stats2" Variant="Variant.Outlined" />
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros StatsDisplay" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Statistics</code></td><td>List&lt;StatisticModel&gt;</td><td>Lista de estadisticas</td></tr>
+        <tr><td><code>Variant</code></td><td>Variant</td><td>Estilo del contenedor</td></tr>
+    </table>
+
+    <CardTitle Title="StatisticModel" Icon="data_object" Subtitle="Modelo de datos" />
+    <table class="params-table">
+        <tr><th>Propiedad</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Value</code></td><td>string</td><td>Valor de la estadistica</td></tr>
+        <tr><td><code>Label</code></td><td>string</td><td>Etiqueta descriptiva</td></tr>
+        <tr><td><code>Unit</code></td><td>string</td><td>Unidad de medida</td></tr>
+    </table>
+</RadzenCard>
+
+@code {
+    List<StatsDisplay.StatisticModel> stats1 = new()
+    {
+        new() { Value = "1,234", Label = "Usuarios Activos", Unit = "" },
+        new() { Value = "567", Label = "Pedidos", Unit = "hoy" },
+        new() { Value = "89.5", Label = "Satisfaccion", Unit = "%" },
+        new() { Value = "45", Label = "Tiempo Respuesta", Unit = "min" }
+    };
+
+    List<StatsDisplay.StatisticModel> stats2 = new()
+    {
+        new() { Value = "$45,678", Label = "Ingresos Mes", Unit = "" },
+        new() { Value = "+12%", Label = "vs Mes Anterior", Unit = "" },
+        new() { Value = "892", Label = "Transacciones", Unit = "" }
+    };
+}

@@ -1,0 +1,95 @@
+@page "/examples/PulseDotAnimationExample"
+
+<PageTitle>PulseDotAnimation</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="PulseDotAnimation" Subtitle="Punto animado con pulso para indicar estados en tiempo real." Icon="radio_button_checked" />
+</RadzenCard>
+
+<ExampleCard Title="Colores" Description="Diferentes estados representados por colores" Code="@(@"<PulseDotAnimation Color=""PulseDotAnimation.PulseColor.Green"" />
+<PulseDotAnimation Color=""PulseDotAnimation.PulseColor.Yellow"" />
+<PulseDotAnimation Color=""PulseDotAnimation.PulseColor.Red"" />
+<PulseDotAnimation Color=""PulseDotAnimation.PulseColor.Gray"" />")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" />
+                <span>Green - Usuario Online</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Yellow" />
+                <span>Yellow - Servidor Ocupado</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Red" />
+                <span>Red - Servicio Caido</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Gray" />
+                <span>Gray - Estado Desconocido</span>
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Sin Pulso" Description="Desactivar la animacion de pulso" Code="@(@"<PulseDotAnimation Color=""PulseDotAnimation.PulseColor.Green"" Pulse=""false"" />")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" Pulse="false" />
+                <span>Sin animacion</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" Pulse="true" />
+                <span>Con animacion (default)</span>
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Tamanos" Description="Diferentes tamanos en pixeles" Code="@(@"<PulseDotAnimation Color=""..."" Size=""8"" />
+<PulseDotAnimation Color=""..."" Size=""14"" /> @* Default *@
+<PulseDotAnimation Color=""..."" Size=""20"" />")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" Size="8" />
+                <span>Size 8px</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" Size="14" />
+                <span>Size 14px (default)</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" Size="20" />
+                <span>Size 20px</span>
+            </div>
+            <div class="example-row">
+                <PulseDotAnimation Color="PulseDotAnimation.PulseColor.Green" Size="30" />
+                <span>Size 30px</span>
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Color</code></td><td>PulseColor</td><td>-</td><td><b>Requerido.</b> Color del punto</td></tr>
+        <tr><td><code>Pulse</code></td><td>bool</td><td>true</td><td>Activa/desactiva animacion de pulso</td></tr>
+        <tr><td><code>Size</code></td><td>int</td><td>14</td><td>Tamano del punto en pixeles</td></tr>
+        <tr><td><code>RingPadding</code></td><td>int</td><td>6</td><td>Padding del anillo de pulso</td></tr>
+        <tr><td><code>RingThickness</code></td><td>int</td><td>2</td><td>Grosor del anillo de pulso</td></tr>
+        <tr><td><code>Title</code></td><td>string</td><td>null</td><td>Tooltip al hacer hover</td></tr>
+    </table>
+
+    <CardTitle Title="PulseColor Enum" Icon="palette" Subtitle="Colores disponibles" />
+    <table class="params-table">
+        <tr><th>Valor</th><th>Hex</th><th>Uso Tipico</th></tr>
+        <tr><td><code>Green</code></td><td>#62bd19</td><td>Online, Activo, OK</td></tr>
+        <tr><td><code>Yellow</code></td><td>#FFD700</td><td>Ocupado, Procesando, Warning</td></tr>
+        <tr><td><code>Red</code></td><td>#FF0000</td><td>Offline, Error, Critico</td></tr>
+        <tr><td><code>Gray</code></td><td>#333333</td><td>Inactivo, Desconocido</td></tr>
+    </table>
+</RadzenCard>

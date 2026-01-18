@@ -1,0 +1,101 @@
+@page "/examples/GenericGanttExample"
+@using DinaZen.Components.Gantt.Models
+
+<PageTitle>GenericGantt</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="GenericGantt" Subtitle="Diagrama Gantt con toolbar, zoom y modos de vista (Hora/Semana/Mes/Ano)." Icon="view_timeline" />
+</RadzenCard>
+
+<ExampleCard Title="Uso basico" Description="Gantt con grupos y items" Code="@(@"@using DinaZen.Components.Gantt.Models
+
+<GenericGantt Groups=""@grupos"" SourceItems=""@items"" OnItemClick=""@HandleClick"" />
+
+@code {
+    List<GanttGroup> grupos = new()
+    {
+        new() { Id = ""emp1"", Text = ""Juan Garcia"" },
+        new() { Id = ""emp2"", Text = ""Maria Lopez"" }
+    };
+
+    List<GanttItem> items = new()
+    {
+        new(""t1"", ""emp1"", ""Tarea 1"",
+            DateTime.Today.AddHours(9),
+            DateTime.Today.AddHours(12),
+            null, ""background: #4CAF50;""),
+        new(""t2"", ""emp2"", ""Tarea 2"",
+            DateTime.Today.AddHours(10),
+            DateTime.Today.AddHours(15),
+            null, ""background: #2196F3;"")
+    };
+
+    void HandleClick(GanttItem item) => Console.WriteLine(item.Text);
+}")">
+    <ChildContent>
+        <GenericGantt Groups="@grupos" SourceItems="@items" OnItemClick="@HandleItemClick" />
+        @if (!string.IsNullOrEmpty(selected))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" class="rz-mt-2">@selected</RadzenAlert>
+        }
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Groups</code></td><td>List&lt;GanttGroup&gt;</td><td>Filas del Gantt</td></tr>
+        <tr><td><code>SourceItems</code></td><td>List&lt;GanttItem&gt;</td><td>Barras de tiempo</td></tr>
+        <tr><td><code>OnItemClick</code></td><td>EventCallback&lt;GanttItem&gt;</td><td>Click en item</td></tr>
+    </table>
+
+    <CardTitle Title="GanttGroup" Icon="table_rows" Subtitle="Filas del diagrama" />
+    <table class="params-table">
+        <tr><th>Prop</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Id</code></td><td>string</td><td>ID unico</td></tr>
+        <tr><td><code>Text</code></td><td>string</td><td>Texto columna izquierda</td></tr>
+        <tr><td><code>Template</code></td><td>RenderFragment</td><td>Template custom</td></tr>
+    </table>
+
+    <CardTitle Title="GanttItem" Icon="view_week" Subtitle="Constructor de barras" />
+    <HighlightCode Language="csharp" Code="@ganttItemCode" />
+</RadzenCard>
+
+@code {
+    string selected = "";
+
+    string ganttItemCode = @"new GanttItem(
+    id: ""t1"",
+    groupId: ""emp1"",      // Fila donde aparece
+    text: ""Mi Tarea"",     // Texto en la barra
+    from: DateTime,       // Inicio
+    to: DateTime,         // Fin
+    data: null,           // Datos extra
+    styleX: ""background: #4CAF50;""  // CSS inline
+)";
+
+    List<GanttGroup> grupos = new()
+    {
+        new() { Id = "e1", Text = "Juan Garcia" },
+        new() { Id = "e2", Text = "Maria Lopez" },
+        new() { Id = "e3", Text = "Carlos Ruiz" }
+    };
+
+    List<GanttItem> items = new();
+
+    protected override void OnInitialized()
+    {
+        var t = DateTime.Today;
+        items = new()
+        {
+            new("1", "e1", "Desarrollo", t.AddHours(8), t.AddHours(12), null, "background:#667eea;color:white;"),
+            new("2", "e1", "Reunion", t.AddHours(14), t.AddHours(15), null, "background:#2196F3;color:white;"),
+            new("3", "e2", "Diseno", t.AddHours(9), t.AddHours(17), null, "background:#f5576c;color:white;"),
+            new("4", "e3", "Testing", t.AddHours(8), t.AddHours(11), null, "background:#4CAF50;color:white;"),
+            new("5", "e3", "Deploy", t.AddHours(15), t.AddHours(17), null, "background:#FF9800;color:white;")
+        };
+    }
+
+    void HandleItemClick(GanttItem item) => selected = $"Click: {item.Text}";
+}

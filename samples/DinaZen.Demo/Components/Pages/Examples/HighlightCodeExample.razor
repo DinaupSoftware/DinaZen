@@ -1,0 +1,134 @@
+@page "/examples/HighlightCodeExample"
+
+<PageTitle>HighlightCode</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="HighlightCode" Subtitle="Componente para mostrar bloques de codigo con resaltado de sintaxis, numeros de linea y boton de copiar." Icon="code" />
+</RadzenCard>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="Alias de Lenguajes" Icon="swap_horiz" Subtitle="Puedes usar diferentes alias para especificar el lenguaje" />
+    <table class="params-table">
+        <tr><th>Lenguaje</th><th>Alias aceptados</th></tr>
+        <tr><td>C#</td><td><code>csharp</code>, <code>cs</code>, <code>c#</code></td></tr>
+        <tr><td>JavaScript</td><td><code>javascript</code>, <code>js</code></td></tr>
+        <tr><td>TypeScript</td><td><code>typescript</code>, <code>ts</code></td></tr>
+        <tr><td>Razor</td><td><code>razor</code>, <code>cshtml</code></td></tr>
+        <tr><td>Terminal</td><td><code>bash</code>, <code>sh</code>, <code>shell</code>, <code>terminal</code></td></tr>
+        <tr><td>YAML</td><td><code>yaml</code>, <code>yml</code></td></tr>
+    </table>
+</RadzenCard>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="Lenguajes Soportados" Icon="translate" Subtitle="Todos los lenguajes con resaltado de sintaxis" />
+    <RadzenTabs>
+        <Tabs>
+            <RadzenTabsItem Text="C#" Icon="code">
+                <HighlightCode Language="csharp" Code="@csharpCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Razor" Icon="web">
+                <HighlightCode Language="razor" Code="@razorCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="JavaScript" Icon="javascript">
+                <HighlightCode Language="javascript" Code="@jsCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="TypeScript" Icon="code">
+                <HighlightCode Language="typescript" Code="@tsCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="HTML" Icon="html">
+                <HighlightCode Language="html" Code="@htmlCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="CSS" Icon="css">
+                <HighlightCode Language="css" Code="@cssCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="JSON" Icon="data_object">
+                <HighlightCode Language="json" Code="@jsonCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="SQL" Icon="storage">
+                <HighlightCode Language="sql" Code="@sqlCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Bash" Icon="terminal">
+                <HighlightCode Language="bash" Code="@bashCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="YAML" Icon="settings">
+                <HighlightCode Language="yaml" Code="@yamlCode" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="XML" Icon="description">
+                <HighlightCode Language="xml" Code="@xmlCode" />
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+    <div class="rz-mt-4">
+        <HighlightCode Language="razor" Code="@languageUsageCode" />
+    </div>
+</RadzenCard>
+
+<ExampleCard Title="Uso Basico" Description="Codigo de ejemplo para usar el componente" Language="razor" Code="@basicUsageCode">
+    <ChildContent>
+        <HighlightCode Language="csharp" Code="Console.WriteLine(&quot;Hello World&quot;);" />
+    </ChildContent>
+</ExampleCard>
+
+<CardTitle Title="Opciones de Visualizacion" Icon="tune" Subtitle="Personaliza la apariencia del bloque de codigo" />
+
+<ExampleCard Title="Con Numeros de Linea" Description="Muestra numeros de linea a la izquierda" Language="razor" Code="@lineNumbersCode">
+    <ChildContent>
+        <HighlightCode Language="csharp" Code="@csharpCode" ShowLineNumbers="true" />
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Completo" Description="Todas las opciones combinadas" Language="razor" Code="@fullExampleCode">
+    <ChildContent>
+        <HighlightCode
+            Language="csharp"
+            Code="@csharpCode"
+            FileName="UserService.cs"
+            ShowLineNumbers="true"
+            ShowCopy="true"
+            Size="HighlightCode.HighlightCodeSize.Default" />
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Code</code></td><td>string</td><td>null</td><td>Codigo a mostrar</td></tr>
+        <tr><td><code>Language</code></td><td>string</td><td>null</td><td>Lenguaje para resaltado (csharp, javascript, html, css, json, sql, bash, yaml, xml, razor)</td></tr>
+        <tr><td><code>FileName</code></td><td>string</td><td>null</td><td>Nombre del archivo a mostrar en el encabezado</td></tr>
+        <tr><td><code>ShowCopy</code></td><td>bool</td><td>true</td><td>Muestra boton para copiar codigo</td></tr>
+        <tr><td><code>ShowLineNumbers</code></td><td>bool</td><td>false</td><td>Muestra numeros de linea</td></tr>
+        <tr><td><code>Size</code></td><td>HighlightCodeSize</td><td>Default</td><td>Tamano del bloque (Small, Default, Large)</td></tr>
+    </table>
+</RadzenCard>
+
+@code {
+    // Example usage codes
+    private string basicUsageCode = "<HighlightCode Language=\"csharp\" Code=\"@myCode\" />\n\n@code {\n    string myCode = \"Console.WriteLine(\\\"Hello World\\\");\";\n}";
+    private string lineNumbersCode = "<HighlightCode Language=\"csharp\" Code=\"@code\" ShowLineNumbers=\"true\" />";
+    private string fullExampleCode = "<HighlightCode\n    Language=\"csharp\"\n    Code=\"@code\"\n    FileName=\"UserService.cs\"\n    ShowLineNumbers=\"true\"\n    ShowCopy=\"true\"\n    Size=\"HighlightCode.HighlightCodeSize.Default\" />";
+    private string languageUsageCode = "<HighlightCode Language=\"csharp\" Code=\"@csharpCode\" />\n<HighlightCode Language=\"razor\" Code=\"@razorCode\" />\n<HighlightCode Language=\"bash\" Code=\"@bashCode\" />\n\n@code {\n    string csharpCode = \"public class MyClass { }\";\n    string razorCode = \"@page \\\"/home\\\"\";\n    string bashCode = \"echo \\\"Hello\\\"\";\n}";
+
+    // Language examples
+    private string csharpCode = "public class UserService\n{\n    private readonly IUserRepository _repository;\n\n    public UserService(IUserRepository repository)\n    {\n        _repository = repository;\n    }\n\n    public async Task<User?> GetByIdAsync(int id)\n    {\n        return await _repository.FindAsync(id);\n    }\n}";
+
+    private string razorCode = "@page \"/users\"\n@inject UserService UserService\n\n<PageTitle>Usuarios</PageTitle>\n\n<RadzenDataGrid Data=\"@users\" TItem=\"User\">\n    <Columns>\n        <RadzenDataGridColumn Property=\"Name\" Title=\"Nombre\" />\n        <RadzenDataGridColumn Property=\"Email\" Title=\"Email\" />\n    </Columns>\n</RadzenDataGrid>\n\n@code {\n    private List<User> users = new();\n\n    protected override async Task OnInitializedAsync()\n    {\n        users = await UserService.GetAllAsync();\n    }\n}";
+
+    private string jsCode = "async function fetchUsers() {\n    const response = await fetch('/api/users');\n    const data = await response.json();\n\n    return data.map(user => ({\n        id: user.id,\n        name: user.name,\n        email: user.email\n    }));\n}\n\ndocument.addEventListener('DOMContentLoaded', () => {\n    console.log('App initialized');\n});";
+
+    private string tsCode = "interface User {\n    id: number;\n    name: string;\n    email: string;\n}\n\nclass UserService {\n    private baseUrl: string = '/api/users';\n\n    async getAll(): Promise<User[]> {\n        const response = await fetch(this.baseUrl);\n        return response.json();\n    }\n\n    async getById(id: number): Promise<User | null> {\n        const response = await fetch(`${this.baseUrl}/${id}`);\n        return response.ok ? response.json() : null;\n    }\n}";
+
+    private string htmlCode = "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Mi Aplicacion</title>\n    <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n    <header>\n        <nav class=\"navbar\">\n            <a href=\"/\">Inicio</a>\n            <a href=\"/about\">Acerca</a>\n        </nav>\n    </header>\n    <main id=\"app\"></main>\n    <script src=\"app.js\"></script>\n</body>\n</html>";
+
+    private string cssCode = ".card {\n    display: flex;\n    flex-direction: column;\n    padding: 1.5rem;\n    border-radius: 8px;\n    background: var(--card-bg);\n    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n    transition: transform 0.2s ease;\n}\n\n.card:hover {\n    transform: translateY(-2px);\n}\n\n.card-title {\n    font-size: 1.25rem;\n    font-weight: 600;\n    margin-bottom: 0.5rem;\n}";
+
+    private string jsonCode = "{\n    \"name\": \"DinaZen\",\n    \"version\": \"1.0.0\",\n    \"description\": \"Biblioteca de componentes Blazor\",\n    \"dependencies\": {\n        \"Radzen.Blazor\": \"^5.0.0\",\n        \"Microsoft.AspNetCore.Components\": \"^8.0.0\"\n    },\n    \"settings\": {\n        \"theme\": \"material\",\n        \"darkMode\": false,\n        \"language\": \"es\"\n    }\n}";
+
+    private string sqlCode = "SELECT\n    u.Id,\n    u.Name,\n    u.Email,\n    COUNT(o.Id) AS TotalOrders,\n    SUM(o.Amount) AS TotalSpent\nFROM Users u\nLEFT JOIN Orders o ON u.Id = o.UserId\nWHERE u.Active = 1\nGROUP BY u.Id, u.Name, u.Email\nHAVING COUNT(o.Id) > 5\nORDER BY TotalSpent DESC;";
+
+    private string bashCode = "#!/bin/bash\n\n# Desplegar aplicacion\necho \"Iniciando despliegue...\"\n\n# Construir proyecto\ndotnet build --configuration Release\n\n# Ejecutar tests\ndotnet test --no-build\n\n# Publicar\ndotnet publish -c Release -o ./publish\n\n# Reiniciar servicio\nsudo systemctl restart myapp\n\necho \"Despliegue completado!\"";
+
+    private string yamlCode = "name: CI/CD Pipeline\n\non:\n  push:\n    branches: [main, develop]\n  pull_request:\n    branches: [main]\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n\n      - name: Setup .NET\n        uses: actions/setup-dotnet@v4\n        with:\n          dotnet-version: '8.0.x'\n\n      - name: Restore\n        run: dotnet restore\n\n      - name: Build\n        run: dotnet build --no-restore\n\n      - name: Test\n        run: dotnet test --no-build";
+
+    private string xmlCode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Project Sdk=\"Microsoft.NET.Sdk.Razor\">\n    <PropertyGroup>\n        <TargetFramework>net8.0</TargetFramework>\n        <Nullable>enable</Nullable>\n        <ImplicitUsings>enable</ImplicitUsings>\n    </PropertyGroup>\n\n    <ItemGroup>\n        <PackageReference Include=\"Radzen.Blazor\" Version=\"5.0.0\" />\n    </ItemGroup>\n\n    <ItemGroup>\n        <Content Include=\"wwwroot\\**\" />\n    </ItemGroup>\n</Project>";
+}

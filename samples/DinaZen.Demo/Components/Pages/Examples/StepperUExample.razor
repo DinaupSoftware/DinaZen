@@ -1,0 +1,119 @@
+@page "/examples/StepperUExample"
+
+<PageTitle>StepperU</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="StepperU + StepperStepU" Subtitle="Stepper vertical para procesos paso a paso con linea conectora." Icon="format_list_numbered" />
+</RadzenCard>
+
+<ExampleCard Title="Proceso de Registro" Description="Stepper basico con pasos numerados" Code="@(@"<StepperU>
+    <StepperStepU Index=""1"">
+        <strong>Crear cuenta</strong>
+        <p>Registra tus datos basicos.</p>
+    </StepperStepU>
+    <StepperStepU Index=""2"">
+        <strong>Verificar email</strong>
+        <p>Confirma tu correo.</p>
+    </StepperStepU>
+    <StepperStepU Index=""3"">
+        <strong>Configurar perfil</strong>
+        <p>Personaliza tu cuenta.</p>
+    </StepperStepU>
+    <StepperStepU Index=""4"">
+        <strong>Listo!</strong>
+        <p>Ya puedes usar la plataforma.</p>
+    </StepperStepU>
+</StepperU>")">
+    <ChildContent>
+        <StepperU>
+            <StepperStepU Index="1">
+                <strong>Crear cuenta</strong>
+                <p style="margin:0; color: var(--rz-text-secondary-color);">Registra tus datos basicos.</p>
+            </StepperStepU>
+            <StepperStepU Index="2">
+                <strong>Verificar email</strong>
+                <p style="margin:0; color: var(--rz-text-secondary-color);">Confirma tu correo.</p>
+            </StepperStepU>
+            <StepperStepU Index="3">
+                <strong>Configurar perfil</strong>
+                <p style="margin:0; color: var(--rz-text-secondary-color);">Personaliza tu cuenta.</p>
+            </StepperStepU>
+            <StepperStepU Index="4">
+                <strong>Listo!</strong>
+                <p style="margin:0; color: var(--rz-text-secondary-color);">Ya puedes usar la plataforma.</p>
+            </StepperStepU>
+        </StepperU>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Seguimiento de Pedido" Description="Con iconos y timestamps" Code="@(@"<StepperU>
+    <StepperStepU Index=""1"">
+        <RadzenStack Orientation=""Orientation.Horizontal"" AlignItems=""AlignItems.Center"" Gap=""0.5rem"">
+            <RadzenIcon Icon=""shopping_cart"" />
+            <span><strong>Pedido recibido</strong> - 10:30 AM</span>
+        </RadzenStack>
+    </StepperStepU>
+    <StepperStepU Index=""2"">
+        <RadzenStack Orientation=""Orientation.Horizontal"" AlignItems=""AlignItems.Center"" Gap=""0.5rem"">
+            <RadzenIcon Icon=""inventory"" />
+            <span><strong>En preparacion</strong> - 11:00 AM</span>
+        </RadzenStack>
+    </StepperStepU>
+    <StepperStepU Index=""3"">
+        <RadzenStack Orientation=""Orientation.Horizontal"" AlignItems=""AlignItems.Center"" Gap=""0.5rem"">
+            <RadzenIcon Icon=""local_shipping"" />
+            <span><strong>En camino</strong> - 14:00 PM</span>
+        </RadzenStack>
+    </StepperStepU>
+    <StepperStepU Index=""4"">
+        <RadzenStack Orientation=""Orientation.Horizontal"" AlignItems=""AlignItems.Center"" Gap=""0.5rem"">
+            <RadzenIcon Icon=""check_circle"" Style=""color: var(--rz-success);"" />
+            <span><strong>Entregado</strong> - 16:30 PM</span>
+        </RadzenStack>
+    </StepperStepU>
+</StepperU>")">
+    <ChildContent>
+        <StepperU>
+            <StepperStepU Index="1">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenIcon Icon="shopping_cart" />
+                    <span><strong>Pedido recibido</strong> - 10:30 AM</span>
+                </RadzenStack>
+            </StepperStepU>
+            <StepperStepU Index="2">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenIcon Icon="inventory" />
+                    <span><strong>En preparacion</strong> - 11:00 AM</span>
+                </RadzenStack>
+            </StepperStepU>
+            <StepperStepU Index="3">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenIcon Icon="local_shipping" />
+                    <span><strong>En camino</strong> - 14:00 PM</span>
+                </RadzenStack>
+            </StepperStepU>
+            <StepperStepU Index="4">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenIcon Icon="check_circle" Style="color: var(--rz-success);" />
+                    <span><strong>Entregado</strong> - 16:30 PM</span>
+                </RadzenStack>
+            </StepperStepU>
+        </StepperU>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="StepperU" Icon="tune" Subtitle="Contenedor principal" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>StepperStepU items</td></tr>
+    </table>
+
+    <CardTitle Title="StepperStepU" Icon="tune" Subtitle="Cada paso del proceso" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Index</code></td><td>int</td><td>Numero del paso</td></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>Contenido del paso</td></tr>
+    </table>
+</RadzenCard>
+

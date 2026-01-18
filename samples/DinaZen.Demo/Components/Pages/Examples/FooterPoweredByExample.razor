@@ -1,0 +1,39 @@
+@page "/examples/FooterPoweredByExample"
+
+<PageTitle>FooterPoweredBy</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="FooterPoweredBy" Subtitle="Footer 'Powered by Dinaup' en estilos Compact o Modern." Icon="copyright" />
+</RadzenCard>
+
+<ExampleCard Title="Compact" Description="Version minimalista, una linea" Code="@(@"<FooterPoweredBy Style=""FooterPoweredBy.FooterStyleType.Compact"" />")">
+    <ChildContent>
+        <RadzenCard Variant="Variant.Outlined">
+            <FooterPoweredBy Style="FooterPoweredBy.FooterStyleType.Compact" />
+        </RadzenCard>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Modern (default)" Description="Version con mas espacio y estilo" Code="@(@"<FooterPoweredBy Style=""FooterPoweredBy.FooterStyleType.Modern"" />
+<FooterPoweredBy />")">
+    <ChildContent>
+        <RadzenCard Variant="Variant.Outlined">
+            <FooterPoweredBy Style="FooterPoweredBy.FooterStyleType.Modern" />
+        </RadzenCard>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Style</code></td><td>FooterStyleType</td><td>Modern</td><td>Estilo del footer</td></tr>
+    </table>
+
+    <CardTitle Title="FooterStyleType Enum" Icon="list" Subtitle="Estilos disponibles" />
+    <table class="params-table">
+        <tr><th>Valor</th><th>Descripcion</th></tr>
+        <tr><td><code>Compact</code></td><td>Version minimalista, una linea</td></tr>
+        <tr><td><code>Modern</code></td><td>Version con mas espacio y estilo</td></tr>
+    </table>
+</RadzenCard>

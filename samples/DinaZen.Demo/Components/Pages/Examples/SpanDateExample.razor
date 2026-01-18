@@ -1,0 +1,62 @@
+@page "/examples/SpanDateExample"
+
+<PageTitle>SpanDate</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="SpanDate" Subtitle="Muestra fechas con formato amigable (Hoy, Ayer, Manana) y estados con color." Icon="event" />
+</RadzenCard>
+
+<ExampleCard Title="Uso basico" Description="Fechas relativas con formato amigable" Code="@(@"<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(-7))"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(-1))"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today)"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(1))"" />")">
+    <ChildContent>
+        <div class="examples-row">
+            <div><span class="label">Hace una semana:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(-7))" /></div>
+            <div><span class="label">Ayer:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(-1))" /></div>
+            <div><span class="label">Hoy:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today)" /></div>
+            <div><span class="label">Manana:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(1))" /></div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Con ShowStatus" Description="Muestra un badge con el estado (Pasado, Ayer, Hoy, Manana, Futuro)" Code="@(@"<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(-10))"" ShowStatus=""true"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(-1))"" ShowStatus=""true"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today)"" ShowStatus=""true"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(1))"" ShowStatus=""true"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(10))"" ShowStatus=""true"" />")">
+    <ChildContent>
+        <div class="examples-row">
+            <div><span class="label">Pasado:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(-10))" ShowStatus="true" /></div>
+            <div><span class="label">Ayer:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(-1))" ShowStatus="true" /></div>
+            <div><span class="label">Hoy:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today)" ShowStatus="true" /></div>
+            <div><span class="label">Manana:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(1))" ShowStatus="true" /></div>
+            <div><span class="label">Futuro:</span> <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(10))" ShowStatus="true" /></div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Con ShowBadge" Description="Muestra la fecha como un badge outlined" Code="@(@"<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today)"" ShowBadge=""true"" />
+<SpanDate Value=""@DateOnly.FromDateTime(DateTime.Today.AddDays(-1))"" ShowBadge=""true"" />
+<SpanDate Value=""@(new DateOnly(2024, 6, 15))"" ShowBadge=""true"" />")">
+    <ChildContent>
+        <div class="examples-row">
+            <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today)" ShowBadge="true" />
+            <SpanDate Value="@DateOnly.FromDateTime(DateTime.Today.AddDays(-1))" ShowBadge="true" />
+            <SpanDate Value="@(new DateOnly(2024, 6, 15))" ShowBadge="true" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
+        <tr><td><code>Value</code></td><td>DateOnly?</td><td>null</td><td>Fecha a mostrar</td></tr>
+        <tr><td><code>FriendlyMode</code></td><td>bool</td><td>true</td><td>Mostrar "Hoy", "Ayer", etc.</td></tr>
+        <tr><td><code>ShowBadge</code></td><td>bool</td><td>false</td><td>Mostrar como badge outlined</td></tr>
+        <tr><td><code>ShowStatus</code></td><td>bool</td><td>false</td><td>Mostrar badge de estado</td></tr>
+        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Tamano de fuente</td></tr>
+        <tr><td><code>Class</code></td><td>string</td><td>""</td><td>Clases CSS adicionales</td></tr>
+    </table>
+</RadzenCard>

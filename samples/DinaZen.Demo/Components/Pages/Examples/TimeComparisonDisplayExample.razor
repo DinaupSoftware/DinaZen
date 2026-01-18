@@ -1,0 +1,41 @@
+@page "/examples/TimeComparisonDisplayExample"
+
+<PageTitle>TimeComparisonDisplay</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="TimeComparisonDisplay" Subtitle="Compara tiempo planificado vs real con barra visual." Icon="compare_arrows" />
+</RadzenCard>
+
+<ExampleCard Title="Comparaciones" Description="Diferentes estados de cumplimiento" Code="@(@"<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""45"" />   @* bajo presupuesto *@
+<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""60"" />   @* exacto *@
+<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""90"" />   @* excedido *@")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div>
+                <span class="example-label">Bajo (45/60):</span>
+                <TimeComparisonDisplay PlannedTime="60" ActualTime="45" />
+            </div>
+            <div>
+                <span class="example-label">Exacto (60/60):</span>
+                <TimeComparisonDisplay PlannedTime="60" ActualTime="60" />
+            </div>
+            <div>
+                <span class="example-label">Excedido (90/60):</span>
+                <TimeComparisonDisplay PlannedTime="60" ActualTime="90" />
+            </div>
+            <div>
+                <span class="example-label">Muy excedido (120/60):</span>
+                <TimeComparisonDisplay PlannedTime="60" ActualTime="120" />
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>PlannedTime</code></td><td>decimal</td><td>Minutos planificados</td></tr>
+        <tr><td><code>ActualTime</code></td><td>decimal</td><td>Minutos reales</td></tr>
+    </table>
+</RadzenCard>

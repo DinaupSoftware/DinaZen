@@ -1,0 +1,57 @@
+@page "/examples/SpecialBadgesExample"
+
+<PageTitle>SpecialBadges</PageTitle>
+
+<RadzenCard class="rz-mb-4">
+    <CardTitle Title="SpecialBadges" Subtitle="Badges especiales con iconos y estilos gradient predefinidos." Icon="verified" />
+</RadzenCard>
+
+<ExampleCard Title="Todos los tipos" Description="Badges disponibles" Code="@(@"<SpecialBadges Type=""SpecialBadges.BadgeType.Pro"" />
+<SpecialBadges Type=""SpecialBadges.BadgeType.Beta"" />
+<SpecialBadges Type=""SpecialBadges.BadgeType.New"" />
+<SpecialBadges Type=""SpecialBadges.BadgeType.Premium"" />
+<SpecialBadges Type=""SpecialBadges.BadgeType.IA"" />")">
+    <ChildContent>
+        <div class="examples-grid">
+            <div class="example-row">
+                <SpecialBadges Type="SpecialBadges.BadgeType.Pro" />
+                <span>Pro - Funcionalidad profesional</span>
+            </div>
+            <div class="example-row">
+                <SpecialBadges Type="SpecialBadges.BadgeType.Beta" />
+                <span>Beta - En fase de pruebas</span>
+            </div>
+            <div class="example-row">
+                <SpecialBadges Type="SpecialBadges.BadgeType.New" />
+                <span>Nuevo - Funcionalidad reciente</span>
+            </div>
+            <div class="example-row">
+                <SpecialBadges Type="SpecialBadges.BadgeType.Premium" />
+                <span>Premium - Exclusivo para suscriptores</span>
+            </div>
+            <div class="example-row">
+                <SpecialBadges Type="SpecialBadges.BadgeType.IA" />
+                <span>IA - Potenciado por inteligencia artificial</span>
+            </div>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<RadzenCard class="rz-mt-4">
+    <CardTitle Title="Parametros" Icon="tune" />
+    <table class="params-table">
+        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><td><code>Type</code></td><td>BadgeType</td><td>Tipo de badge especial</td></tr>
+    </table>
+
+    <CardTitle Title="BadgeType Enum" Icon="list" Subtitle="Tipos disponibles" />
+    <table class="params-table">
+        <tr><th>Valor</th><th>Icono</th><th>Descripcion</th></tr>
+        <tr><td><code>Pro</code></td><td>bolt</td><td>Funcionalidad profesional/avanzada</td></tr>
+        <tr><td><code>Beta</code></td><td>science</td><td>En fase de pruebas/experimental</td></tr>
+        <tr><td><code>New</code></td><td>celebration</td><td>Funcionalidad nueva/reciente</td></tr>
+        <tr><td><code>Premium</code></td><td>workspace_premium</td><td>Exclusivo para suscriptores premium</td></tr>
+        <tr><td><code>IA</code></td><td>auto_awesome</td><td>Potenciado por inteligencia artificial</td></tr>
+    </table>
+</RadzenCard>
+
