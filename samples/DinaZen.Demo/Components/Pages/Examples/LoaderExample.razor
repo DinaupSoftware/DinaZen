@@ -3,10 +3,10 @@
 <PageTitle>Loader</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="Loader" Subtitle="Indicador de carga animado con barras horizontales." Icon="hourglass_empty" />
+    <CardTitle Title="Loader" Subtitle="Animated loading indicator with horizontal bars." Icon="hourglass_empty" />
 </RadzenCard>
 
-<ExampleCard Title="Fondo claro" Description="Loader sobre fondo claro" Code="@(@"@if (isLoading)
+<ExampleCard Title="Light Background" Description="Loader on light background" Code="@(@"@if (isLoading)
 {
     <Loader />
 }
@@ -21,7 +21,7 @@ else
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Fondo oscuro" Description="Loader sobre fondo oscuro" Code="@(@"<div style=""background: #1a1a2e;"">
+<ExampleCard Title="Dark Background" Description="Loader on dark background" Code="@(@"<div style=""background: #1a1a2e;"">
     <Loader />
 </div>")">
     <ChildContent>
@@ -32,6 +32,6 @@ else
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
-    <p>Ninguno. El loader se centra automaticamente en su contenedor padre.</p>
+    <CardTitle Title="Parameters" Icon="tune" />
+    <p>None. The loader centers automatically in its parent container.</p>
 </RadzenCard>

@@ -11,7 +11,7 @@
 		<div style="display: grid; grid-template-rows: auto 1fr; height: 100%; gap: 1rem;padding-bottom:20px">
 			<RadzenCard class="rz-mb-0">
 				<div class="rz-text-align-center">
-					<span onclick="printIframe('documentopreview')">
+					<span onclick="DinaZen.printIframe('documentopreview')">
 						<RadzenButton Text="Imprimir / Guardar PDF" Icon="print" />
 					</span>
 				</div>
@@ -86,7 +86,7 @@
 			// │                                                                              │
 			// │  Result: safer loading and noticeably faster rendering.                        │
 			// └──────────────────────────────────────────────────────────────────────────────┘
-			JS.InvokeVoidAsync("setIframeBlob", "documentopreview", Result.R_DocumentContent);
+			JS.InvokeVoidAsync("DinaZen.setIframeBlob", "documentopreview", Result.R_DocumentContent);
 		}
 		return base.OnAfterRenderAsync(firstRender);
 

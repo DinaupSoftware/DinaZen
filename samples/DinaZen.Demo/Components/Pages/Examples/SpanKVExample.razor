@@ -3,10 +3,10 @@
 <PageTitle>SpanKV</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="SpanKV" Subtitle="Par clave-valor con icono opcional. El valor se pasa como contenido hijo." Icon="format_list_bulleted" />
+    <CardTitle Title="SpanKV" Subtitle="Key-value pair with optional icon. Value is passed as child content." Icon="format_list_bulleted" />
 </RadzenCard>
 
-<ExampleCard Title="Vertical" Description="Layout vertical (por defecto)" Code="@(@"<SpanKV Key=""Estado"">Activo</SpanKV>
+<ExampleCard Title="Vertical" Description="Vertical layout (default)" Code="@(@"<SpanKV Key=""Estado"">Activo</SpanKV>
 <SpanKV Key=""Email"" Icon=""mail"">user@example.com</SpanKV>
 <SpanKV Key=""Tel"" Icon=""phone"">+34 600 123 456</SpanKV>")">
     <ChildContent>
@@ -20,7 +20,7 @@
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Horizontal" Description="Layout en linea" Code="@(@"<SpanKV Key=""Estado"" Horizontal=""true"">Activo</SpanKV>")">
+<ExampleCard Title="Horizontal" Description="Inline layout" Code="@(@"<SpanKV Key=""Estado"" Horizontal=""true"">Activo</SpanKV>")">
     <ChildContent>
         <div class="examples-grid">
             <SpanKV Key="Estado" Horizontal="true">Activo</SpanKV>
@@ -30,7 +30,7 @@
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Con Color" Description="Colores personalizados para icono y valor" Code="@(@"<SpanKV Key=""Saldo"" Icon=""account_balance"" IconColor=""green"" ValueColor=""green"">
+<ExampleCard Title="With Color" Description="Custom colors for icon and value" Code="@(@"<SpanKV Key=""Saldo"" Icon=""account_balance"" IconColor=""green"" ValueColor=""green"">
     +1.500,00 EUR
 </SpanKV>")">
     <ChildContent>
@@ -42,7 +42,7 @@
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="TextRight" Description="Valor alineado a la derecha" Code="@(@"<SpanKV Key=""Total"" TextRight=""true"">1.500,00 EUR</SpanKV>")">
+<ExampleCard Title="TextRight" Description="Value aligned to the right" Code="@(@"<SpanKV Key=""Total"" TextRight=""true"">1.500,00 EUR</SpanKV>")">
     <ChildContent>
         <div class="examples-grid" style="width: 300px;">
             <SpanKV Key="Subtotal" TextRight="true">1.000,00 EUR</SpanKV>
@@ -53,18 +53,18 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
-        <tr><td><code>Key</code></td><td>string</td><td>""</td><td>Etiqueta/clave</td></tr>
-        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>-</td><td>Contenido (valor)</td></tr>
-        <tr><td><code>Icon</code></td><td>string</td><td>null</td><td>Icono Material o URL imagen</td></tr>
-        <tr><td><code>IconColor</code></td><td>string</td><td>null</td><td>Color del icono</td></tr>
-        <tr><td><code>ValueColor</code></td><td>string</td><td>null</td><td>Color del valor</td></tr>
-        <tr><td><code>Horizontal</code></td><td>bool</td><td>false</td><td>Layout horizontal</td></tr>
-        <tr><td><code>TextRight</code></td><td>bool</td><td>false</td><td>Alinea valor a la derecha</td></tr>
-        <tr><td><code>LabelWidth</code></td><td>string</td><td>null</td><td>Ancho maximo del label</td></tr>
-        <tr><td><code>Visible</code></td><td>bool</td><td>true</td><td>Muestra/oculta</td></tr>
-        <tr><td><code>Class</code></td><td>string</td><td>null</td><td>Clases CSS adicionales</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>Key</code></td><td>string</td><td>""</td><td>Label/key</td></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>-</td><td>Content (value)</td></tr>
+        <tr><td><code>Icon</code></td><td>string</td><td>null</td><td>Material icon or image URL</td></tr>
+        <tr><td><code>IconColor</code></td><td>string</td><td>null</td><td>Icon color</td></tr>
+        <tr><td><code>ValueColor</code></td><td>string</td><td>null</td><td>Value color</td></tr>
+        <tr><td><code>Horizontal</code></td><td>bool</td><td>false</td><td>Horizontal layout</td></tr>
+        <tr><td><code>TextRight</code></td><td>bool</td><td>false</td><td>Align value to the right</td></tr>
+        <tr><td><code>LabelWidth</code></td><td>string</td><td>null</td><td>Max label width</td></tr>
+        <tr><td><code>Visible</code></td><td>bool</td><td>true</td><td>Show/hide</td></tr>
+        <tr><td><code>Class</code></td><td>string</td><td>null</td><td>Additional CSS classes</td></tr>
     </table>
 </RadzenCard>

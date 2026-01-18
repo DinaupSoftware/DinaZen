@@ -3,33 +3,27 @@
 <PageTitle>DinaZen</PageTitle>
 
 <h1 class="rz-mb-2">DinaZen</h1>
-<p class="rz-text-secondary-color rz-mb-4">Componentes Blazor. Usa el menu lateral para navegar.</p>
+<p class="rz-text-secondary-color rz-mb-4">Blazor Components. Use the sidebar menu to navigate.</p>
 
-<div class="radzen-card rz-mb-4">
-	<div class="radzen-card-content">
-		<div class="radzen-card-icon">
-			<RadzenIcon Icon="favorite" />
-		</div>
-		<div class="radzen-card-text">
-			<h3>Basado en Radzen Blazor</h3>
-			<p>DinaZen esta construida sobre <strong>Radzen Blazor Components</strong>, una libreria de componentes gratuita y open source con mas de 90 componentes profesionales.</p>
-		</div>
-		<a href="https://blazor.radzen.com/" target="_blank" class="radzen-card-btn">
-			<span>Visitar Radzen</span>
-			<RadzenIcon Icon="arrow_forward" />
-		</a>
-	</div>
+<div class="rz-mb-4">
+	<Banner Style="Banner.BannerStyle.Love"
+	        Icon="favorite"
+	        Title="Built on Radzen Blazor"
+	        ButtonText="Visit Radzen"
+	        ButtonUrl="https://blazor.radzen.com/">
+		<p>DinaZen is built on top of <strong>Radzen Blazor Components</strong>, a free and open-source library with over 90 professional components.</p>
+	</Banner>
 </div>
 
 <RadzenCard class="rz-mb-4">
 	<div class="github-header">
 		<a href="https://github.com/DinaupSoftware/DinaZen" target="_blank" class="github-link">
 			<img src="img/github.svg" alt="GitHub" class="link-icon" />
-			<span>Ver en GitHub</span>
+			<span>View on GitHub</span>
 		</a>
 	</div>
 	<p class="rz-text-secondary-color rz-mt-2">
-		Descarga el repositorio para usarlo como plantilla, probar los componentes o contribuir al proyecto.
+		Download the repository to use it as a template, try the components, or contribute to the project.
 	</p>
 </RadzenCard>
 
@@ -38,49 +32,49 @@
 </div>
 
 <RadzenCard class="rz-mb-4">
-	<CardTitle Title="Instalacion y Configuracion" Icon="settings" />
+	<CardTitle Title="Installation and Setup" Icon="settings" />
 	<StepperU>
 		<StepperStepU Index="1">
-			<strong>Instalar paquete NuGet</strong>
-			<p class="step-description">Agrega la libreria DinaZen a tu proyecto Blazor.</p>
+			<strong>Install NuGet Package</strong>
+			<p class="step-description">Add the DinaZen library to your Blazor project.</p>
 			<HighlightCode Code="dotnet add package DinaZen" Language="bash" Size="HighlightCode.HighlightCodeSize.Small" />
-			<a href="https://www.nuget.org/packages/DinaZen" target="_blank" class="rz-text-secondary-color rz-mt-2" style="font-size: 0.85rem; display: inline-block;">Ver en NuGet.org</a>
+			<a href="https://www.nuget.org/packages/DinaZen" target="_blank" class="rz-text-secondary-color rz-mt-2" style="font-size: 0.85rem; display: inline-block;">View on NuGet.org</a>
 		</StepperStepU>
 		<StepperStepU Index="2">
-			<strong>Agregar using en _Imports.razor</strong>
-			<p class="step-description">Permite usar los componentes en cualquier pagina sin importar el namespace manualmente.</p>
+			<strong>Add using in _Imports.razor</strong>
+			<p class="step-description">Allows you to use the components on any page without manually importing the namespace.</p>
 			<HighlightCode Code="@usingCode" Language="csharp" Size="HighlightCode.HighlightCodeSize.Small" />
 		</StepperStepU>
 		<StepperStepU Index="3">
-			<strong>Registrar HttpContextAccessor</strong>
-			<p class="step-description">Necesario para acceder al contexto HTTP y detectar el idioma del navegador del usuario.</p>
+			<strong>Register HttpContextAccessor</strong>
+			<p class="step-description">Required to access the HTTP context and detect the user's browser language.</p>
 			<HighlightCode Code="builder.Services.AddHttpContextAccessor();" Language="csharp" Size="HighlightCode.HighlightCodeSize.Small" />
 		</StepperStepU>
 		<StepperStepU Index="4">
-			<strong>Registrar HttpClient</strong>
-			<p class="step-description">Necesario para el componente Animation que carga animaciones desde URLs externas.</p>
+			<strong>Register HttpClient</strong>
+			<p class="step-description">Required for the Animation component that loads animations from external URLs.</p>
 			<HighlightCode Code="builder.Services.AddHttpClient();" Language="csharp" Size="HighlightCode.HighlightCodeSize.Small" />
 		</StepperStepU>
 		<StepperStepU Index="5">
-			<strong>Registrar CultureService</strong>
-			<p class="step-description">Servicio que formatea fechas, numeros y monedas segun la cultura del usuario (ej: 1,234.56 en US vs 1.234,56 en ES).</p>
+			<strong>Register CultureService</strong>
+			<p class="step-description">Service that formats dates, numbers, and currencies according to the user's culture (e.g., 1,234.56 in US vs 1.234,56 in ES).</p>
 			<HighlightCode Code="@cultureServiceCode" Language="csharp" Size="HighlightCode.HighlightCodeSize.Small" />
 		</StepperStepU>
 		<StepperStepU Index="6">
-			<strong>Agregar CSS en &lt;head&gt;</strong>
-			<p class="step-description">Incluye los estilos de DinaZen en el head de tu _Host.cshtml o App.razor.</p>
+			<strong>Add CSS in &lt;head&gt;</strong>
+			<p class="step-description">Include DinaZen styles in the head of your _Host.cshtml or App.razor.</p>
 			<HighlightCode Code="@headCode" Language="cshtml" Size="HighlightCode.HighlightCodeSize.Small" />
 		</StepperStepU>
 		<StepperStepU Index="7">
-			<strong>Agregar JS antes de &lt;/body&gt;</strong>
-			<p class="step-description">Incluye los scripts de DinaZen justo antes de cerrar el body.</p>
+			<strong>Add JS before &lt;/body&gt;</strong>
+			<p class="step-description">Include DinaZen scripts just before closing the body.</p>
 			<HighlightCode Code="@scriptsCode" Language="cshtml" Size="HighlightCode.HighlightCodeSize.Small" />
 		</StepperStepU>
 	</StepperU>
 </RadzenCard>
 
 <RadzenCard>
-	<CardTitle Title="Componentes (25)" Icon="widgets" />
+	<CardTitle Title="Components (25)" Icon="widgets" />
 	<div class="comp-grid">
 		<div class="comp-cat">
 			<strong>Display (9)</strong>
@@ -134,8 +128,8 @@
 @code {
 	List<StatsDisplay.StatisticModel> componentStats = new()
 	{
-		new() { Value = "25", Label = "Componentes", Unit = "" },
-		new() { Value = "7", Label = "Categorias", Unit = "" },
+		new() { Value = "25", Label = "Components", Unit = "" },
+		new() { Value = "7", Label = "Categories", Unit = "" },
 		new() { Value = "9", Label = "Display", Unit = "" },
 		new() { Value = "3", Label = "Layout", Unit = "" }
 	};
@@ -158,110 +152,6 @@
 }
 
 <style>
-	/* Radzen Featured Card */
-	.radzen-card {
-		background: linear-gradient(135deg, #ec407a 0%, #f48fb1 50%, #f8bbd9 100%);
-		border-radius: 1rem;
-		padding: 1.5rem;
-		box-shadow: 0 4px 20px rgba(236, 64, 122, 0.3);
-		position: relative;
-		overflow: hidden;
-	}
-
-		.radzen-card::before {
-			content: '';
-			position: absolute;
-			top: -50%;
-			right: -50%;
-			width: 100%;
-			height: 100%;
-			background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-			pointer-events: none;
-		}
-
-	.radzen-card-content {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-		position: relative;
-		z-index: 1;
-	}
-
-	.radzen-card-icon {
-		flex-shrink: 0;
-		width: 3.5rem;
-		height: 3.5rem;
-		background: rgba(255, 255, 255, 0.25);
-		border-radius: 1rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		backdrop-filter: blur(10px);
-	}
-
-		.radzen-card-icon .rzi {
-			font-size: 1.75rem;
-			color: white;
-			animation: pulse-heart 2s ease-in-out infinite;
-		}
-
-	@@keyframes pulse-heart {
-		0%, 100% { transform: scale(1); }
-		50% { transform: scale(1.1); }
-	}
-
-	.radzen-card-text {
-		flex: 1;
-	}
-
-		.radzen-card-text h3 {
-			margin: 0 0 0.25rem 0;
-			font-size: 1.25rem;
-			font-weight: 600;
-			color: white;
-		}
-
-		.radzen-card-text p {
-			margin: 0;
-			font-size: 0.9rem;
-			color: rgba(255, 255, 255, 0.9);
-			line-height: 1.4;
-		}
-
-		.radzen-card-text strong {
-			color: white;
-		}
-
-	.radzen-card-btn {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1.25rem;
-		background: white;
-		color: #ec407a;
-		border-radius: 0.5rem;
-		text-decoration: none;
-		font-weight: 600;
-		font-size: 0.9rem;
-		transition: all 0.2s ease;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	}
-
-		.radzen-card-btn:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		}
-
-		.radzen-card-btn .rzi {
-			font-size: 1rem;
-			transition: transform 0.2s ease;
-		}
-
-		.radzen-card-btn:hover .rzi {
-			transform: translateX(4px);
-		}
-
 	/* GitHub Card */
 	.github-header {
 		display: flex;
@@ -318,16 +208,4 @@
 		margin: 0.25rem 0 0.5rem 0;
 	}
 
-	/* Responsive */
-	@@media (max-width: 768px) {
-		.radzen-card-content {
-			flex-direction: column;
-			text-align: center;
-		}
-
-		.radzen-card-btn {
-			width: 100%;
-			justify-content: center;
-		}
-	}
 </style>

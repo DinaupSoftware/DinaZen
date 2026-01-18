@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  dinazen-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      secrets:
+        - nuget_username
+        - nuget_token
+      args:
+        PFX_PASSWORD: dinazen-dev
+    ports:
+      - "5000:80"     # HTTP
+      - "5001:443"    # HTTPS
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+    volumes:
+      # Optional: mount for development hot-reload
+      # - ./samples/DinaZen.Demo:/app/samples/DinaZen.Demo
+      # - ./src:/app/src
+
+      # Mount rootCA for importing to host
+      - dinazen-certs:/https:ro
+    networks:
+      - dinazen-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  dinazen-network:
+    driver: bridge
+
+volumes:
+  dinazen-certs:
+    driver: local
+
+secrets:
+  nuget_username:
+    file: ./.secrets/nuget_username.txt
+  nuget_token:
+    file: ./.secrets/nuget_token.txt

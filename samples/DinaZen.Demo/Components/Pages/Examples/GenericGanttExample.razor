@@ -4,10 +4,10 @@
 <PageTitle>GenericGantt</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="GenericGantt" Subtitle="Diagrama Gantt con toolbar, zoom y modos de vista (Hora/Semana/Mes/Ano)." Icon="view_timeline" />
+    <CardTitle Title="GenericGantt" Subtitle="Gantt diagram with toolbar, zoom and view modes (Hour/Week/Month/Year)." Icon="view_timeline" />
 </RadzenCard>
 
-<ExampleCard Title="Uso basico" Description="Gantt con grupos y items" Code="@(@"@using DinaZen.Components.Gantt.Models
+<ExampleCard Title="Basic Usage" Description="Gantt with groups and items" Code="@(@"@using DinaZen.Components.Gantt.Models
 
 <GenericGantt Groups=""@grupos"" SourceItems=""@items"" OnItemClick=""@HandleClick"" />
 
@@ -42,23 +42,23 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
-        <tr><td><code>Groups</code></td><td>List&lt;GanttGroup&gt;</td><td>Filas del Gantt</td></tr>
-        <tr><td><code>SourceItems</code></td><td>List&lt;GanttItem&gt;</td><td>Barras de tiempo</td></tr>
-        <tr><td><code>OnItemClick</code></td><td>EventCallback&lt;GanttItem&gt;</td><td>Click en item</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>Groups</code></td><td>List&lt;GanttGroup&gt;</td><td>Gantt rows</td></tr>
+        <tr><td><code>SourceItems</code></td><td>List&lt;GanttItem&gt;</td><td>Time bars</td></tr>
+        <tr><td><code>OnItemClick</code></td><td>EventCallback&lt;GanttItem&gt;</td><td>Item click event</td></tr>
     </table>
 
-    <CardTitle Title="GanttGroup" Icon="table_rows" Subtitle="Filas del diagrama" />
+    <CardTitle Title="GanttGroup" Icon="table_rows" Subtitle="Diagram rows" />
     <table class="params-table">
-        <tr><th>Prop</th><th>Tipo</th><th>Descripcion</th></tr>
-        <tr><td><code>Id</code></td><td>string</td><td>ID unico</td></tr>
-        <tr><td><code>Text</code></td><td>string</td><td>Texto columna izquierda</td></tr>
-        <tr><td><code>Template</code></td><td>RenderFragment</td><td>Template custom</td></tr>
+        <tr><th>Prop</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>Id</code></td><td>string</td><td>Unique ID</td></tr>
+        <tr><td><code>Text</code></td><td>string</td><td>Left column text</td></tr>
+        <tr><td><code>Template</code></td><td>RenderFragment</td><td>Custom template</td></tr>
     </table>
 
-    <CardTitle Title="GanttItem" Icon="view_week" Subtitle="Constructor de barras" />
+    <CardTitle Title="GanttItem" Icon="view_week" Subtitle="Bar constructor" />
     <HighlightCode Language="csharp" Code="@ganttItemCode" />
 </RadzenCard>
 
@@ -67,12 +67,12 @@
 
     string ganttItemCode = @"new GanttItem(
     id: ""t1"",
-    groupId: ""emp1"",      // Fila donde aparece
-    text: ""Mi Tarea"",     // Texto en la barra
-    from: DateTime,       // Inicio
-    to: DateTime,         // Fin
-    data: null,           // Datos extra
-    styleX: ""background: #4CAF50;""  // CSS inline
+    groupId: ""emp1"",      // Row where it appears
+    text: ""Mi Tarea"",     // Text on the bar
+    from: DateTime,       // Start
+    to: DateTime,         // End
+    data: null,           // Extra data
+    styleX: ""background: #4CAF50;""  // Inline CSS
 )";
 
     List<GanttGroup> grupos = new()

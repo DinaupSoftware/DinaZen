@@ -3,28 +3,28 @@
 <PageTitle>TimeComparisonDisplay</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="TimeComparisonDisplay" Subtitle="Compara tiempo planificado vs real con barra visual." Icon="compare_arrows" />
+    <CardTitle Title="TimeComparisonDisplay" Subtitle="Compare planned vs actual time with visual bar." Icon="compare_arrows" />
 </RadzenCard>
 
-<ExampleCard Title="Comparaciones" Description="Diferentes estados de cumplimiento" Code="@(@"<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""45"" />   @* bajo presupuesto *@
-<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""60"" />   @* exacto *@
-<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""90"" />   @* excedido *@")">
+<ExampleCard Title="Comparisons" Description="Different compliance states" Code="@(@"<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""45"" />   @* under budget *@
+<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""60"" />   @* exact *@
+<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""90"" />   @* exceeded *@")">
     <ChildContent>
         <div class="examples-grid">
             <div>
-                <span class="example-label">Bajo (45/60):</span>
+                <span class="example-label">Under (45/60):</span>
                 <TimeComparisonDisplay PlannedTime="60" ActualTime="45" />
             </div>
             <div>
-                <span class="example-label">Exacto (60/60):</span>
+                <span class="example-label">Exact (60/60):</span>
                 <TimeComparisonDisplay PlannedTime="60" ActualTime="60" />
             </div>
             <div>
-                <span class="example-label">Excedido (90/60):</span>
+                <span class="example-label">Exceeded (90/60):</span>
                 <TimeComparisonDisplay PlannedTime="60" ActualTime="90" />
             </div>
             <div>
-                <span class="example-label">Muy excedido (120/60):</span>
+                <span class="example-label">Very exceeded (120/60):</span>
                 <TimeComparisonDisplay PlannedTime="60" ActualTime="120" />
             </div>
         </div>
@@ -32,10 +32,10 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
-        <tr><td><code>PlannedTime</code></td><td>decimal</td><td>Minutos planificados</td></tr>
-        <tr><td><code>ActualTime</code></td><td>decimal</td><td>Minutos reales</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>PlannedTime</code></td><td>decimal</td><td>Planned minutes</td></tr>
+        <tr><td><code>ActualTime</code></td><td>decimal</td><td>Actual minutes</td></tr>
     </table>
 </RadzenCard>

@@ -3,10 +3,10 @@
 <PageTitle>SpanMinutes</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="SpanMinutes" Subtitle="Convierte minutos a formato legible 'Xh Ym'." Icon="timer" />
+    <CardTitle Title="SpanMinutes" Subtitle="Converts minutes to readable format 'Xh Ym'." Icon="timer" />
 </RadzenCard>
 
-<ExampleCard Title="Ejemplos" Description="Conversion automatica a horas y minutos" Code="@(@"<SpanMinutes Value=""45m"" />    @* 45m *@
+<ExampleCard Title="Examples" Description="Automatic conversion to hours and minutes" Code="@(@"<SpanMinutes Value=""45m"" />    @* 45m *@
 <SpanMinutes Value=""90m"" />    @* 1h 30m *@
 <SpanMinutes Value=""180m"" />   @* 3h *@
 <SpanMinutes Value=""0m"" />     @* 0m *@
@@ -15,27 +15,27 @@
     <ChildContent>
         <div class="examples-grid">
             <div>
-                <span class="example-label">Solo minutos (45):</span>
+                <span class="example-label">Minutes only (45):</span>
                 <SpanMinutes Value="45m" />
             </div>
             <div>
-                <span class="example-label">Con horas (90):</span>
+                <span class="example-label">With hours (90):</span>
                 <SpanMinutes Value="90m" />
             </div>
             <div>
-                <span class="example-label">Horas exactas (180):</span>
+                <span class="example-label">Exact hours (180):</span>
                 <SpanMinutes Value="180m" />
             </div>
             <div>
-                <span class="example-label">Cero:</span>
+                <span class="example-label">Zero:</span>
                 <SpanMinutes Value="0m" />
             </div>
             <div>
-                <span class="example-label">Negativo (-30):</span>
+                <span class="example-label">Negative (-30):</span>
                 <SpanMinutes Value="-30m" />
             </div>
             <div>
-                <span class="example-label">Grande (500):</span>
+                <span class="example-label">Large (500):</span>
                 <SpanMinutes Value="500m" />
             </div>
         </div>
@@ -43,11 +43,11 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
-        <tr><td><code>Value</code></td><td>decimal?</td><td>0</td><td>Minutos totales</td></tr>
-        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Tamano de fuente</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>Value</code></td><td>decimal?</td><td>0</td><td>Total minutes</td></tr>
+        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Font size</td></tr>
     </table>
 </RadzenCard>
 
