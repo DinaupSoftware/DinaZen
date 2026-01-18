@@ -172,3 +172,35 @@ function printIframe(id) {
 		console.warn("El iframe no tiene contenido imprimible:", id);
 	}
 }
+
+
+// ============================================
+// Highlight.js - Syntax Highlighting
+// ============================================
+
+window.highlightCode = function () {
+	if (typeof hljs === 'undefined') {
+		console.warn('[DinaZen] highlight.js not loaded');
+		return;
+	}
+	document.querySelectorAll('pre code:not(.hljs)').forEach((el) => {
+		hljs.highlightElement(el);
+	});
+};
+
+window.highlightElement = function (element) {
+	if (typeof hljs === 'undefined' || !element) return;
+	hljs.highlightElement(element);
+};
+
+// ============================================
+// ScalableBlock - Zoom functionality
+// ============================================
+
+window.scalableBlock = {
+	setScale: function (element, scale) {
+		if (element) {
+			element.style.zoom = scale;
+		}
+	}
+};

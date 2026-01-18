@@ -12,7 +12,7 @@
 			</div>
 
 			<span class=" m-0 p-0 fs-6 d-flex w-100 flex-grow-1 justify-content-start flex-column align-items-start  ">
-				<span class="rz-text-button"> @DataFlowChild.DataFlow.PluralLabel <AutoBadgetU Style="zoom:0.8" Value="Completado" />	</span>
+				<span class="rz-text-button"> @DataFlowChild.DataFlow.PluralLabel <BadgetAutoColor Style="zoom:0.8" Value="Completado" />	</span>
 				<RadzenProgressBar Style="width:100%; height:6px" ProgressBarStyle="ProgressBarStyle.Success" Value=100 ShowValue="false" />
 				<span class="rz-text-caption my-1 d-flex justify-content-between w-100">
 					<span> Completado </span>
@@ -30,7 +30,7 @@
 				<img width="32" height="32" src=@DataFlowChild.IconoURLSVG />
 			</div>
 			<span class=" m-0 p-0 fs-6 d-flex w-100 flex-grow-1 justify-content-start flex-column align-items-start  ">
-				<span class="rz-text-button"> @DataFlowChild.DataFlow.PluralLabel <AutoBadgetU Style="zoom:0.8" Value="Pendiente" />	</span>
+				<span class="rz-text-button"> @DataFlowChild.DataFlow.PluralLabel <BadgetAutoColor Style="zoom:0.8" Value="Pendiente" />	</span>
 				<RadzenProgressBar Style="width:100%; height:6px" ProgressBarStyle="ProgressBarStyle.Primary" Value=@DataFlowChild.Porcentaje ShowValue="false" />
 				<span class="rz-text-caption my-1 d-flex justify-content-between w-100">
 					@if (DataFlowChild.DataFlow.IsMoney)
@@ -55,7 +55,7 @@
 				<img width="32" height="32" src=@DataFlowChild.IconoURLSVG />
 			</div>
 			<span class=" m-0 p-0 fs-6 d-flex w-100 flex-grow-1 justify-content-start flex-column align-items-start  ">
-				<span class="rz-text-button"> @DataFlowChild.DataFlow.PluralLabel <AutoBadgetU Style="zoom:0.8" Value="Exceso" />	</span>
+				<span class="rz-text-button"> @DataFlowChild.DataFlow.PluralLabel <BadgetAutoColor Style="zoom:0.8" Value="Exceso" />	</span>
 				<RadzenProgressBar Style="width:100%; height:6px" ProgressBarStyle="ProgressBarStyle.Danger" Value=100 ShowValue="false" />
 				<span class="rz-text-caption my-1 d-flex justify-content-between w-100">
 					@if (DataFlowChild.DataFlow.IsMoney)
