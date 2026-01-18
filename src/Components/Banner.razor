@@ -1,0 +1,143 @@
+@namespace DinaZen.Components
+
+<div class="@GetBannerClass()">
+	<div class="banner-content">
+		@if (!string.IsNullOrEmpty(Icon))
+		{
+			<div class="banner-icon">
+				<RadzenIcon Icon="@Icon" />
+			</div>
+		}
+		<div class="banner-text">
+			@if (!string.IsNullOrEmpty(Title))
+			{
+				<h3>@Title</h3>
+			}
+			@if (ChildContent != null)
+			{
+				@ChildContent
+			}
+		</div>
+		@if (!string.IsNullOrEmpty(ButtonText) && !string.IsNullOrEmpty(ButtonUrl))
+		{
+			<a href="@ButtonUrl" target="@(OpenInNewTab ? "_blank" : "_self")" class="banner-btn">
+				<span>@ButtonText</span>
+				<RadzenIcon Icon="arrow_forward" />
+			</a>
+		}
+	</div>
+</div>
+
+@code {
+	/// <summary>
+	/// Icono Material Symbols (ej: "favorite", "update", "bolt")
+	/// </summary>
+	[Parameter] public string? Icon { get; set; }
+
+	/// <summary>
+	/// Título principal del banner
+	/// </summary>
+	[Parameter] public string? Title { get; set; }
+
+	/// <summary>
+	/// Contenido HTML del banner (párrafos, strong, etc.)
+	/// </summary>
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+
+	/// <summary>
+	/// Texto del botón de acción
+	/// </summary>
+	[Parameter] public string? ButtonText { get; set; }
+
+	/// <summary>
+	/// URL de destino del botón
+	/// </summary>
+	[Parameter] public string? ButtonUrl { get; set; }
+
+	/// <summary>
+	/// Abrir enlace en nueva pestaña (default: true)
+	/// </summary>
+	[Parameter] public bool OpenInNewTab { get; set; } = true;
+
+	/// <summary>
+	/// Estilo visual del banner
+	/// </summary>
+	[Parameter] public BannerStyle Style { get; set; } = BannerStyle.Primary;
+
+	/// <summary>
+	/// Clases CSS adicionales
+	/// </summary>
+	[Parameter] public string? AdditionalClass { get; set; }
+
+	private string GetBannerClass()
+	{
+		var styleClass = Style switch
+		{
+			// Principales
+			BannerStyle.Primary => "banner-primary",
+			BannerStyle.Gold => "banner-gold",
+			BannerStyle.Love => "banner-love",
+			BannerStyle.Danger => "banner-danger",
+			BannerStyle.Success => "banner-success",
+			BannerStyle.Warning => "banner-warning",
+			// Badge-style
+			BannerStyle.Pro => "banner-pro",
+			BannerStyle.Beta => "banner-beta",
+			BannerStyle.New => "banner-new",
+			BannerStyle.Premium => "banner-premium",
+			BannerStyle.IA => "banner-ia",
+			_ => "banner-primary"
+		};
+
+		return string.IsNullOrEmpty(AdditionalClass)
+			? $"banner {styleClass}"
+			: $"banner {styleClass} {AdditionalClass}";
+	}
+
+	/// <summary>
+	/// Estilos visuales disponibles para el Banner
+	/// </summary>
+	public enum BannerStyle
+	{
+		// ═══════════════════════════════════════
+		// PRINCIPALES
+		// ═══════════════════════════════════════
+		
+		/// <summary>Azul Dinaup - Updates, versiones, destacados</summary>
+		Primary,
+		
+		/// <summary>Dorado con destello - Premium, upgrade</summary>
+		Gold,
+		
+		/// <summary>Rosa corazón - Amor, San Valentín, bodas</summary>
+		Love,
+		
+		/// <summary>Rojo urgente - Crítico, últimas horas</summary>
+		Danger,
+		
+		/// <summary>Verde éxito - Completado, verificado</summary>
+		Success,
+		
+		/// <summary>Naranja aviso - Alertas graves, mantenimiento</summary>
+		Warning,
+
+		// ═══════════════════════════════════════
+		// BADGE-STYLE
+		// ═══════════════════════════════════════
+		
+		/// <summary>Violeta/Azul - Funcionalidades PRO</summary>
+		Pro,
+		
+		/// <summary>Rojo/Naranja - Experimental, beta</summary>
+		Beta,
+		
+		/// <summary>Cyan/Azul - Novedades, lanzamientos</summary>
+		New,
+		
+		/// <summary>Dorado elegante - Ofertas premium</summary>
+		Premium,
+		
+		/// <summary>Verde/Cyan - Inteligencia Artificial</summary>
+		IA
+	}
+}

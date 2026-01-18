@@ -1,0 +1,292 @@
+@inject IJSRuntime JS
+
+<div class="highlight-code @SizeClass">
+	<div class="highlight-code-header">
+		@if (!string.IsNullOrEmpty(Language))
+		{
+			<span class="highlight-code-lang">@LanguageDisplay</span>
+		}
+		@if (!string.IsNullOrEmpty(FileName))
+		{
+			<span class="highlight-code-file">@FileName</span>
+		}
+		<div class="highlight-code-actions">
+			@if (ShowCopy)
+			{
+				<button type="button"
+						class="highlight-code-btn @(copied ? "copied" : "")"
+						@onclick="CopyCode"
+						title="@(copied ? "Copiado!" : "Copiar")">
+					<RadzenIcon Icon="@(copied ? "check" : "content_copy")" />
+					@if (copied)
+					{
+						<span>Copiado</span>
+					}
+				</button>
+			}
+		</div>
+	</div>
+	<div class="highlight-code-body">
+		@if (ShowLineNumbers && !string.IsNullOrEmpty(Code))
+		{
+			<div class="highlight-code-lines">
+				@for (int i = 1; i <= LineCount; i++)
+				{
+					<span>@i</span>
+				}
+			</div>
+		}
+		<pre><code class="@LanguageClass" @ref="codeElement">@Code</code></pre>
+	</div>
+</div>
+
+@code {
+	[Parameter] public string Code { get; set; }
+	[Parameter] public string Language { get; set; }
+	[Parameter] public string FileName { get; set; }
+	[Parameter] public bool ShowCopy { get; set; } = true;
+	[Parameter] public bool ShowLineNumbers { get; set; } = false;
+	[Parameter] public HighlightCodeSize Size { get; set; } = HighlightCodeSize.Default;
+
+	private ElementReference codeElement;
+	private bool copied;
+	private bool highlighted;
+
+	public enum HighlightCodeSize { Small, Default, Large }
+
+	private string SizeClass => Size switch
+	{
+		HighlightCodeSize.Small => "highlight-code-sm",
+		HighlightCodeSize.Large => "highlight-code-lg",
+		_ => ""
+	};
+
+	// Map language aliases to highlight.js supported languages
+	private string LanguageForHighlight => Language?.ToLower() switch
+	{
+		"razor" or "cshtml" => "xml",  // Razor uses XML highlighting
+		"csharp" or "cs" or "c#" => "csharp",
+		"javascript" or "js" => "javascript",
+		"typescript" or "ts" => "typescript",
+		"bash" or "sh" or "shell" or "terminal" or "curl" => "bash",
+		"vb" or "vbnet" or "vb.net" or "visualbasic" => "vbnet",
+		"yml" => "yaml",
+		_ => Language?.ToLower() ?? ""
+	};
+
+	private string LanguageClass => !string.IsNullOrEmpty(Language) ? $"language-{LanguageForHighlight}" : "";
+
+	private string LanguageDisplay => Language?.ToUpper() switch
+	{
+		"CSHARP" or "CS" => "C#",
+		"JAVASCRIPT" or "JS" => "JavaScript",
+		"TYPESCRIPT" or "TS" => "TypeScript",
+		"RAZOR" or "CSHTML" => "Razor",
+		"XML" or "HTML" => Language.ToUpper(),
+		"JSON" => "JSON",
+		"CSS" => "CSS",
+		"BASH" or "SHELL" or "SH" or "TERMINAL" => "Terminal",
+		"CURL" => "cURL",
+		"VB" or "VBNET" or "VB.NET" or "VISUALBASIC" => "VB.NET",
+		"SQL" => "SQL",
+		"YAML" or "YML" => "YAML",
+		_ => Language
+	};
+
+	private int LineCount => string.IsNullOrEmpty(Code) ? 0 : Code.Split('\n').Length;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender || !highlighted)
+		{
+			try
+			{
+				// Small delay to ensure DOM is ready
+				await Task.Delay(50);
+
+				// Ensure highlight.js is loaded
+				await JS.InvokeVoidAsync("eval", @"
+					if (typeof hljs === 'undefined') {
+						var link = document.createElement('link');
+						link.rel = 'stylesheet';
+						link.href = '/_content/DinaZen/highlight.min.css';
+						document.head.appendChild(link);
+
+						var script = document.createElement('script');
+						script.src = '/_content/DinaZen/highlight.min.js';
+						script.onload = function() { window.highlightCode && window.highlightCode(); };
+						document.head.appendChild(script);
+					}
+				");
+
+				// Highlight this specific element
+				await JS.InvokeVoidAsync("highlightElement", codeElement);
+				highlighted = true;
+			}
+			catch { }
+		}
+	}
+
+	private async Task CopyCode()
+	{
+		if (string.IsNullOrEmpty(Code)) return;
+
+		try
+		{
+			await JS.InvokeVoidAsync("navigator.clipboard.writeText", Code);
+			copied = true;
+			StateHasChanged();
+
+			await Task.Delay(2000);
+			copied = false;
+			StateHasChanged();
+		}
+		catch { }
+	}
+}
+
+<style>
+	.highlight-code {
+		border-radius: 0.5rem;
+		overflow: hidden;
+		background: #1e1e1e;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.highlight-code-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		background: rgba(255, 255, 255, 0.05);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		min-height: 2.25rem;
+	}
+
+	.highlight-code-lang {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #858585;
+		background: rgba(255, 255, 255, 0.1);
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.25rem;
+	}
+
+	.highlight-code-file {
+		font-size: 0.75rem;
+		color: #cccccc;
+		font-family: 'Consolas', 'Monaco', monospace;
+	}
+
+	.highlight-code-actions {
+		margin-left: auto;
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.highlight-code-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem 0.5rem;
+		border: none;
+		border-radius: 0.25rem;
+		background: transparent;
+		color: #858585;
+		font-size: 0.75rem;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+
+	.highlight-code-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: #cccccc;
+	}
+
+	.highlight-code-btn.copied {
+		color: #4ec9b0;
+	}
+
+	.highlight-code-btn .rzi {
+		font-size: 0.875rem;
+	}
+
+	.highlight-code-body {
+		position: relative;
+		display: flex;
+	}
+
+	.highlight-code-lines {
+		display: flex;
+		flex-direction: column;
+		padding: 0.875rem 0;
+		background: rgba(255, 255, 255, 0.02);
+		border-right: 1px solid rgba(255, 255, 255, 0.1);
+		user-select: none;
+	}
+
+	.highlight-code-lines span {
+		padding: 0 0.75rem;
+		font-size: 0.8125rem;
+		font-family: 'Consolas', 'Monaco', monospace;
+		line-height: 1.5;
+		color: #858585;
+		text-align: right;
+		min-width: 2.5rem;
+	}
+
+	.highlight-code-body pre {
+		flex: 1;
+		margin: 0;
+		padding: 0.875rem 1rem;
+		overflow-x: auto;
+		background: transparent;
+	}
+
+	.highlight-code-body code {
+		font-size: 0.8125rem;
+		font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+		line-height: 1.5;
+		color: #d4d4d4;
+	}
+
+	/* Size variants */
+	.highlight-code-sm .highlight-code-header {
+		padding: 0.375rem 0.625rem;
+		min-height: 2rem;
+	}
+
+	.highlight-code-sm .highlight-code-body pre {
+		padding: 0.625rem 0.75rem;
+	}
+
+	.highlight-code-sm .highlight-code-body code,
+	.highlight-code-sm .highlight-code-lines span {
+		font-size: 0.75rem;
+	}
+
+	.highlight-code-lg .highlight-code-body pre {
+		padding: 1.25rem 1.5rem;
+	}
+
+	.highlight-code-lg .highlight-code-body code,
+	.highlight-code-lg .highlight-code-lines span {
+		font-size: 0.875rem;
+	}
+
+	/* Minimal variant without header */
+	.highlight-code:not(:has(.highlight-code-lang)):not(:has(.highlight-code-file)) .highlight-code-header:not(:has(.highlight-code-btn)) {
+		display: none;
+	}
+
+	.highlight-code:not(:has(.highlight-code-lang)):not(:has(.highlight-code-file)) .highlight-code-header {
+		position: absolute;
+		top: 0;
+		right: 0;
+		background: transparent;
+		border: none;
+		z-index: 1;
+	}
+</style>

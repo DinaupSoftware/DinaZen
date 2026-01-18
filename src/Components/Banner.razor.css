@@ -1,0 +1,288 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BANNER COMPONENT - DinaZen
+   Estilos aislados para el componente Banner
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════ */
+
+.banner {
+	border-radius: 12px;
+	padding: 1.25rem 1.5rem;
+	position: relative;
+	overflow: hidden;
+}
+
+.banner-content {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	position: relative;
+	z-index: 1;
+}
+
+.banner-icon {
+	flex-shrink: 0;
+	width: 3rem;
+	height: 3rem;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.banner-icon ::deep .rzi {
+	font-size: 1.5rem;
+	color: white;
+}
+
+.banner-text {
+	flex: 1;
+}
+
+.banner-text h3 {
+	margin: 0 0 0.15rem 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: white;
+}
+
+.banner-text p {
+	margin: 0;
+	font-size: 0.85rem;
+	color: rgba(255, 255, 255, 0.92);
+	line-height: 1.4;
+}
+
+.banner-text strong {
+	color: white;
+	font-weight: 600;
+}
+
+.banner-btn {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 20px;
+	background: white;
+	border-radius: 4px;
+	text-decoration: none;
+	font-weight: 500;
+	font-size: 14px;
+	transition: all 0.15s ease;
+}
+
+.banner-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.banner-btn ::deep .rzi {
+	font-size: 18px;
+	transition: transform 0.15s ease;
+}
+
+.banner-btn:hover ::deep .rzi {
+	transform: translateX(3px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ESTILOS PRINCIPALES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 🔵 Primary - Azul Dinaup */
+.banner-primary {
+	background: linear-gradient(135deg, #0085FF 0%, #62B4FF 100%);
+	box-shadow: 0 4px 20px rgba(0, 133, 255, 0.35);
+}
+
+.banner-primary .banner-btn {
+	color: #0085FF;
+}
+
+/* 💛 Gold - Dorado con destello */
+.banner-gold {
+	background: linear-gradient(135deg, #d4a012 0%, #f5c842 40%, #ffe066 70%, #f5c842 100%);
+	box-shadow: 0 4px 24px rgba(212, 160, 18, 0.45);
+}
+
+.banner-gold::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 60%;
+	height: 100%;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgba(255, 255, 255, 0.4) 50%,
+		transparent 100%
+	);
+	animation: goldShine 3s ease-in-out infinite;
+	z-index: 0;
+}
+
+.banner-gold .banner-text h3,
+.banner-gold .banner-text p,
+.banner-gold .banner-text strong {
+	color: #4a3800;
+}
+
+.banner-gold .banner-text p {
+	color: rgba(74, 56, 0, 0.85);
+}
+
+.banner-gold .banner-icon {
+	background: rgba(74, 56, 0, 0.12);
+}
+
+.banner-gold .banner-icon ::deep .rzi {
+	color: #4a3800;
+}
+
+.banner-gold .banner-btn {
+	background: #4a3800;
+	color: #ffe066;
+}
+
+@keyframes goldShine {
+	0% {
+		left: -100%;
+	}
+	50%, 100% {
+		left: 150%;
+	}
+}
+
+/* 💗 Love - Rosa corazón */
+.banner-love {
+	background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+	box-shadow: 0 4px 20px rgba(233, 30, 99, 0.4);
+}
+
+.banner-love .banner-btn {
+	color: #c2185b;
+}
+
+/* 🔴 Danger - Rojo urgente */
+.banner-danger {
+	background: linear-gradient(135deg, #d32f2f 0%, #ef5350 100%);
+	box-shadow: 0 4px 20px rgba(211, 47, 47, 0.4);
+}
+
+.banner-danger .banner-btn {
+	color: #c62828;
+}
+
+/* 🟢 Success - Verde éxito */
+.banner-success {
+	background: linear-gradient(135deg, #388e3c 0%, #66bb6a 100%);
+	box-shadow: 0 4px 20px rgba(56, 142, 60, 0.4);
+}
+
+.banner-success .banner-btn {
+	color: #2e7d32;
+}
+
+/* 🟠 Warning - Naranja aviso */
+.banner-warning {
+	background: linear-gradient(135deg, #f57c00 0%, #ffb74d 100%);
+	box-shadow: 0 4px 20px rgba(245, 124, 0, 0.4);
+}
+
+.banner-warning .banner-btn {
+	color: #e65100;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ESTILOS BADGE-STYLE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 💜 Pro - Violeta/Azul */
+.banner-pro {
+	background: linear-gradient(135deg, #7c4dff 0%, #448aff 100%);
+	box-shadow: 0 4px 20px rgba(124, 77, 255, 0.4);
+}
+
+.banner-pro .banner-btn {
+	color: #5e35b1;
+}
+
+/* 🧪 Beta - Rojo/Naranja */
+.banner-beta {
+	background: linear-gradient(135deg, #e53935 0%, #ff7043 100%);
+	box-shadow: 0 4px 20px rgba(229, 57, 53, 0.4);
+}
+
+.banner-beta .banner-btn {
+	color: #c62828;
+}
+
+/* ✨ New - Cyan/Azul */
+.banner-new {
+	background: linear-gradient(135deg, #00e5ff 0%, #2979ff 100%);
+	box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+}
+
+.banner-new .banner-btn {
+	color: #0277bd;
+}
+
+/* 👑 Premium - Dorado elegante */
+.banner-premium {
+	background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+	box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+}
+
+.banner-premium .banner-text h3,
+.banner-premium .banner-text p,
+.banner-premium .banner-text strong {
+	color: #333;
+}
+
+.banner-premium .banner-text p {
+	color: rgba(51, 51, 51, 0.85);
+}
+
+.banner-premium .banner-icon {
+	background: rgba(51, 51, 51, 0.12);
+}
+
+.banner-premium .banner-icon ::deep .rzi {
+	color: #333;
+}
+
+.banner-premium .banner-btn {
+	background: #333;
+	color: #ffd700;
+}
+
+/* 🤖 IA - Verde/Cyan */
+.banner-ia {
+	background: linear-gradient(135deg, #56e16a 0%, #00c1ff 100%);
+	box-shadow: 0 4px 20px rgba(86, 225, 106, 0.4);
+}
+
+.banner-ia .banner-btn {
+	color: #00897b;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+	.banner-content {
+		flex-direction: column;
+		text-align: center;
+	}
+
+	.banner-btn {
+		width: 100%;
+		justify-content: center;
+	}
+}
