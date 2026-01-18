@@ -3,107 +3,107 @@
 <PageTitle>BadgetAutoColor</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="BadgetAutoColor" Subtitle="Badge con mapeo automatico de color segun el texto." Icon="label" />
+    <CardTitle Title="BadgetAutoColor" Subtitle="Badge with automatic color mapping based on text." Icon="label" />
 </RadzenCard>
 
-<ExampleCard Title="Estados Positivos" Description="Textos que se muestran en verde" Code="@(@"<BadgetAutoColor Value=""Activo"" />
-<BadgetAutoColor Value=""Completado"" />
-<BadgetAutoColor Value=""Pagado"" />
-<BadgetAutoColor Value=""Vigente"" />
-<BadgetAutoColor Value=""Operativo"" />
-<BadgetAutoColor Value=""Conciliado"" />")">
+<ExampleCard Title="Positive States" Description="Texts displayed in green" Code="@(@"<BadgetAutoColor Value=""Active"" />
+<BadgetAutoColor Value=""Completed"" />
+<BadgetAutoColor Value=""Paid"" />
+<BadgetAutoColor Value=""Valid"" />
+<BadgetAutoColor Value=""Operational"" />
+<BadgetAutoColor Value=""Reconciled"" />")">
     <ChildContent>
         <div class="badge-row">
-            <BadgetAutoColor Value="Activo" />
-            <BadgetAutoColor Value="Completado" />
-            <BadgetAutoColor Value="Pagado" />
-            <BadgetAutoColor Value="Vigente" />
-            <BadgetAutoColor Value="Operativo" />
-            <BadgetAutoColor Value="Conciliado" />
+            <BadgetAutoColor Value="Active" />
+            <BadgetAutoColor Value="Completed" />
+            <BadgetAutoColor Value="Paid" />
+            <BadgetAutoColor Value="Valid" />
+            <BadgetAutoColor Value="Operational" />
+            <BadgetAutoColor Value="Reconciled" />
         </div>
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Estados Pendientes" Description="Textos que se muestran en amarillo" Code="@(@"<BadgetAutoColor Value=""Pendiente"" />
-<BadgetAutoColor Value=""Abierto"" />
-<BadgetAutoColor Value=""En proceso"" />
-<BadgetAutoColor Value=""Incompleto"" />
-<BadgetAutoColor Value=""Esperando pago"" />")">
+<ExampleCard Title="Pending States" Description="Texts displayed in yellow" Code="@(@"<BadgetAutoColor Value=""Pending"" />
+<BadgetAutoColor Value=""Open"" />
+<BadgetAutoColor Value=""In progress"" />
+<BadgetAutoColor Value=""Incomplete"" />
+<BadgetAutoColor Value=""Awaiting payment"" />")">
     <ChildContent>
         <div class="badge-row">
-            <BadgetAutoColor Value="Pendiente" />
-            <BadgetAutoColor Value="Abierto" />
-            <BadgetAutoColor Value="En proceso" />
-            <BadgetAutoColor Value="Incompleto" />
-            <BadgetAutoColor Value="Esperando pago" />
+            <BadgetAutoColor Value="Pending" />
+            <BadgetAutoColor Value="Open" />
+            <BadgetAutoColor Value="In progress" />
+            <BadgetAutoColor Value="Incomplete" />
+            <BadgetAutoColor Value="Awaiting payment" />
         </div>
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Estados Negativos" Description="Textos que se muestran en rojo" Code="@(@"<BadgetAutoColor Value=""Cancelado"" />
-<BadgetAutoColor Value=""Vencido"" />
-<BadgetAutoColor Value=""Desactivado"" />
-<BadgetAutoColor Value=""Negativo"" />
-<BadgetAutoColor Value=""Exceso"" />")">
+<ExampleCard Title="Negative States" Description="Texts displayed in red" Code="@(@"<BadgetAutoColor Value=""Cancelled"" />
+<BadgetAutoColor Value=""Expired"" />
+<BadgetAutoColor Value=""Disabled"" />
+<BadgetAutoColor Value=""Negative"" />
+<BadgetAutoColor Value=""Excess"" />")">
     <ChildContent>
         <div class="badge-row">
-            <BadgetAutoColor Value="Cancelado" />
-            <BadgetAutoColor Value="Vencido" />
-            <BadgetAutoColor Value="Desactivado" />
-            <BadgetAutoColor Value="Negativo" />
-            <BadgetAutoColor Value="Exceso" />
+            <BadgetAutoColor Value="Cancelled" />
+            <BadgetAutoColor Value="Expired" />
+            <BadgetAutoColor Value="Disabled" />
+            <BadgetAutoColor Value="Negative" />
+            <BadgetAutoColor Value="Excess" />
         </div>
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Fechas y Operaciones" Description="Otros mapeos automaticos" Code="@(@"<BadgetAutoColor Value=""Hoy"" />
-<BadgetAutoColor Value=""Ayer"" />
-<BadgetAutoColor Value=""Manana"" />
-<BadgetAutoColor Value=""Pasado"" />
-<BadgetAutoColor Value=""Futuro"" />
-<BadgetAutoColor Value=""Venta"" />
-<BadgetAutoColor Value=""Compra"" />
-<BadgetAutoColor Value=""Mensual"" />
-<BadgetAutoColor Value=""Anual"" />")">
+<ExampleCard Title="Dates and Operations" Description="Other automatic mappings" Code="@(@"<BadgetAutoColor Value=""Today"" />
+<BadgetAutoColor Value=""Yesterday"" />
+<BadgetAutoColor Value=""Tomorrow"" />
+<BadgetAutoColor Value=""Past"" />
+<BadgetAutoColor Value=""Future"" />
+<BadgetAutoColor Value=""Sale"" />
+<BadgetAutoColor Value=""Purchase"" />
+<BadgetAutoColor Value=""Monthly"" />
+<BadgetAutoColor Value=""Annual"" />")">
     <ChildContent>
         <div class="badge-row rz-mb-3">
-            <BadgetAutoColor Value="Hoy" />
-            <BadgetAutoColor Value="Ayer" />
-            <BadgetAutoColor Value="Manana" />
-            <BadgetAutoColor Value="Pasado" />
-            <BadgetAutoColor Value="Futuro" />
+            <BadgetAutoColor Value="Today" />
+            <BadgetAutoColor Value="Yesterday" />
+            <BadgetAutoColor Value="Tomorrow" />
+            <BadgetAutoColor Value="Past" />
+            <BadgetAutoColor Value="Future" />
         </div>
         <div class="badge-row">
-            <BadgetAutoColor Value="Venta" />
-            <BadgetAutoColor Value="Compra" />
-            <BadgetAutoColor Value="Mensual" />
-            <BadgetAutoColor Value="Anual" />
+            <BadgetAutoColor Value="Sale" />
+            <BadgetAutoColor Value="Purchase" />
+            <BadgetAutoColor Value="Monthly" />
+            <BadgetAutoColor Value="Annual" />
         </div>
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Con Click" Description="Badge interactivo" Code="@(@"<BadgetAutoColor Value=""Haz click"" Click=""@OnClick"" />
+<ExampleCard Title="With Click" Description="Interactive badge" Code="@(@"<BadgetAutoColor Value=""Click me"" Click=""@OnClick"" />
 
 @code {
     void OnClick() => message = ""Clicked!"";
 }")">
     <ChildContent>
         <div class="badge-row">
-            <BadgetAutoColor Value="Haz click" Click="@OnClick" />
+            <BadgetAutoColor Value="Click me" Click="@OnClick" />
             <span>@clickMessage</span>
         </div>
     </ChildContent>
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
-        <tr><td><code>Value</code></td><td>string</td><td>null</td><td>Texto del badge (determina el color)</td></tr>
-        <tr><td><code>Color</code></td><td>EnumEstilosTextoEE</td><td>Indefinido</td><td>Fuerza un estilo especifico</td></tr>
-        <tr><td><code>Visible</code></td><td>bool</td><td>true</td><td>Muestra/oculta el badge</td></tr>
-        <tr><td><code>Style</code></td><td>string</td><td>null</td><td>Estilos CSS inline adicionales</td></tr>
-        <tr><td><code>Click</code></td><td>EventCallback</td><td>-</td><td>Evento al hacer click</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>Value</code></td><td>string</td><td>null</td><td>Badge text (determines color)</td></tr>
+        <tr><td><code>Color</code></td><td>EnumEstilosTextoEE</td><td>Undefined</td><td>Force a specific style</td></tr>
+        <tr><td><code>Visible</code></td><td>bool</td><td>true</td><td>Show/hide badge</td></tr>
+        <tr><td><code>Style</code></td><td>string</td><td>null</td><td>Additional inline CSS styles</td></tr>
+        <tr><td><code>Click</code></td><td>EventCallback</td><td>-</td><td>Click event</td></tr>
     </table>
 </RadzenCard>
 
@@ -112,8 +112,7 @@
 
     private void OnClick()
     {
-        clickMessage = "Badge clickeado!";
+        clickMessage = "Badge clicked!";
         StateHasChanged();
     }
 }
-

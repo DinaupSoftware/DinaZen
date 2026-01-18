@@ -3,40 +3,40 @@
 <PageTitle>SpanDateTime</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="SpanDateTime" Subtitle="Fecha y hora con formato amigable y estado opcional (Hoy, Ayer, Manana)." Icon="schedule" />
+    <CardTitle Title="SpanDateTime" Subtitle="Date and time with friendly format and optional status (Today, Yesterday, Tomorrow)." Icon="schedule" />
 </RadzenCard>
 
-<ExampleCard Title="Basico" Description="Formato amigable de fechas" Code="@(@"<SpanDateTime Value=""@DateTime.Now.AddDays(-7)"" />
+<ExampleCard Title="Basic" Description="Friendly date format" Code="@(@"<SpanDateTime Value=""@DateTime.Now.AddDays(-7)"" />
 <SpanDateTime Value=""@DateTime.Now.AddDays(-1)"" />
 <SpanDateTime Value=""@DateTime.Now"" />
 <SpanDateTime Value=""@DateTime.Now.AddDays(1)"" />")">
     <ChildContent>
         <div class="examples-horizontal">
-            <div class="example-item"><span class="example-label">Hace una semana:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-7)" /></div>
-            <div class="example-item"><span class="example-label">Ayer:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-1)" /></div>
-            <div class="example-item"><span class="example-label">Ahora:</span> <SpanDateTime Value="@DateTime.Now" /></div>
-            <div class="example-item"><span class="example-label">Manana:</span> <SpanDateTime Value="@DateTime.Now.AddDays(1)" /></div>
+            <div class="example-item"><span class="example-label">A week ago:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-7)" /></div>
+            <div class="example-item"><span class="example-label">Yesterday:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-1)" /></div>
+            <div class="example-item"><span class="example-label">Now:</span> <SpanDateTime Value="@DateTime.Now" /></div>
+            <div class="example-item"><span class="example-label">Tomorrow:</span> <SpanDateTime Value="@DateTime.Now.AddDays(1)" /></div>
         </div>
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="ShowStatus" Description="Badge con estado (Pasado, Ayer, Hoy, Manana, Futuro)" Code="@(@"<SpanDateTime Value=""@DateTime.Now.AddDays(-10)"" ShowStatus=""true"" />
+<ExampleCard Title="ShowStatus" Description="Badge with status (Past, Yesterday, Today, Tomorrow, Future)" Code="@(@"<SpanDateTime Value=""@DateTime.Now.AddDays(-10)"" ShowStatus=""true"" />
 <SpanDateTime Value=""@DateTime.Now.AddDays(-1)"" ShowStatus=""true"" />
 <SpanDateTime Value=""@DateTime.Now"" ShowStatus=""true"" />
 <SpanDateTime Value=""@DateTime.Now.AddDays(1)"" ShowStatus=""true"" />
 <SpanDateTime Value=""@DateTime.Now.AddDays(10)"" ShowStatus=""true"" />")">
     <ChildContent>
         <div class="examples-horizontal">
-            <div class="example-item"><span class="example-label">Pasado:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-10)" ShowStatus="true" /></div>
-            <div class="example-item"><span class="example-label">Ayer:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-1)" ShowStatus="true" /></div>
-            <div class="example-item"><span class="example-label">Hoy:</span> <SpanDateTime Value="@DateTime.Now" ShowStatus="true" /></div>
-            <div class="example-item"><span class="example-label">Manana:</span> <SpanDateTime Value="@DateTime.Now.AddDays(1)" ShowStatus="true" /></div>
-            <div class="example-item"><span class="example-label">Futuro:</span> <SpanDateTime Value="@DateTime.Now.AddDays(10)" ShowStatus="true" /></div>
+            <div class="example-item"><span class="example-label">Past:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-10)" ShowStatus="true" /></div>
+            <div class="example-item"><span class="example-label">Yesterday:</span> <SpanDateTime Value="@DateTime.Now.AddDays(-1)" ShowStatus="true" /></div>
+            <div class="example-item"><span class="example-label">Today:</span> <SpanDateTime Value="@DateTime.Now" ShowStatus="true" /></div>
+            <div class="example-item"><span class="example-label">Tomorrow:</span> <SpanDateTime Value="@DateTime.Now.AddDays(1)" ShowStatus="true" /></div>
+            <div class="example-item"><span class="example-label">Future:</span> <SpanDateTime Value="@DateTime.Now.AddDays(10)" ShowStatus="true" /></div>
         </div>
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Caption" Description="Estilo caption (mas pequeno)" Code="@(@"<SpanDateTime Value=""@DateTime.Now"" Caption=""true"" />")">
+<ExampleCard Title="Caption" Description="Caption style (smaller)" Code="@(@"<SpanDateTime Value=""@DateTime.Now"" Caption=""true"" />")">
     <ChildContent>
         <div class="examples-horizontal">
             <div class="example-item"><span class="example-label">Normal:</span> <SpanDateTime Value="@DateTime.Now" /></div>
@@ -46,23 +46,23 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
-        <tr><td><code>Value</code></td><td>DateTime?</td><td>null</td><td>Fecha/hora a mostrar</td></tr>
-        <tr><td><code>ShowStatus</code></td><td>bool</td><td>false</td><td>Muestra badge de estado</td></tr>
-        <tr><td><code>Caption</code></td><td>bool</td><td>false</td><td>Estilo caption (pequeno)</td></tr>
-        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Tamano de fuente</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>Value</code></td><td>DateTime?</td><td>null</td><td>Date/time to display</td></tr>
+        <tr><td><code>ShowStatus</code></td><td>bool</td><td>false</td><td>Show status badge</td></tr>
+        <tr><td><code>Caption</code></td><td>bool</td><td>false</td><td>Caption style (small)</td></tr>
+        <tr><td><code>FontSize</code></td><td>string</td><td>"16px"</td><td>Font size</td></tr>
     </table>
 
-    <CardTitle Title="Estados del Badge" Icon="sell" Subtitle="Colores segun la fecha" />
+    <CardTitle Title="Badge States" Icon="sell" Subtitle="Colors based on date" />
     <table class="params-table">
-        <tr><th>Estado</th><th>Color</th><th>Condicion</th></tr>
-        <tr><td>Pasado</td><td>Gris</td><td>Fecha &lt; hoy</td></tr>
-        <tr><td>Ayer</td><td>Negro</td><td>Fecha = hoy - 1</td></tr>
-        <tr><td>Hoy</td><td>Verde</td><td>Fecha = hoy</td></tr>
-        <tr><td>Manana</td><td>Azul</td><td>Fecha = hoy + 1</td></tr>
-        <tr><td>Futuro</td><td>Morado</td><td>Fecha &gt; hoy</td></tr>
+        <tr><th>State</th><th>Color</th><th>Condition</th></tr>
+        <tr><td>Past</td><td>Gray</td><td>Date &lt; today</td></tr>
+        <tr><td>Yesterday</td><td>Black</td><td>Date = today - 1</td></tr>
+        <tr><td>Today</td><td>Green</td><td>Date = today</td></tr>
+        <tr><td>Tomorrow</td><td>Blue</td><td>Date = today + 1</td></tr>
+        <tr><td>Future</td><td>Purple</td><td>Date &gt; today</td></tr>
     </table>
 </RadzenCard>
 

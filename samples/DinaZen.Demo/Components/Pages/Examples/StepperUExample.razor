@@ -3,10 +3,10 @@
 <PageTitle>StepperU</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="StepperU + StepperStepU" Subtitle="Stepper vertical para procesos paso a paso con linea conectora." Icon="format_list_numbered" />
+    <CardTitle Title="StepperU + StepperStepU" Subtitle="Vertical stepper for step-by-step processes with connecting line." Icon="format_list_numbered" />
 </RadzenCard>
 
-<ExampleCard Title="Proceso de Registro" Description="Stepper basico con pasos numerados" Code="@(@"<StepperU>
+<ExampleCard Title="Registration Process" Description="Basic stepper with numbered steps" Code="@(@"<StepperU>
     <StepperStepU Index=""1"">
         <strong>Crear cuenta</strong>
         <p>Registra tus datos basicos.</p>
@@ -46,7 +46,7 @@
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Seguimiento de Pedido" Description="Con iconos y timestamps" Code="@(@"<StepperU>
+<ExampleCard Title="Order Tracking" Description="With icons and timestamps" Code="@(@"<StepperU>
     <StepperStepU Index=""1"">
         <RadzenStack Orientation=""Orientation.Horizontal"" AlignItems=""AlignItems.Center"" Gap=""0.5rem"">
             <RadzenIcon Icon=""shopping_cart"" />
@@ -103,17 +103,17 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="StepperU" Icon="tune" Subtitle="Contenedor principal" />
+    <CardTitle Title="StepperU" Icon="tune" Subtitle="Main container" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
         <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>StepperStepU items</td></tr>
     </table>
 
-    <CardTitle Title="StepperStepU" Icon="tune" Subtitle="Cada paso del proceso" />
+    <CardTitle Title="StepperStepU" Icon="tune" Subtitle="Each process step" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Descripcion</th></tr>
-        <tr><td><code>Index</code></td><td>int</td><td>Numero del paso</td></tr>
-        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>Contenido del paso</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code>Index</code></td><td>int</td><td>Step number</td></tr>
+        <tr><td><code>ChildContent</code></td><td>RenderFragment</td><td>Step content</td></tr>
     </table>
 </RadzenCard>
 

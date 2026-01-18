@@ -3,13 +3,13 @@
 <PageTitle>HighlightCode</PageTitle>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="HighlightCode" Subtitle="Componente para mostrar bloques de codigo con resaltado de sintaxis, numeros de linea y boton de copiar." Icon="code" />
+    <CardTitle Title="HighlightCode" Subtitle="Component to display code blocks with syntax highlighting, line numbers and copy button." Icon="code" />
 </RadzenCard>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="Alias de Lenguajes" Icon="swap_horiz" Subtitle="Puedes usar diferentes alias para especificar el lenguaje" />
+    <CardTitle Title="Language Aliases" Icon="swap_horiz" Subtitle="You can use different aliases to specify the language" />
     <table class="params-table">
-        <tr><th>Lenguaje</th><th>Alias aceptados</th></tr>
+        <tr><th>Language</th><th>Accepted Aliases</th></tr>
         <tr><td>C#</td><td><code>csharp</code>, <code>cs</code>, <code>c#</code></td></tr>
         <tr><td>JavaScript</td><td><code>javascript</code>, <code>js</code></td></tr>
         <tr><td>TypeScript</td><td><code>typescript</code>, <code>ts</code></td></tr>
@@ -20,7 +20,7 @@
 </RadzenCard>
 
 <RadzenCard class="rz-mb-4">
-    <CardTitle Title="Lenguajes Soportados" Icon="translate" Subtitle="Todos los lenguajes con resaltado de sintaxis" />
+    <CardTitle Title="Supported Languages" Icon="translate" Subtitle="All languages with syntax highlighting" />
     <RadzenTabs>
         <Tabs>
             <RadzenTabsItem Text="C#" Icon="code">
@@ -63,21 +63,21 @@
     </div>
 </RadzenCard>
 
-<ExampleCard Title="Uso Basico" Description="Codigo de ejemplo para usar el componente" Language="razor" Code="@basicUsageCode">
+<ExampleCard Title="Basic Usage" Description="Example code to use the component" Language="razor" Code="@basicUsageCode">
     <ChildContent>
         <HighlightCode Language="csharp" Code="Console.WriteLine(&quot;Hello World&quot;);" />
     </ChildContent>
 </ExampleCard>
 
-<CardTitle Title="Opciones de Visualizacion" Icon="tune" Subtitle="Personaliza la apariencia del bloque de codigo" />
+<CardTitle Title="Display Options" Icon="tune" Subtitle="Customize code block appearance" />
 
-<ExampleCard Title="Con Numeros de Linea" Description="Muestra numeros de linea a la izquierda" Language="razor" Code="@lineNumbersCode">
+<ExampleCard Title="With Line Numbers" Description="Show line numbers on the left" Language="razor" Code="@lineNumbersCode">
     <ChildContent>
         <HighlightCode Language="csharp" Code="@csharpCode" ShowLineNumbers="true" />
     </ChildContent>
 </ExampleCard>
 
-<ExampleCard Title="Completo" Description="Todas las opciones combinadas" Language="razor" Code="@fullExampleCode">
+<ExampleCard Title="Complete" Description="All options combined" Language="razor" Code="@fullExampleCode">
     <ChildContent>
         <HighlightCode
             Language="csharp"
@@ -90,15 +90,15 @@
 </ExampleCard>
 
 <RadzenCard class="rz-mt-4">
-    <CardTitle Title="Parametros" Icon="tune" />
+    <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descripcion</th></tr>
-        <tr><td><code>Code</code></td><td>string</td><td>null</td><td>Codigo a mostrar</td></tr>
-        <tr><td><code>Language</code></td><td>string</td><td>null</td><td>Lenguaje para resaltado (csharp, javascript, html, css, json, sql, bash, yaml, xml, razor)</td></tr>
-        <tr><td><code>FileName</code></td><td>string</td><td>null</td><td>Nombre del archivo a mostrar en el encabezado</td></tr>
-        <tr><td><code>ShowCopy</code></td><td>bool</td><td>true</td><td>Muestra boton para copiar codigo</td></tr>
-        <tr><td><code>ShowLineNumbers</code></td><td>bool</td><td>false</td><td>Muestra numeros de linea</td></tr>
-        <tr><td><code>Size</code></td><td>HighlightCodeSize</td><td>Default</td><td>Tamano del bloque (Small, Default, Large)</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>Code</code></td><td>string</td><td>null</td><td>Code to display</td></tr>
+        <tr><td><code>Language</code></td><td>string</td><td>null</td><td>Language for highlighting (csharp, javascript, html, css, json, sql, bash, yaml, xml, razor)</td></tr>
+        <tr><td><code>FileName</code></td><td>string</td><td>null</td><td>File name to display in header</td></tr>
+        <tr><td><code>ShowCopy</code></td><td>bool</td><td>true</td><td>Show copy code button</td></tr>
+        <tr><td><code>ShowLineNumbers</code></td><td>bool</td><td>false</td><td>Show line numbers</td></tr>
+        <tr><td><code>Size</code></td><td>HighlightCodeSize</td><td>Default</td><td>Block size (Small, Default, Large)</td></tr>
     </table>
 </RadzenCard>
 
