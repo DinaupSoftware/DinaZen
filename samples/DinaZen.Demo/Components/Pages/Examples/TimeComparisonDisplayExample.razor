@@ -2,31 +2,84 @@
 
 <PageTitle>TimeComparisonDisplay</PageTitle>
 
-<RadzenCard class="rz-mb-4">
-    <CardTitle Title="TimeComparisonDisplay" Subtitle="Compare planned vs actual time with visual bar." Icon="compare_arrows" />
-</RadzenCard>
+<h1 class="rz-mb-2">TimeComparisonDisplay</h1>
+<p class="rz-text-secondary-color rz-mb-4">Visual time tracking with progress bar, status indicators, compact mode, and support for negative values.</p>
 
-<ExampleCard Title="Comparisons" Description="Different compliance states" Code="@(@"<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""45"" />   @* under budget *@
-<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""60"" />   @* exact *@
-<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""90"" />   @* exceeded *@")">
+<ExampleCard Title="Compact Mode (Inline)" Description="Use inline with text or in tables" Code="@(@"<p>Task completed: <TimeComparisonDisplay Compact=""true"" ActualTime=""45"" PlannedTime=""60"" /></p>
+<p>Worked time: <TimeComparisonDisplay Compact=""true"" Label=""Task"" ActualTime=""90"" /></p>
+<p>Negative: <TimeComparisonDisplay Compact=""true"" Label=""Balance"" ActualTime=""-20"" /></p>")">
     <ChildContent>
-        <div class="examples-grid">
-            <div>
-                <span class="example-label">Under (45/60):</span>
-                <TimeComparisonDisplay PlannedTime="60" ActualTime="45" />
-            </div>
-            <div>
-                <span class="example-label">Exact (60/60):</span>
-                <TimeComparisonDisplay PlannedTime="60" ActualTime="60" />
-            </div>
-            <div>
-                <span class="example-label">Exceeded (90/60):</span>
-                <TimeComparisonDisplay PlannedTime="60" ActualTime="90" />
-            </div>
-            <div>
-                <span class="example-label">Very exceeded (120/60):</span>
-                <TimeComparisonDisplay PlannedTime="60" ActualTime="120" />
-            </div>
+        <div class="examples-flex" style="flex-direction: column; align-items: flex-start;">
+            <p style="margin: 0;">Task completed: <TimeComparisonDisplay Compact="true" ActualTime="45" PlannedTime="60" /></p>
+            <p style="margin: 0;">Worked time: <TimeComparisonDisplay Compact="true" Label="Task" ActualTime="90" /></p>
+            <p style="margin: 0;">Time balance: <TimeComparisonDisplay Compact="true" Label="Balance" ActualTime="-20" /></p>
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="With Label" Description="Add context to the time display" Code="@(@"<TimeComparisonDisplay Label=""Worked Time"" ActualTime=""120"" PlannedTime=""90"" />
+<TimeComparisonDisplay Label=""Task Duration"" ActualTime=""45"" PlannedTime=""60"" />")">
+    <ChildContent>
+        <div class="examples-flex">
+            <TimeComparisonDisplay Label="Worked Time" ActualTime="120" PlannedTime="90" />
+            <TimeComparisonDisplay Label="Task Duration" ActualTime="45" PlannedTime="60" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Negative Values" Description="Display time deficits or debts" Code="@(@"<TimeComparisonDisplay ActualTime=""-30"" />
+<TimeComparisonDisplay ActualTime=""-90"" Label=""Pending"" />
+<TimeComparisonDisplay Compact=""true"" ActualTime=""-45"" Label=""Debt"" />")">
+    <ChildContent>
+        <div class="examples-flex">
+            <TimeComparisonDisplay ActualTime="-30" />
+            <TimeComparisonDisplay ActualTime="-90" Label="Pending" />
+            <TimeComparisonDisplay Compact="true" ActualTime="-45" Label="Debt" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Status States" Description="Automatic color coding based on time usage" Code="@(@"<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""30"" />  @* Under 80% - Green *@
+<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""55"" />  @* 80-100% - Yellow *@
+<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""90"" />  @* Over 100% - Red *@")">
+    <ChildContent>
+        <div class="examples-flex">
+            <TimeComparisonDisplay PlannedTime="60" ActualTime="30" />
+            <TimeComparisonDisplay PlannedTime="60" ActualTime="55" />
+            <TimeComparisonDisplay PlannedTime="60" ActualTime="90" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Compact Variations" Description="Different compact scenarios" Code="@(@"<TimeComparisonDisplay Compact=""true"" ActualTime=""45"" PlannedTime=""60"" />
+<TimeComparisonDisplay Compact=""true"" ActualTime=""75"" PlannedTime=""60"" />
+<TimeComparisonDisplay Compact=""true"" ActualTime=""60"" PlannedTime=""60"" />
+<TimeComparisonDisplay Compact=""true"" ActualTime=""90"" ShowDiff=""false"" />")">
+    <ChildContent>
+        <div class="examples-flex">
+            <TimeComparisonDisplay Compact="true" ActualTime="45" PlannedTime="60" />
+            <TimeComparisonDisplay Compact="true" ActualTime="75" PlannedTime="60" />
+            <TimeComparisonDisplay Compact="true" ActualTime="60" PlannedTime="60" />
+            <TimeComparisonDisplay Compact="true" ActualTime="90" ShowDiff="false" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Without Progress Bar" Description="Cleaner look without the bar" Code="@(@"<TimeComparisonDisplay PlannedTime=""60"" ActualTime=""45"" ShowProgressBar=""false"" />")">
+    <ChildContent>
+        <div class="examples-flex">
+            <TimeComparisonDisplay PlannedTime="60" ActualTime="45" ShowProgressBar="false" />
+            <TimeComparisonDisplay PlannedTime="60" ActualTime="75" ShowProgressBar="false" />
+        </div>
+    </ChildContent>
+</ExampleCard>
+
+<ExampleCard Title="Only Actual Time" Description="When no planned time is set" Code="@(@"<TimeComparisonDisplay ActualTime=""90"" />
+<TimeComparisonDisplay ActualTime=""90"" Label=""Session"" />")">
+    <ChildContent>
+        <div class="examples-flex">
+            <TimeComparisonDisplay ActualTime="90" />
+            <TimeComparisonDisplay ActualTime="90" Label="Session" />
         </div>
     </ChildContent>
 </ExampleCard>
@@ -34,8 +87,39 @@
 <RadzenCard class="rz-mt-4">
     <CardTitle Title="Parameters" Icon="tune" />
     <table class="params-table">
-        <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-        <tr><td><code>PlannedTime</code></td><td>decimal</td><td>Planned minutes</td></tr>
-        <tr><td><code>ActualTime</code></td><td>decimal</td><td>Actual minutes</td></tr>
+        <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>PlannedTime</code></td><td>decimal</td><td>0</td><td>Planned/budgeted time in minutes</td></tr>
+        <tr><td><code>ActualTime</code></td><td>decimal</td><td>0</td><td>Actual time spent in minutes (supports negative)</td></tr>
+        <tr><td><code>Label</code></td><td>string?</td><td>null</td><td>Label text (e.g., "Worked Time", "Task")</td></tr>
+        <tr><td><code>Compact</code></td><td>bool</td><td>false</td><td>Inline/compact mode for use in text or tables</td></tr>
+        <tr><td><code>ShowProgressBar</code></td><td>bool</td><td>true</td><td>Show/hide the progress bar (normal mode only)</td></tr>
+        <tr><td><code>ShowDiff</code></td><td>bool</td><td>true</td><td>Show/hide the difference badge</td></tr>
+    </table>
+
+    <CardTitle Title="Status Thresholds" Icon="traffic" Subtitle="Color coding logic" />
+    <table class="params-table">
+        <tr><th>Condition</th><th>Status</th><th>Color</th><th>Icon</th></tr>
+        <tr><td>Negative value</td><td>Danger</td><td>Red</td><td>remove_circle</td></tr>
+        <tr><td>&lt;= 80%</td><td>Success</td><td>Green</td><td>check_circle</td></tr>
+        <tr><td>81% - 100%</td><td>Warning</td><td>Yellow/Orange</td><td>schedule</td></tr>
+        <tr><td>&gt; 100%</td><td>Danger</td><td>Red</td><td>warning</td></tr>
     </table>
 </RadzenCard>
+
+<style>
+    .examples-flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .example-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .example-label {
+        font-size: 0.875rem;
+        color: var(--rz-text-secondary-color);
+    }
+</style>

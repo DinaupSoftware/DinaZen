@@ -2,9 +2,8 @@
 
 <PageTitle>HighlightCode</PageTitle>
 
-<RadzenCard class="rz-mb-4">
-    <CardTitle Title="HighlightCode" Subtitle="Component to display code blocks with syntax highlighting, line numbers and copy button." Icon="code" />
-</RadzenCard>
+<h1 class="rz-mb-2">HighlightCode</h1>
+<p class="rz-text-secondary-color rz-mb-4">Component to display code blocks with syntax highlighting, line numbers and copy button.</p>
 
 <RadzenCard class="rz-mb-4">
     <CardTitle Title="Language Aliases" Icon="swap_horiz" Subtitle="You can use different aliases to specify the language" />
@@ -63,19 +62,6 @@
     </div>
 </RadzenCard>
 
-<ExampleCard Title="Basic Usage" Description="Example code to use the component" Language="razor" Code="@basicUsageCode">
-    <ChildContent>
-        <HighlightCode Language="csharp" Code="Console.WriteLine(&quot;Hello World&quot;);" />
-    </ChildContent>
-</ExampleCard>
-
-<CardTitle Title="Display Options" Icon="tune" Subtitle="Customize code block appearance" />
-
-<ExampleCard Title="With Line Numbers" Description="Show line numbers on the left" Language="razor" Code="@lineNumbersCode">
-    <ChildContent>
-        <HighlightCode Language="csharp" Code="@csharpCode" ShowLineNumbers="true" />
-    </ChildContent>
-</ExampleCard>
 
 <ExampleCard Title="Complete" Description="All options combined" Language="razor" Code="@fullExampleCode">
     <ChildContent>

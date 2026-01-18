@@ -6,6 +6,16 @@
 <p class="rz-text-secondary-color rz-mb-4">Blazor Components. Use the sidebar menu to navigate.</p>
 
 <div class="rz-mb-4">
+	<Banner Style="Banner.BannerStyle.Warning"
+	        Icon="science"
+	        Title="Beta Version"
+	        ButtonText="Contribute on GitHub"
+	        ButtonUrl="https://github.com/DinaupSoftware/DinaZen">
+		<p>DinaZen is currently in <strong>beta</strong>. An open source project by <strong>Dinaup</strong> supporting the community. Contributions, ideas, and feedback are welcome!</p>
+	</Banner>
+</div>
+
+<div class="rz-mb-4">
 	<Banner Style="Banner.BannerStyle.Love"
 	        Icon="favorite"
 	        Title="Built on Radzen Blazor"
@@ -14,18 +24,6 @@
 		<p>DinaZen is built on top of <strong>Radzen Blazor Components</strong>, a free and open-source library with over 90 professional components.</p>
 	</Banner>
 </div>
-
-<RadzenCard class="rz-mb-4">
-	<div class="github-header">
-		<a href="https://github.com/DinaupSoftware/DinaZen" target="_blank" class="github-link">
-			<img src="img/github.svg" alt="GitHub" class="link-icon" />
-			<span>View on GitHub</span>
-		</a>
-	</div>
-	<p class="rz-text-secondary-color rz-mt-2">
-		Download the repository to use it as a template, try the components, or contribute to the project.
-	</p>
-</RadzenCard>
 
 <div class="rz-mb-4">
 	<StatsDisplay Statistics="@componentStats" />
@@ -77,7 +75,7 @@
 	<CardTitle Title="Components (25)" Icon="widgets" />
 	<div class="comp-grid">
 		<div class="comp-cat">
-			<strong>Display (9)</strong>
+			<strong>Display (10)</strong>
 			<a href="/examples/SpanDateExample">SpanDate</a>
 			<a href="/examples/SpanDateTimeExample">SpanDateTime</a>
 			<a href="/examples/SpanDecimalExample">SpanDecimal</a>
@@ -87,6 +85,7 @@
 			<a href="/examples/SpanKVExample">SpanKV</a>
 			<a href="/examples/FileNameExample">FileName</a>
 			<a href="/examples/TimeComparisonDisplayExample">TimeComparisonDisplay</a>
+			<a href="/examples/AnimationExample">Animation</a>
 		</div>
 		<div class="comp-cat">
 			<strong>Badges (3)</strong>
@@ -108,9 +107,8 @@
 			<a href="/examples/FooterPoweredByExample">FooterPoweredBy</a>
 		</div>
 		<div class="comp-cat">
-			<strong>Inputs (2)</strong>
+			<strong>Inputs (1)</strong>
 			<a href="/examples/SearchInputExample">SearchInput</a>
-			<a href="/examples/AnimationExample">Animation</a>
 		</div>
 		<div class="comp-cat">
 			<strong>Gantt (1)</strong>
@@ -130,7 +128,7 @@
 	{
 		new() { Value = "25", Label = "Components", Unit = "" },
 		new() { Value = "7", Label = "Categories", Unit = "" },
-		new() { Value = "9", Label = "Display", Unit = "" },
+		new() { Value = "10", Label = "Display", Unit = "" },
 		new() { Value = "3", Label = "Layout", Unit = "" }
 	};
 

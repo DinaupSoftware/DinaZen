@@ -1,87 +1,171 @@
-﻿<div class="d-flex justify-content-start align-content-center gap-3">
-    @if (PlannedTime != 0 || ActualTime != 0)
-    {
-        @if (PlannedTime != 0 && ActualTime != 0)
-        {
-            <span>
-                @(FormatMinutes(ActualTime.INT())) / @(FormatMinutes(PlannedTime.INT()))
-            </span>
+@namespace DinaZen.Components
 
-            string  diffText = GetDiffText();
-            if (diffText.IsNotEmpty())
+@if (PlannedTime != 0 || ActualTime != 0)
+{
+    @if (Compact)
+    {
+        <span class="time-compact @GetStatusClass()" title="@GetTooltip()">
+            @if (!string.IsNullOrEmpty(Label))
             {
-                <span style=@(diffText.Contains("+") ? "color:red" : "color:green")>
-                    @diffText
-                </span>
+                <span class="time-compact-label">@Label</span>
             }
-        }
-        else
-        {
-            <span>
-                @(FormatMinutes(ActualTime.INT()))
+            <span class="time-compact-value">
+                <RadzenIcon Icon="@GetStatusIcon()" />
+                <span>@FormatMinutes(ActualTime.INT())</span>
+                @if (PlannedTime != 0)
+                {
+                    <span class="time-compact-planned">/ @FormatMinutes(PlannedTime.INT())</span>
+                }
             </span>
-        }
+            @if (PlannedTime != 0 && ShowDiff)
+            {
+                <span class="time-compact-diff @GetStatusClass()">@GetDiffText()</span>
+            }
+        </span>
     }
-</div>
+    else
+    {
+        <div class="time-comparison @GetStatusClass()" title="@GetTooltip()">
+            @if (!string.IsNullOrEmpty(Label))
+            {
+                <div class="time-comparison-label">@Label</div>
+            }
+            <div class="time-comparison-header">
+                <div class="time-comparison-icon">
+                    <RadzenIcon Icon="@GetStatusIcon()" />
+                </div>
+                <div class="time-comparison-values">
+                    <span class="time-actual">@FormatMinutes(ActualTime.INT())</span>
+                    @if (PlannedTime != 0)
+                    {
+                        <span class="time-separator">/</span>
+                        <span class="time-planned">@FormatMinutes(PlannedTime.INT())</span>
+                    }
+                </div>
+                @if (PlannedTime != 0 && ShowDiff)
+                {
+                    <div class="time-comparison-badge @GetStatusClass()">
+                        @GetDiffText()
+                    </div>
+                }
+            </div>
+
+            @if (PlannedTime != 0 && ShowProgressBar)
+            {
+                <div class="time-comparison-bar">
+                    <div class="time-comparison-bar-track">
+                        <div class="time-comparison-bar-fill @GetStatusClass()" style="width: @GetPercentageWidth()"></div>
+                        @if (GetPercentage() > 100)
+                        {
+                            <div class="time-comparison-bar-limit"></div>
+                        }
+                    </div>
+                    <span class="time-comparison-percentage">@GetPercentage().ToString("0")%</span>
+                </div>
+            }
+        </div>
+    }
+}
 
 @code {
     [Parameter] public decimal PlannedTime { get; set; } = 0;
     [Parameter] public decimal ActualTime { get; set; } = 0;
+    [Parameter] public bool ShowProgressBar { get; set; } = true;
+    [Parameter] public bool ShowDiff { get; set; } = true;
+    [Parameter] public bool Compact { get; set; } = false;
+    [Parameter] public string? Label { get; set; }
 
-    /// <summary>
-    /// Converts total minutes to "Xh Ym".
-    /// </summary>
     private string FormatMinutes(int totalMinutes)
     {
-        if (totalMinutes <= 0) return "0m";
-        if (totalMinutes < 60) return $"{totalMinutes}m";
+        bool isNegative = totalMinutes < 0;
+        string sign = isNegative ? "-" : "";
+        totalMinutes = Math.Abs(totalMinutes);
+
+        if (totalMinutes == 0) return "0m";
+        if (totalMinutes < 60) return $"{sign}{totalMinutes}m";
 
         var hours = totalMinutes / 60;
         var minutes = totalMinutes % 60;
 
-        return minutes == 0 ? $"{hours}h" : $"{hours}h {minutes}m";
+        return minutes == 0 ? $"{sign}{hours}h" : $"{sign}{hours}h {minutes}m";
     }
 
-    /// <summary>
-    /// Returns the diff text (+/-Xm) if relevant.
-    /// </summary>
     private string GetDiffText()
     {
         int plan = PlannedTime.INT();
         int actual = ActualTime.INT();
         int diff = actual - plan;
 
-        if (diff == 0) return "";
-        return diff > 0 ? $"+{diff}m" : $"{diff}m";
+        if (diff == 0) return "=";
+        return diff > 0 ? $"+{FormatMinutes(diff)}" : FormatMinutes(diff);
     }
 
-    /// <summary>
-    /// Returns a css class based on the comparison.
-    /// </summary>
-    private string GetColorClass()
+    private double GetPercentage()
     {
-        if (PlannedTime == 0 || ActualTime == 0)
-            return "";
-
-        int plan = PlannedTime.INT();
-        int actual = ActualTime.INT();
-        int diff = actual - plan;
-
-        if (Math.Abs(diff) == 0) return "time-on-time";
-        if (diff > 0) return "time-late";
-        return "time-early";
+        if (PlannedTime == 0) return 0;
+        var pct = (double)(Math.Abs(ActualTime) / Math.Abs(PlannedTime)) * 100;
+        return pct;
     }
 
-    /// <summary>
-    /// Optional tooltip message for clarity.
-    /// </summary>
+    private string GetPercentageWidth()
+    {
+        var pct = GetPercentage();
+        return pct > 100 ? "100%" : $"{pct:0}%";
+    }
+
+    private string GetStatusClass()
+    {
+        // Si no hay tiempo planificado, determinar por el valor actual
+        if (PlannedTime == 0)
+        {
+            if (ActualTime < 0) return "status-danger";
+            if (ActualTime == 0) return "status-neutral";
+            return "status-success";
+        }
+
+        // Con tiempo planificado, usar porcentaje
+        var pct = GetPercentage();
+        if (ActualTime < 0) return "status-danger";
+        if (pct <= 80) return "status-success";
+        if (pct <= 100) return "status-warning";
+        return "status-danger";
+    }
+
+    private string GetStatusIcon()
+    {
+        if (ActualTime < 0) return "remove_circle";
+        if (PlannedTime == 0) return "schedule";
+
+        var pct = GetPercentage();
+        if (pct <= 80) return "check_circle";
+        if (pct <= 100) return "schedule";
+        return "warning";
+    }
+
     private string GetTooltip()
     {
-        var diffText = GetDiffText();
-        if (diffText.IsEmpty()) return "";
+        var actualFormatted = FormatMinutes(ActualTime.INT());
 
-        return diffText.StartsWith("+")
-            ? "Se pasó del tiempo planificado"
-            : "Terminó antes de lo planificado";
+        if (PlannedTime == 0)
+        {
+            if (!string.IsNullOrEmpty(Label))
+                return $"{Label}: {actualFormatted}";
+            return actualFormatted;
+        }
+
+        var plannedFormatted = FormatMinutes(PlannedTime.INT());
+        int diff = ActualTime.INT() - PlannedTime.INT();
+
+        string status = diff switch
+        {
+            0 => "On time",
+            < 0 => $"{FormatMinutes(Math.Abs(diff))} under budget",
+            _ => $"{FormatMinutes(diff)} over budget"
+        };
+
+        if (!string.IsNullOrEmpty(Label))
+            return $"{Label}: {actualFormatted} / {plannedFormatted} ({status})";
+
+        return $"{actualFormatted} / {plannedFormatted} ({status})";
     }
 }

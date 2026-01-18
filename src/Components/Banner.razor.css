@@ -49,14 +49,14 @@
 	color: white;
 }
 
-.banner-text p {
+.banner-text ::deep p {
 	margin: 0;
 	font-size: 0.85rem;
 	color: rgba(255, 255, 255, 0.92);
 	line-height: 1.4;
 }
 
-.banner-text strong {
+.banner-text ::deep strong {
 	color: white;
 	font-weight: 600;
 }
@@ -127,12 +127,12 @@
 }
 
 .banner-gold .banner-text h3,
-.banner-gold .banner-text p,
-.banner-gold .banner-text strong {
+.banner-gold .banner-text ::deep p,
+.banner-gold .banner-text ::deep strong {
 	color: #4a3800;
 }
 
-.banner-gold .banner-text p {
+.banner-gold .banner-text ::deep p {
 	color: rgba(74, 56, 0, 0.85);
 }
 
@@ -239,12 +239,12 @@
 }
 
 .banner-premium .banner-text h3,
-.banner-premium .banner-text p,
-.banner-premium .banner-text strong {
+.banner-premium .banner-text ::deep p,
+.banner-premium .banner-text ::deep strong {
 	color: #333;
 }
 
-.banner-premium .banner-text p {
+.banner-premium .banner-text ::deep p {
 	color: rgba(51, 51, 51, 0.85);
 }
 

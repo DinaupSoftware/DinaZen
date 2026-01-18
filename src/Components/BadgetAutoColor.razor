@@ -1,155 +1,569 @@
 ﻿@using DemoUp.MyDinaup
 @if (Visible == false) return;
 
-
-
 @if (string.IsNullOrWhiteSpace(Value) == false)
 {
-	<span class="@CssClass" style=@cacheStyle onclick=@Click>
-		@Value
-	</span>
+    <span class="@CssClass" style="@_cachedStyle" @onclick="Click">
+        @Value
+    </span>
 }
 
-
 @code {
+    [Parameter] public EnumEstilosTextoEE Color { get; set; }
+    [Parameter] public bool Visible { get; set; } = true;
+    [Parameter] public string Style { get; set; }
+    [Parameter] public string Value { get; set; }
+    [Parameter] public Dictionary<string, int> BadgetStyle { get; set; }
+    [Parameter] public EventCallback Click { get; set; }
 
+    private string _cachedStyle;
+    private string CssClass => GetCssClass(Value);
 
+    protected override Task OnParametersSetAsync()
+    {
+        _cachedStyle = Click.HasDelegate ? $"{Style};cursor:pointer;" : Style;
+        return base.OnParametersSetAsync();
+    }
 
-	[Parameter]
-	public DemoUp.MyDinaup.EnumEstilosTextoEE Color { get; set; }
+    private string GetCssClass(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "badge badge-default";
 
+        // 1. Prioridad: Color explícito por parámetro
+        if (Color != EnumEstilosTextoEE.Indefinido)
+            return $"badge e{(int)Color}";
 
-	[Parameter]
-	public bool Visible { get; set; } = true;
+        // 2. Prioridad: Estilo personalizado por diccionario
+        if (BadgetStyle is not null && BadgetStyle.TryGetValue(value.Trim(), out var styleIndex))
+            return $"badge e{styleIndex}";
 
+        // 3. Prioridad: Mapeo automático por palabra
+        var normalized = value.Trim().ToLowerInvariant();
 
-	[Parameter]
-	public string Style { get; set; }
-	[Parameter]
-	public string Value { get; set; }
+        // Buscar en categorías semánticas
+        if (TryGetSemanticClass(normalized, out var cssClass))
+            return cssClass;
 
-	[Parameter]
-	public Dictionary<string, int> BadgetStyle { get; set; }
+        // Buscar coincidencia parcial
+        if (TryGetPartialMatch(normalized, out cssClass))
+            return cssClass;
 
-	[Parameter]
-	public EventCallback Click { get; set; }
+        return "badge badge-default";
+    }
 
-	private string CssClass => GetCssClass(Value);
+    private static bool TryGetSemanticClass(string value, out string cssClass)
+    {
+        cssClass = null;
 
-	private string cacheStyle;
+        // ══════════════════════════════════════════════════════════════
+        // ESTADOS (Filled - e11-e20 y semánticos)
+        // ══════════════════════════════════════════════════════════════
 
-	protected override Task OnParametersSetAsync()
-	{
-		this.cacheStyle = this.Style;
+        // ✅ SUCCESS - Estados positivos/completados
+        if (SuccessStates.Contains(value))
+        {
+            cssClass = "badge badge-success";
+            return true;
+        }
 
-		if (Click.HasDelegate)
-			cacheStyle = cacheStyle + ";cursor:pointer;";
+        // ❌ DANGER - Estados negativos/error
+        if (DangerStates.Contains(value))
+        {
+            cssClass = "badge badge-danger";
+            return true;
+        }
 
-		return base.OnParametersSetAsync();
-	}
+        // ⏳ PENDING - Estados pendientes/en espera (cyan e19)
+        if (PendingStates.Contains(value))
+        {
+            cssClass = "badge e19";
+            return true;
+        }
 
+        // 🔄 IN PROGRESS - Estados en proceso (sky blue e15)
+        if (InProgressStates.Contains(value))
+        {
+            cssClass = "badge e15";
+            return true;
+        }
 
-	private string GetCssClass(string value)
-	{
-		try
-		{
+        // ⚠️ WARNING - Estados de advertencia (yellow e13)
+        if (WarningStates.Contains(value))
+        {
+            cssClass = "badge e13";
+            return true;
+        }
 
-			if (string.IsNullOrWhiteSpace(value))
-				return "badge-type badge-default";
+        // ══════════════════════════════════════════════════════════════
+        // TEMPORALIDAD (Filled)
+        // ══════════════════════════════════════════════════════════════
 
+        if (TimeToday.Contains(value))
+        {
+            cssClass = "badge e14"; // Verde lima
+            return true;
+        }
 
-			int styleX;
+        if (TimeTomorrow.Contains(value))
+        {
+            cssClass = "badge e15"; // Azul sky
+            return true;
+        }
 
+        if (TimePast.Contains(value))
+        {
+            cssClass = "badge e20"; // Rojo
+            return true;
+        }
 
-			if (Color != EnumEstilosTextoEE.Indefinido)
-				return "badge e" + ((int)Color).STR();
+        if (TimeFuture.Contains(value))
+        {
+            cssClass = "badge e15"; // Azul sky
+            return true;
+        }
 
+        // ══════════════════════════════════════════════════════════════
+        // TIPOS DE OPERACIÓN (Outline - e1-e10)
+        // ══════════════════════════════════════════════════════════════
 
+        // 💰 Ventas/Ingresos (verde outline)
+        if (SaleTypes.Contains(value))
+        {
+            cssClass = "badge-type e4";
+            return true;
+        }
 
-			if (BadgetStyle.IsNotNull() && BadgetStyle.TryGetValue(value.Trim(), out styleX))
-				return "badge e" + styleX.STR();
+        // 🛒 Compras/Gastos (naranja outline)
+        if (PurchaseTypes.Contains(value))
+        {
+            cssClass = "badge-type e2";
+            return true;
+        }
 
+        // 🏦 Bancario/Financiero (azul outline)
+        if (BankingTypes.Contains(value))
+        {
+            cssClass = "badge-type e5";
+            return true;
+        }
 
-			var exactMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-		{
-			{ "pendiente", "badge e19" },
-			{ "tramitado", "badge badge-success" },
-			{ "cancelado", "badge badge-danger" },
-			{ "hoy", "badge badge-type e14" },
-			{ "ayer", "badge badge-type e20" },
-			{ "pasado", "badge badge-type e2" },
-			{ "futuro", "badge badge-type e5" },
-			{ "mañana", "badge badge-type e15" },
-			{ "venta", "badge-type e4" },
-			{ "compra", "badge-type e2" },
-			{ "movimiento bancario", "badge-type  e5" },
-			{ "pago de compra", "badge-type  e2" },
-			{ "cobro de venta", "badge-type  e4" },
-			{ "abierto", "badge e19" },
-			{ "sin conciliar", "badge e19" },
-			{ "abierta", "badge e19" },
-			{ "parcialmente", "badge e19" },
-			{ "operativo", "badge badge-success" },
-			{ "positivo", "badge badge-success" },
-			{ "positivos", "badge badge-success" },
-			{ "operativa", "badge badge-success" },
-			{ "conciliado", "badge badge-success" },
-			{ "vigente", "badge badge-success" },
-			{ "prorrateo activo", "badge badge-success" },
-			{ "activa", "badge badge-success" },
-			{ "activo", "badge badge-success" },
-			{ "activado", "badge badge-success" },
-			{ "prorrateo activado", "badge badge-success" },
-			{ "pagado", "badge badge-success" },
-			{ "pagada", "badge badge-success" },
-			{ "presente", "badge badge-success" },
-			{ "pendiente de pago", "badge e19" },
-			{ "pago pendiente", "badge e19" },
-			{ "esperando inicio", "badge e19" },
-			{ "esperando pago", "badge e19" },
-			{ "ausencia", "badge badge-danger" },
-			{ "prorrateo desactivado", "badge badge-danger" },
-			{ "desactivado", "badge badge-danger" },
-			{ "desactivados", "badge badge-danger" },
-			{ "vencida", "badge badge-danger" },
-			{ "negativo", "badge badge-danger" },
-			{ "negativos", "badge badge-danger" },
-			{ "vencido", "badge badge-danger" },
-			{ "nacional", "badge badge-type e8" },
-			{ "mensual", "badge badge-type e5" },
-			{ "mrr", "badge badge-type e5" },
-			{ "mes", "badge badge-type e5" },
-			{ "simplificada", "badge badge-type e5" },
-			{ "anual", "badge badge-type e6" },
-			{ "arr", "badge badge-type e6" },
-			{ "año", "badge badge-type e6" },
-			{ "intracomunitaria", "badge badge-type e6" },
-			{ "exportacion", "badge badge-type e20" },
-			{ "importacion", "badge badge-type e20" },
-			{ "ticket", "badge badge-type e10" },
-			{ "completado", "badge badge-success" },
-			{ "incompleto", "badge e19" },
-			{ "subcuenta", "badge e5" },
-			{ "cuenta", "badge e11" },
-			{ "grupo nivel 1", "badge e11" },
-			{ "exceso", "badge badge-danger" }
-		};
+        // ══════════════════════════════════════════════════════════════
+        // TIPOS DE FACTURA / DOCUMENTO (Outline)
+        // ══════════════════════════════════════════════════════════════
 
+        if (InvoiceTypeStandard.Contains(value))
+        {
+            cssClass = "badge-type e8"; // Gris
+            return true;
+        }
 
-			if (exactMappings.TryGetValue(value.Trim().ToLower(), out var cssClass))
-				return cssClass;
+        if (InvoiceTypeSimplified.Contains(value))
+        {
+            cssClass = "badge-type e5"; // Azul
+            return true;
+        }
 
-			if (value.Contains("sin factura"))
-				return "badge badge-workitemtype e10";
+        if (InvoiceTypeInternational.Contains(value))
+        {
+            cssClass = "badge-type e6"; // Violeta
+            return true;
+        }
 
+        if (InvoiceTypeExport.Contains(value))
+        {
+            cssClass = "badge-type e9"; // Teal
+            return true;
+        }
 
-			return "badge badge-default";
+        // ══════════════════════════════════════════════════════════════
+        // PERIODICIDAD / FACTURACIÓN RECURRENTE (Outline)
+        // ══════════════════════════════════════════════════════════════
 
-		}
-		catch (Exception ex)
-		{
+        if (PeriodMonthly.Contains(value))
+        {
+            cssClass = "badge-type e5"; // Azul
+            return true;
+        }
 
-			return "badge badge-default";
-		}
-	}
+        if (PeriodAnnual.Contains(value))
+        {
+            cssClass = "badge-type e6"; // Violeta
+            return true;
+        }
+
+        if (PeriodOneTime.Contains(value))
+        {
+            cssClass = "badge-type e10"; // Rojo
+            return true;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // CONTABILIDAD (Outline y Filled)
+        // ══════════════════════════════════════════════════════════════
+
+        if (AccountingSubaccount.Contains(value))
+        {
+            cssClass = "badge-type e5"; // Azul outline
+            return true;
+        }
+
+        if (AccountingAccount.Contains(value))
+        {
+            cssClass = "badge e11"; // Gris filled
+            return true;
+        }
+
+        if (AccountingGroup.Contains(value))
+        {
+            cssClass = "badge e11"; // Gris filled
+            return true;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // PRIORIDAD (Filled)
+        // ══════════════════════════════════════════════════════════════
+
+        if (PriorityHigh.Contains(value))
+        {
+            cssClass = "badge e20"; // Rojo
+            return true;
+        }
+
+        if (PriorityMedium.Contains(value))
+        {
+            cssClass = "badge e12"; // Naranja
+            return true;
+        }
+
+        if (PriorityLow.Contains(value))
+        {
+            cssClass = "badge e14"; // Verde
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetPartialMatch(string value, out string cssClass)
+    {
+        cssClass = null;
+
+        // Coincidencias parciales para casos especiales
+        var partialMatches = new (string pattern, string css)[]
+        {
+            ("sin factura", "badge-type e10"),
+            ("without invoice", "badge-type e10"),
+            ("no invoice", "badge-type e10"),
+            ("pago parcial", "badge e19"),
+            ("partial payment", "badge e19"),
+            ("en revisión", "badge e15"),
+            ("under review", "badge e15"),
+            ("in review", "badge e15"),
+        };
+
+        foreach (var (pattern, css) in partialMatches)
+        {
+            if (value.Contains(pattern))
+            {
+                cssClass = css;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // DEFINICIÓN DE CATEGORÍAS (HashSet para búsqueda O(1))
+    // ══════════════════════════════════════════════════════════════════════
+
+    // ═══════════ ESTADOS ═══════════
+
+    private static readonly HashSet<string> SuccessStates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "tramitado", "completado", "finalizado", "terminado",
+        "pagado", "pagada", "cobrado", "cobrada",
+        "activo", "activa", "activado", "activada",
+        "operativo", "operativa", "vigente",
+        "conciliado", "conciliada", "verificado", "verificada",
+        "aprobado", "aprobada", "confirmado", "confirmada",
+        "presente", "disponible", "correcto", "correcta",
+        "positivo", "positivos", "positiva", "positivas",
+        "prorrateo activo", "prorrateo activado",
+        "enviado", "enviada", "entregado", "entregada",
+        "resuelto", "resuelta", "solucionado", "solucionada",
+        "conectado", "conectada", "online", "sincronizado",
+
+        // English
+        "completed", "done", "finished", "processed",
+        "paid", "collected", "received",
+        "active", "enabled", "activated",
+        "operational", "valid", "current",
+        "reconciled", "verified", "matched",
+        "approved", "confirmed", "accepted",
+        "present", "available", "correct",
+        "positive", "success", "successful",
+        "sent", "delivered", "shipped",
+        "resolved", "solved", "fixed",
+        "connected", "synced", "synchronized"
+    };
+
+    private static readonly HashSet<string> DangerStates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "cancelado", "cancelada", "anulado", "anulada",
+        "rechazado", "rechazada", "denegado", "denegada",
+        "vencido", "vencida", "expirado", "expirada",
+        "fallido", "fallida", "error", "fallo",
+        "inactivo", "inactiva", "desactivado", "desactivada",
+        "negativo", "negativos", "negativa", "negativas",
+        "ausencia", "ausente", "no disponible",
+        "prorrateo desactivado", "bloqueado", "bloqueada",
+        "eliminado", "eliminada", "borrado", "borrada",
+        "impagado", "impagada", "moroso", "morosa",
+        "exceso", "excedido", "sobrepasado",
+        "desconectado", "desconectada", "offline",
+        "devuelto", "devuelta", "rechazado",
+
+        // English
+        "cancelled", "canceled", "voided", "annulled",
+        "rejected", "denied", "declined",
+        "expired", "overdue", "past due",
+        "failed", "error", "failure",
+        "inactive", "disabled", "deactivated",
+        "negative", "deficit",
+        "absent", "unavailable",
+        "blocked", "locked", "suspended",
+        "deleted", "removed",
+        "unpaid", "delinquent", "defaulted",
+        "excess", "exceeded", "over limit",
+        "disconnected", "offline",
+        "returned", "refunded", "bounced"
+    };
+
+    private static readonly HashSet<string> PendingStates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "pendiente", "pendientes",
+        "abierto", "abierta", "abiertos", "abiertas",
+        "sin conciliar", "no conciliado",
+        "parcialmente", "parcial",
+        "pendiente de pago", "pago pendiente",
+        "esperando", "esperando pago", "esperando inicio",
+        "por cobrar", "por pagar",
+        "incompleto", "incompleta",
+        "sin asignar", "no asignado",
+        "sin procesar", "no procesado",
+        "borrador", "draft",
+        "sin revisar", "sin verificar",
+
+        // English
+        "pending", "open", "outstanding",
+        "unreconciled", "not reconciled",
+        "partial", "partially",
+        "payment pending", "awaiting payment",
+        "waiting", "awaiting", "on hold",
+        "receivable", "payable",
+        "incomplete", "unfinished",
+        "unassigned", "not assigned",
+        "unprocessed", "not processed",
+        "draft",
+        "unreviewed", "not reviewed", "not verified"
+    };
+
+    private static readonly HashSet<string> InProgressStates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "en proceso", "procesando", "en curso",
+        "en progreso", "trabajando",
+        "en revisión", "revisando",
+        "en trámite", "tramitando",
+        "facturando", "cobrando", "pagando",
+        "enviando", "transfiriendo",
+        "calculando", "generando",
+        "sincronizando", "actualizando",
+        "importando", "exportando",
+
+        // English
+        "in progress", "processing", "ongoing",
+        "in review", "reviewing", "under review",
+        "in transit", "shipping",
+        "invoicing", "billing",
+        "sending", "transferring",
+        "calculating", "generating",
+        "syncing", "updating",
+        "importing", "exporting",
+        "loading", "working"
+    };
+
+    private static readonly HashSet<string> WarningStates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "atención", "advertencia", "aviso",
+        "próximo a vencer", "por vencer",
+        "requiere acción", "acción requerida",
+        "revisar", "verificar",
+        "incidencia", "problema",
+        "retrasado", "retrasada", "atrasado", "atrasada",
+        "irregular", "anómalo", "anómala",
+
+        // English
+        "warning", "attention", "alert", "notice",
+        "expiring soon", "due soon", "almost due",
+        "action required", "needs attention",
+        "review needed", "check required",
+        "issue", "problem", "incident",
+        "delayed", "late", "overdue",
+        "irregular", "anomaly"
+    };
+
+    // ═══════════ TEMPORALIDAD ═══════════
+
+    private static readonly HashSet<string> TimeToday = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "hoy", "today", "now", "ahora"
+    };
+
+    private static readonly HashSet<string> TimeTomorrow = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "mañana", "tomorrow", "próximo", "next"
+    };
+
+    private static readonly HashSet<string> TimePast = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ayer", "yesterday", "pasado", "past", "anterior", "previous", "antiguo", "old"
+    };
+
+    private static readonly HashSet<string> TimeFuture = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "futuro", "future", "próximamente", "upcoming", "scheduled", "programado"
+    };
+
+    // ═══════════ TIPOS DE OPERACIÓN ═══════════
+
+    private static readonly HashSet<string> SaleTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "venta", "ventas", "cobro de venta", "ingreso", "ingresos",
+        "factura emitida", "factura de venta",
+        "abono", "devolución cliente",
+
+        // English
+        "sale", "sales", "income", "revenue",
+        "sales invoice", "issued invoice",
+        "credit note", "customer refund"
+    };
+
+    private static readonly HashSet<string> PurchaseTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "compra", "compras", "pago de compra", "gasto", "gastos",
+        "factura recibida", "factura de compra",
+        "cargo", "devolución proveedor",
+
+        // English
+        "purchase", "purchases", "expense", "expenses",
+        "purchase invoice", "received invoice", "bill",
+        "debit note", "supplier refund"
+    };
+
+    private static readonly HashSet<string> BankingTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Español
+        "movimiento bancario", "mov. bancario", "banco",
+        "transferencia", "traspaso", "remesa",
+        "extracto", "conciliación bancaria",
+        "domiciliación", "recibo bancario",
+
+        // English
+        "bank movement", "bank transaction", "banking",
+        "transfer", "wire transfer", "remittance",
+        "bank statement", "bank reconciliation",
+        "direct debit", "bank receipt"
+    };
+
+    // ═══════════ TIPOS DE FACTURA ═══════════
+
+    private static readonly HashSet<string> InvoiceTypeStandard = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "nacional", "ordinaria", "estándar", "normal", "completa",
+        "domestic", "standard", "regular", "full"
+    };
+
+    private static readonly HashSet<string> InvoiceTypeSimplified = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "simplificada", "ticket", "recibo", "tpv",
+        "simplified", "receipt", "pos"
+    };
+
+    private static readonly HashSet<string> InvoiceTypeInternational = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "intracomunitaria", "ue", "unión europea", "comunitaria",
+        "intra-community", "eu", "european union", "community"
+    };
+
+    private static readonly HashSet<string> InvoiceTypeExport = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "exportación", "exportacion", "importación", "importacion",
+        "internacional", "extranjero", "exterior",
+        "export", "import", "international", "foreign", "overseas"
+    };
+
+    // ═══════════ PERIODICIDAD ═══════════
+
+    private static readonly HashSet<string> PeriodMonthly = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "mensual", "mes", "mrr", "monthly", "month", "per month"
+    };
+
+    private static readonly HashSet<string> PeriodAnnual = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "anual", "año", "arr", "annual", "yearly", "year", "per year"
+    };
+
+    private static readonly HashSet<string> PeriodOneTime = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "único", "unico", "puntual", "una vez",
+        "one-time", "one time", "single", "once"
+    };
+
+    // ═══════════ CONTABILIDAD ═══════════
+
+    private static readonly HashSet<string> AccountingSubaccount = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "subcuenta", "sub-cuenta", "subaccount", "sub-account"
+    };
+
+    private static readonly HashSet<string> AccountingAccount = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "cuenta", "account"
+    };
+
+    private static readonly HashSet<string> AccountingGroup = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "grupo", "grupo nivel 1", "grupo nivel 2", "grupo nivel 3",
+        "group", "account group", "level 1", "level 2", "level 3"
+    };
+
+    // ═══════════ PRIORIDAD ═══════════
+
+    private static readonly HashSet<string> PriorityHigh = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "urgente", "crítico", "critico", "alta", "muy alta", "prioridad alta",
+        "urgent", "critical", "high", "very high", "high priority"
+    };
+
+    private static readonly HashSet<string> PriorityMedium = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "media", "normal", "moderada", "prioridad media",
+        "medium", "moderate", "normal priority"
+    };
+
+    private static readonly HashSet<string> PriorityLow = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "baja", "muy baja", "prioridad baja",
+        "low", "very low", "low priority"
+    };
 }

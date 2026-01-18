@@ -220,26 +220,6 @@ window.DinaZen.scalableBlock = {
 	}
 };
 
-// ============================================
-// Backward Compatibility (deprecated)
-// Keep old global functions for compatibility
-// Will be removed in future versions
-// ============================================
 
-window.setIframeBlob = window.DinaZen.setIframeBlob;
-window.setDialogWidth = window.DinaZen.setDialogWidth;
-window.setDialogHeight = window.DinaZen.setDialogHeight;
-window.focusNextElement = window.DinaZen.focusNextElement;
-window.loadLottie = window.DinaZen.loadLottie;
-window.highlightCode = window.DinaZen.highlightCode;
-window.highlightElement = window.DinaZen.highlightElement;
-window.scalableBlock = window.DinaZen.scalableBlock;
 
-// Global functions (callable without window prefix)
-function printIframe(id) {
-	return window.DinaZen.printIframe(id);
-}
 
-function printIframeOnce(iframe) {
-	return window.DinaZen.printIframeOnce(iframe);
-}
