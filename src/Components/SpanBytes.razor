@@ -1,0 +1,45 @@
+@if (Value.HasValue)
+{
+	<span class="@_class" style="@_style">
+		@FormatFileSize(Value.Value)
+	</span>
+}
+
+@code {
+
+	[Parameter] public long? Value { get; set; }
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string FontSize { get; set; } = "16px";
+
+	private string _class = "";
+	private string _style = "";
+
+	protected override Task OnParametersSetAsync()
+	{
+		_class = Class + " numspan";
+		_style = $"font-size:{FontSize}; width: fit-content; word-break: keep-all; white-space: nowrap;";
+
+		return base.OnParametersSetAsync();
+	}
+
+	private string FormatFileSize(long bytes)
+	{
+		try
+		{
+			string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+			double len = bytes;
+			int order = 0;
+			while (len >= 1024 && order < sizes.Length - 1)
+			{
+				order++;
+				len /= 1024;
+			}
+			return $"{len:0.##} {sizes[order]}";
+		}
+		catch
+		{
+			return "";
+		}
+	}
+
+}

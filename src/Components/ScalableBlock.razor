@@ -9,7 +9,7 @@
 	<RadzenButton Icon="zoom_in" Size="ButtonSize.ExtraSmall" Click=@IncreaseScale Variant="Variant.Text" />
 </div>
 
-<div @ref="wrapper">
+<div style="zoom: @ScaleStyle">
 	@ChildContent
 </div>
 
@@ -22,44 +22,45 @@
 
 	private double scale = 1;
 	private readonly double step = 0.1;
-	private ElementReference wrapper;
 	private string storageKey => $"scalableBlockScale-{Key}";
+	private string ScaleStyle => scale.ToString(CultureInfo.InvariantCulture);
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
-			var stored = await JS.InvokeAsync<string>("localStorage.getItem", storageKey);
-			if (double.TryParse(stored, NumberStyles.Any, CultureInfo.InvariantCulture, out var s))
-				scale = s;
-
-			await ApplyScale();
-			StateHasChanged();
+			try
+			{
+				var stored = await JS.InvokeAsync<string>("localStorage.getItem", storageKey);
+				if (double.TryParse(stored, NumberStyles.Any, CultureInfo.InvariantCulture, out var s))
+				{
+					scale = s;
+					StateHasChanged();
+				}
+			}
+			catch { }
 		}
 	}
-
 
 	private async Task DecreaseScale()
 	{
 		scale = Math.Max(0.5, scale - step);
-		await UpdateScaleAsync();
+		await SaveScaleAsync();
 	}
 
 	private async Task IncreaseScale()
 	{
 		scale = Math.Min(2, scale + step);
-		await UpdateScaleAsync();
+		await SaveScaleAsync();
 	}
 
-
-
-	private async Task UpdateScaleAsync()
+	private async Task SaveScaleAsync()
 	{
-		await ApplyScale();
-		await JS.InvokeVoidAsync("localStorage.setItem", storageKey, scale.ToString(CultureInfo.InvariantCulture));
+		try
+		{
+			await JS.InvokeVoidAsync("localStorage.setItem", storageKey, scale.ToString(CultureInfo.InvariantCulture));
+		}
+		catch { }
 	}
-
-	private ValueTask ApplyScale()
-		=> JS.InvokeVoidAsync("DinaZen.scalableBlock.setScale", wrapper, scale);
 }
 

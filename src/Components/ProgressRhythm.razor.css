@@ -1,0 +1,26 @@
+.dz-progress-rhythm {
+	margin-bottom: 0.5rem;
+	max-width: 400px;
+}
+
+.dz-progress-track {
+	height: 8px;
+	background-color: #f0f0f0;
+	border-radius: 3px;
+	position: relative;
+}
+
+.dz-progress-marker {
+	position: absolute;
+	top: -2px;
+	bottom: -2px;
+	width: 2px;
+	background-color: #666;
+	z-index: 2;
+}
+
+.dz-progress-bar {
+	height: 100%;
+	border-radius: 3px;
+	transition: width 0.3s ease;
+}

@@ -1,0 +1,23 @@
+<ErrorBoundary @ref="errorBoundary">
+	<ChildContent>
+		@ChildContent
+	</ChildContent>
+	<ErrorContent>
+		@if (ErrorContent != null)
+		{
+			@ErrorContent(context)
+		}
+	</ErrorContent>
+</ErrorBoundary>
+
+@code {
+	[Parameter, EditorRequired]
+	public RenderFragment ChildContent { get; set; } = default!;
+
+	[Parameter]
+	public RenderFragment<Exception>? ErrorContent { get; set; }
+
+	private ErrorBoundary? errorBoundary;
+
+	public void Recover() => errorBoundary?.Recover();
+}

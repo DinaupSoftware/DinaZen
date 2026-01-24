@@ -1,0 +1,10 @@
+.dz-stat-item {
+	/* Container styles if needed */
+}
+
+.dz-stat-label {
+	font-size: 0.75rem;
+	color: var(--rz-text-disabled-color, #6c757d);
+	margin: 0;
+	padding: 0;
+}

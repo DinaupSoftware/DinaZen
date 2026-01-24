@@ -1,0 +1,25 @@
+.dz-skeleton-container {
+	display: grid;
+	gap: 0.5rem;
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.dz-skeleton-line {
+	width: 100%;
+	height: var(--dz-skeleton-height, 1rem);
+	background: linear-gradient(90deg, rgba(0,0,0,0.08) 25%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.08) 75%);
+	background-size: 200% 100%;
+	animation: dz-shimmer 1.25s infinite;
+	border-radius: var(--dz-skeleton-radius, 0.25rem);
+}
+
+@keyframes dz-shimmer {
+	from {
+		background-position-x: 200%;
+	}
+	to {
+		background-position-x: -200%;
+	}
+}

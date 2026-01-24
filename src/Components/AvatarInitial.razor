@@ -1,0 +1,53 @@
+@{
+	string initial = string.IsNullOrEmpty(Data) ? "?" : Data.Substring(0, 1).ToUpper();
+	char key = initial[0];
+	var colors = ColorMap.TryGetValue(key, out var c) ? c : ("#607d8b", "#455a64");
+}
+
+<div @onclick=Click class="dz-avatar-initial @(OnClick.HasDelegate ? "cursor-pointer" : "")" style="width: @Size; height: @Size; background: linear-gradient(135deg, @colors.Item1, @colors.Item2); @Style">
+	@initial
+</div>
+
+@code {
+	[Parameter] public EventCallback OnClick { get; set; }
+	[Parameter] public string Data { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+	[Parameter] public string Size { get; set; } = "2.5rem";
+
+	private static readonly Dictionary<char, (string, string)> ColorMap = new()
+	{
+		{ '?', ("#B3B3B3", "#8a8a8a") },
+		{ 'A', ("#f44336", "#c62828") },
+		{ 'B', ("#e91e63", "#ad1457") },
+		{ 'C', ("#9c27b0", "#6a1b9a") },
+		{ 'D', ("#673ab7", "#4527a0") },
+		{ 'E', ("#3f51b5", "#283593") },
+		{ 'F', ("#2196f3", "#1565c0") },
+		{ 'G', ("#03a9f4", "#0277bd") },
+		{ 'H', ("#00bcd4", "#00838f") },
+		{ 'I', ("#009688", "#00695c") },
+		{ 'J', ("#4caf50", "#2e7d32") },
+		{ 'K', ("#8bc34a", "#558b2f") },
+		{ 'L', ("#cddc39", "#9e9d24") },
+		{ 'M', ("#ffeb3b", "#f9a825") },
+		{ 'N', ("#ffc107", "#ff8f00") },
+		{ 'O', ("#ff9800", "#ef6c00") },
+		{ 'P', ("#ff5722", "#d84315") },
+		{ 'Q', ("#795548", "#4e342e") },
+		{ 'R', ("#9e9e9e", "#616161") },
+		{ 'S', ("#607d8b", "#37474f") },
+		{ 'T', ("#00796b", "#004d40") },
+		{ 'U', ("#303f9f", "#1a237e") },
+		{ 'V', ("#8e24aa", "#6a1b9a") },
+		{ 'W', ("#d32f2f", "#b71c1c") },
+		{ 'X', ("#7b1fa2", "#4a148c") },
+		{ 'Y', ("#512da8", "#311b92") },
+		{ 'Z', ("#303030", "#1a1a1a") }
+	};
+
+	private async Task Click()
+	{
+		if (OnClick.HasDelegate)
+			await OnClick.InvokeAsync();
+	}
+}

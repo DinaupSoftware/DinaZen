@@ -1,0 +1,185 @@
+@* DateRangeSelector - Date range picker with predefined options (DateOnly) *@
+@using System.ComponentModel.DataAnnotations
+
+<div class="d-flex gap-2 align-items-center flex-wrap">
+
+	<RadzenFormField Text="Range" Variant="Variant.Flat" class="min-w-[240px]">
+		<EnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" />
+	</RadzenFormField>
+
+	@if (SelectedPreset == DateRangePreset.Custom)
+	{
+		<div class="d-flex gap-3 justify-content-start w-100">
+			<RadzenFormField Text="From" class="flex-grow-1" Variant="Variant.Flat">
+				<RadzenDatePicker TValue="DateTime?"
+								  Value="@_fromDateTime"
+								  DateFormat="dd/MM/yyyy"
+								  ShowTime="false"
+								  Change="@OnFromChanged" />
+			</RadzenFormField>
+			<RadzenFormField Text="To" class="flex-grow-1" Variant="Variant.Flat">
+				<RadzenDatePicker TValue="DateTime?"
+								  Value="@_toDateTime"
+								  DateFormat="dd/MM/yyyy"
+								  ShowTime="false"
+								  Change="@OnToChanged" />
+			</RadzenFormField>
+		</div>
+	}
+</div>
+
+@code {
+	[Parameter] public EventCallback<(DateOnly From, DateOnly To)> OnRangeChanged { get; set; }
+	[Parameter] public DateRangePreset SelectedPreset { get; set; } = DateRangePreset.Last7Days;
+	[Parameter] public EventCallback<DateRangePreset> SelectedPresetChanged { get; set; }
+
+	private DateOnly? _from;
+	private DateOnly? _to;
+	private DateTime? _fromDateTime => _from?.ToDateTime(TimeOnly.MinValue);
+	private DateTime? _toDateTime => _to?.ToDateTime(TimeOnly.MinValue);
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+
+		if (firstRender)
+			await OnPresetChanged();
+	}
+
+	private async Task OnPresetChanged()
+	{
+		if (SelectedPreset == DateRangePreset.Custom)
+		{
+			await SelectedPresetChanged.InvokeAsync(SelectedPreset);
+			return;
+		}
+
+		await SetPreset(SelectedPreset);
+	}
+
+	private async Task SetPreset(DateRangePreset preset)
+	{
+		var today = DateOnly.FromDateTime(DateTime.Today);
+
+		switch (preset)
+		{
+			case DateRangePreset.Today:
+				_from = today;
+				_to = today;
+				break;
+
+			case DateRangePreset.Yesterday:
+				var yesterday = today.AddDays(-1);
+				_from = yesterday;
+				_to = yesterday;
+				break;
+
+			case DateRangePreset.Last7Days:
+				_from = today.AddDays(-6);
+				_to = today;
+				break;
+
+			case DateRangePreset.Last30Days:
+				_from = today.AddDays(-29);
+				_to = today;
+				break;
+
+			case DateRangePreset.ThisMonth:
+				_from = new DateOnly(today.Year, today.Month, 1);
+				_to = new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month));
+				break;
+
+			case DateRangePreset.LastMonth:
+				var lastMonth = today.AddMonths(-1);
+				_from = new DateOnly(lastMonth.Year, lastMonth.Month, 1);
+				_to = new DateOnly(lastMonth.Year, lastMonth.Month, DateTime.DaysInMonth(lastMonth.Year, lastMonth.Month));
+				break;
+
+			case DateRangePreset.ThisQuarter:
+				var quarterStart = GetQuarterStart(today);
+				_from = quarterStart;
+				_to = quarterStart.AddMonths(3).AddDays(-1);
+				break;
+
+			case DateRangePreset.LastQuarter:
+				var lastQuarterStart = GetQuarterStart(today).AddMonths(-3);
+				_from = lastQuarterStart;
+				_to = lastQuarterStart.AddMonths(3).AddDays(-1);
+				break;
+
+			case DateRangePreset.ThisYear:
+				_from = new DateOnly(today.Year, 1, 1);
+				_to = new DateOnly(today.Year, 12, 31);
+				break;
+
+			case DateRangePreset.LastYear:
+				_from = new DateOnly(today.Year - 1, 1, 1);
+				_to = new DateOnly(today.Year - 1, 12, 31);
+				break;
+
+			case DateRangePreset.Custom:
+			default:
+				break;
+		}
+
+		SelectedPreset = preset;
+		await SelectedPresetChanged.InvokeAsync(SelectedPreset);
+
+		if (_from.HasValue && _to.HasValue)
+			await OnRangeChanged.InvokeAsync((_from.Value, _to.Value));
+
+		StateHasChanged();
+	}
+
+	private async Task OnFromChanged(DateTime? value)
+	{
+		_from = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
+		if (_from.HasValue && _to.HasValue)
+			await OnRangeChanged.InvokeAsync((_from.Value, _to.Value));
+	}
+
+	private async Task OnToChanged(DateTime? value)
+	{
+		_to = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
+		if (SelectedPreset != DateRangePreset.Custom)
+		{
+			SelectedPreset = DateRangePreset.Custom;
+			await SelectedPresetChanged.InvokeAsync(SelectedPreset);
+		}
+
+		if (_from.HasValue && _to.HasValue)
+			await OnRangeChanged.InvokeAsync((_from.Value, _to.Value));
+	}
+
+	private static DateOnly GetQuarterStart(DateOnly date)
+	{
+		var quarter = (date.Month - 1) / 3;
+		return new DateOnly(date.Year, quarter * 3 + 1, 1);
+	}
+
+	public enum DateRangePreset
+	{
+		[Display(Name = "Today")]
+		Today,
+		[Display(Name = "Yesterday")]
+		Yesterday,
+		[Display(Name = "Last 7 days")]
+		Last7Days,
+		[Display(Name = "Last 30 days")]
+		Last30Days,
+		[Display(Name = "This month")]
+		ThisMonth,
+		[Display(Name = "Last month")]
+		LastMonth,
+		[Display(Name = "This quarter")]
+		ThisQuarter,
+		[Display(Name = "Last quarter")]
+		LastQuarter,
+		[Display(Name = "This year")]
+		ThisYear,
+		[Display(Name = "Last year")]
+		LastYear,
+		[Display(Name = "Custom")]
+		Custom
+	}
+}

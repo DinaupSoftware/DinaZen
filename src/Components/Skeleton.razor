@@ -1,0 +1,20 @@
+<div class="dz-skeleton-container" style="--dz-skeleton-lines:@Lines; --dz-skeleton-height:@Height; --dz-skeleton-radius:@Radius; max-width:@MaxWidth">
+	@for (var i = 0; i < Lines; i++)
+	{
+		<div class="dz-skeleton-line"></div>
+	}
+</div>
+
+@code {
+	/// <summary>Number of lines (rectangles) to display.</summary>
+	[Parameter] public int Lines { get; set; } = 3;
+
+	/// <summary>Height of each line.</summary>
+	[Parameter] public string Height { get; set; } = "1rem";
+
+	/// <summary>Border radius of the corners.</summary>
+	[Parameter] public string Radius { get; set; } = "0.25rem";
+
+	/// <summary>Maximum width (default 100%).</summary>
+	[Parameter] public string MaxWidth { get; set; } = "100%";
+}

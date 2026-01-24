@@ -1,0 +1,27 @@
+@if (!string.IsNullOrEmpty(CountryCode))
+{
+	<div class="d-flex align-items-center gap-2">
+		<img src="@FlagUrl"
+			 width="@Size"
+			 height="@Size"
+			 alt="@CountryCode"
+			 onerror="this.style.display='none'" />
+		<RadzenBadge Text="@CountryCode.ToUpperInvariant()" BadgeStyle="BadgeStyle.Light" />
+	</div>
+}
+
+@code {
+	/// <summary>ISO 3166-1 alpha-2 country code (e.g., "US", "ES", "MX").</summary>
+	[Parameter, EditorRequired]
+	public string CountryCode { get; set; } = "";
+
+	/// <summary>Size of the flag image in pixels.</summary>
+	[Parameter]
+	public int Size { get; set; } = 22;
+
+	/// <summary>Base URL for flag images. Must contain {0} placeholder for country code.</summary>
+	[Parameter]
+	public string FlagUrlTemplate { get; set; } = "https://cdn.dinaup.com/public/flags/{0}.svg";
+
+	private string FlagUrl => string.Format(FlagUrlTemplate, CountryCode.ToLowerInvariant());
+}

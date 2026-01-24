@@ -1,0 +1,41 @@
+@if (Visible)
+{
+	<div class="@ContainerClass">
+		@if (!string.IsNullOrEmpty(Icon))
+		{
+			@if (Icon.StartsWith("/") || Icon.StartsWith("http"))
+			{
+				<img src="@Icon" style="width:@IconSize;height:@IconSize" class="align-self-start" />
+			}
+			else
+			{
+				<RadzenIcon Icon="@Icon" IconColor="@IconColor" Style="@($"font-size: {IconSize};")" class="align-self-start" />
+			}
+		}
+
+		<div class="flex-fill">
+			<div class="@ValueClass" style="@ValueStyle">
+				@ChildContent
+			</div>
+			<div class="dz-stat-label">
+				@Label
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public bool Visible { get; set; } = true;
+	[Parameter] public string Label { get; set; } = "";	
+	[Parameter] public RenderFragment ChildContent { get; set; } = default!;
+	[Parameter] public string Icon { get; set; } = "";
+	[Parameter] public string IconColor { get; set; } = "var(--rz-primary)";
+	[Parameter] public string IconSize { get; set; } = "40px";
+	[Parameter] public string ValueColor { get; set; } = "";
+	[Parameter] public string ValueSize { get; set; } = "fs-3";
+	[Parameter] public string Class { get; set; } = "";
+
+	private string ContainerClass => $"dz-stat-item d-flex flex-row gap-3 align-items-center {Class}";
+	private string ValueClass => $" {ValueSize} m-0";
+	private string? ValueStyle => string.IsNullOrWhiteSpace(ValueColor) ? null : $"color:{ValueColor};";
+}

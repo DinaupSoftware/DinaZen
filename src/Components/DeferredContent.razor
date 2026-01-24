@@ -1,0 +1,43 @@
+@if (IsLoaded)
+{
+	@ChildContent
+}
+else
+{
+	@if (LoadingContent != null)
+	{
+		@LoadingContent
+	}
+	else
+	{
+		<div class="@Class">
+			<Skeleton />
+		</div>
+	}
+}
+
+@code {
+	/// <summary>Delay in milliseconds before showing content.</summary>
+	[Parameter]
+	public int DelayMs { get; set; } = 500;
+
+	/// <summary>Content to render after delay.</summary>
+	[Parameter]
+	public RenderFragment ChildContent { get; set; } = default!;
+
+	/// <summary>Optional custom loading content. If not provided, Skeleton is used.</summary>
+	[Parameter]
+	public RenderFragment? LoadingContent { get; set; }
+
+	/// <summary>CSS class for the loading container.</summary>
+	[Parameter]
+	public string Class { get; set; } = "";
+
+	private bool IsLoaded { get; set; } = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Task.Delay(DelayMs);
+		IsLoaded = true;
+	}
+}

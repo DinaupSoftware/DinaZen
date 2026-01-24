@@ -119,75 +119,7 @@ window.DinaZen.focusNextElement = () => {
 		}
 	}
 };
-
-// ============================================
-// Lottie Animation (legacy - kept for compatibility)
-// ============================================
-
-window.DinaZen.loadLottie = function (containerId, srcOrData, options) {
-	const container = document.getElementById(containerId);
-	if (!container) {
-		console.error(`[DinaZen] lottie container #${containerId} no encontrado`);
-		return null;
-	}
-
-	// Limpia previa
-	if (container.__lottieAnim) {
-		try { container.__lottieAnim.destroy(); } catch { }
-		container.__lottieAnim = null;
-	}
-	container.innerHTML = "";
-
-	const safeOpts = Object.assign({
-		loop: true,
-		autoplay: true,
-		renderer: "svg",
-		preserveAspectRatio: "xMidYMid meet",
-		progressiveLoad: true
-	}, options || {});
-
-	// Decide si es JSON inline o una URL
-	const isProbablyJson =
-		typeof srcOrData === "object" ||
-		(typeof srcOrData === "string" && srcOrData.trim().startsWith("{"));
-
-	let animConfig = {
-		container,
-		renderer: safeOpts.renderer,
-		loop: safeOpts.loop,
-		autoplay: safeOpts.autoplay,
-		rendererSettings: {
-			progressiveLoad: safeOpts.progressiveLoad,
-			preserveAspectRatio: safeOpts.preserveAspectRatio,
-		}
-	};
-
-	if (isProbablyJson) {
-		let data = srcOrData;
-		try {
-			if (typeof data === "string") data = JSON.parse(data);
-			if (data && data.data) data = data.data;
-			if (data && data.result) data = data.result;
-			if (data && data.default) data = data.default;
-		} catch (e) {
-			console.error("[DinaZen] lottie JSON inválido:", e);
-			return null;
-		}
-		animConfig.animationData = data;
-	} else {
-		// Es una URL/ruta; dejamos que lottie-web haga el fetch
-		animConfig.path = srcOrData;
-	}
-
-	if (typeof lottie === 'undefined') {
-		console.error("[DinaZen] lottie library not loaded");
-		return null;
-	}
-
-	const anim = lottie.loadAnimation(animConfig);
-	container.__lottieAnim = anim;
-	return anim;
-};
+ 
 
 // ============================================
 // Highlight.js - Syntax Highlighting
@@ -208,18 +140,4 @@ window.DinaZen.highlightElement = function (element) {
 	hljs.highlightElement(element);
 };
 
-// ============================================
-// ScalableBlock - Zoom functionality
-// ============================================
-
-window.DinaZen.scalableBlock = {
-	setScale: function (element, scale) {
-		if (element) {
-			element.style.zoom = scale;
-		}
-	}
-};
-
-
-
-
+ 

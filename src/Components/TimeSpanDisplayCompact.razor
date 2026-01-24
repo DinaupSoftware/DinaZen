@@ -1,0 +1,14 @@
+<TimeSpanDisplay
+	Value="@Value"
+	NumberClass="fw-semibold small text-dark"
+	LabelClass="text-muted small"
+	ShowSeconds="@ShowSeconds"
+	EmptyText="@EmptyText"
+	Style="@Style" />
+
+@code {
+	[Parameter] public TimeSpan? Value { get; set; }
+	[Parameter] public bool ShowSeconds { get; set; } = false;
+	[Parameter] public string EmptyText { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+}

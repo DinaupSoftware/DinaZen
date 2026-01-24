@@ -1,0 +1,9 @@
+.dz-kpi-content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	flex-direction: column;
+	padding: 8px 20px;
+	text-align: center;
+}

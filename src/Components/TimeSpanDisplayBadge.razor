@@ -1,0 +1,14 @@
+<TimeSpanDisplay
+	Value="@Value"
+	NumberClass="badge bg-primary fs-6"
+	LabelClass="badge bg-secondary ms-1"
+	ShowSeconds="@ShowSeconds"
+	EmptyText="@EmptyText"
+	Style="@Style" />
+
+@code {
+	[Parameter] public TimeSpan? Value { get; set; }
+	[Parameter] public bool ShowSeconds { get; set; } = false;
+	[Parameter] public string EmptyText { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+}

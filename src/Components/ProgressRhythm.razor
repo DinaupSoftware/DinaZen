@@ -1,0 +1,92 @@
+@using System.Globalization
+
+<div class="dz-progress-rhythm">
+	<div class="d-flex justify-content-between align-items-center mb-1">
+		<small class="text-muted">@Title</small>
+		<div class="d-flex align-items-center gap-2">
+			<small class="fw-medium" style="color: @GetProgressColor()">
+				@CurrentProgress.ToString("F1")%
+			</small>
+			@if (ExpectedProgress > 0)
+			{
+				<small class="text-muted">
+					(@ExpectedLabel @ExpectedProgress.ToString("F1")%)
+				</small>
+			}
+		</div>
+	</div>
+
+	<div class="dz-progress-track">
+		@if (ExpectedProgress > 0 && ExpectedProgress < 100)
+		{
+			<div class="dz-progress-marker" style="left: @(ExpectedProgress.ToString("F2", CultureInfo.InvariantCulture))%"></div>
+		}
+		<div class="dz-progress-bar" style="width: @(Math.Min(CurrentProgress, 100).ToString("F2", CultureInfo.InvariantCulture))%; background-color: @GetBarColor()"></div>
+	</div>
+
+	@if (ExpectedProgress > 0)
+	{
+		<div class="d-flex justify-content-between align-items-center mt-1">
+			<small style="color: @GetRhythmColor()">
+				<RadzenIcon Icon="@GetRhythmIcon()" Style="font-size: 14px;" />
+				@GetRhythmText()
+			</small>
+		</div>
+	}
+</div>
+
+@code {
+	[Parameter] public decimal CurrentProgress { get; set; }
+	[Parameter] public decimal ExpectedProgress { get; set; }
+	[Parameter] public string Title { get; set; } = "Progress";
+
+	// Localization parameters
+	[Parameter] public string ExpectedLabel { get; set; } = "expected";
+	[Parameter] public string GoalAchievedText { get; set; } = "Goal achieved!";
+	[Parameter] public string OnTrackText { get; set; } = "On track";
+	[Parameter] public string AheadText { get; set; } = "Ahead by";
+	[Parameter] public string BehindText { get; set; } = "Behind by";
+
+	private bool GoalAchieved => CurrentProgress >= 100;
+
+	private string GetProgressColor() => GoalAchieved ? "#4CAF50" : "#666";
+
+	private string GetBarColor()
+	{
+		if (GoalAchieved) return "#4CAF50";
+		if (CurrentProgress >= ExpectedProgress) return "#4CAF50";
+		if (CurrentProgress >= ExpectedProgress * 0.8m) return "#FF9800";
+		return "#FF5722";
+	}
+
+	private string GetRhythmIcon()
+	{
+		if (GoalAchieved) return "check_circle";
+		var diff = CurrentProgress - ExpectedProgress;
+		if (Math.Abs(diff) < 5m) return "remove";
+		return diff > 0 ? "trending_up" : "trending_down";
+	}
+
+	private string GetRhythmColor()
+	{
+		if (GoalAchieved) return "#4CAF50";
+		var diff = CurrentProgress - ExpectedProgress;
+		if (Math.Abs(diff) < 5m) return "#666";
+		return diff > 0 ? "#4CAF50" : "#FF5722";
+	}
+
+	private string GetRhythmText()
+	{
+		if (GoalAchieved) return GoalAchievedText;
+
+		var diff = CurrentProgress - ExpectedProgress;
+		var diffPoints = Math.Abs(diff).ToString("F1");
+
+		if (Math.Abs(diff) < 5m)
+			return OnTrackText;
+		else if (diff > 0)
+			return $"{AheadText} {diffPoints}%";
+		else
+			return $"{BehindText} {diffPoints}%";
+	}
+}

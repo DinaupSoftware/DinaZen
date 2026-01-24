@@ -1,0 +1,320 @@
+﻿/* ============================================
+       CODE WINDOW - Estilo ventana macOS
+       ============================================ */
+.code-window {
+    --cw-bg: #1e1e2e;
+    --cw-header-bg: linear-gradient(180deg, #2d2d3a 0%, #252532 100%);
+    --cw-border: rgba(255, 255, 255, 0.1);
+    --cw-text: #e2e8f0;
+    --cw-text-muted: #6b7280;
+    --cw-dot-red: #ff5f57;
+    --cw-dot-yellow: #febc2e;
+    --cw-dot-green: #28c840;
+    background: var(--cw-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--cw-border), 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 80px rgba(99, 102, 241, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Header con dots estilo macOS */
+.code-window-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--cw-header-bg);
+    border-bottom: 1px solid var(--cw-border);
+}
+
+.code-window-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.code-window-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: opacity 0.2s;
+}
+
+    .code-window-dot.red {
+        background: var(--cw-dot-red);
+    }
+
+    .code-window-dot.yellow {
+        background: var(--cw-dot-yellow);
+    }
+
+    .code-window-dot.green {
+        background: var(--cw-dot-green);
+    }
+
+.code-window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-family: 'Consolas', 'Monaco', 'JetBrains Mono', monospace;
+    color: var(--cw-text-muted);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.code-window-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.code-window-lang {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cw-text-muted);
+    background: rgba(255, 255, 255, 0.08);
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.code-window-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--cw-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .code-window-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--cw-text);
+    }
+
+    .code-window-btn.copied {
+        color: #4ade80;
+    }
+
+    .code-window-btn .rzi {
+        font-size: 16px;
+    }
+
+/* Body con codigo */
+.code-window-body {
+    display: flex;
+    position: relative;
+}
+
+.code-window-lines {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-right: 1px solid var(--cw-border);
+    user-select: none;
+}
+
+    .code-window-lines span {
+        padding: 0 14px;
+        font-size: 13px;
+        font-family: 'Consolas', 'Monaco', 'JetBrains Mono', monospace;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.25);
+        text-align: right;
+        min-width: 3rem;
+    }
+
+.code-window-body pre {
+    flex: 1;
+    margin: 0;
+    padding: 20px 24px;
+    overflow-x: auto;
+    background: transparent;
+}
+
+.code-window-body code {
+    font-size: 14px;
+    font-family: 'Consolas', 'Monaco', 'JetBrains Mono', 'Fira Code', monospace;
+    line-height: 1.7;
+    color: var(--cw-text);
+    background: transparent !important;
+}
+
+/* Scrollbar personalizado */
+.code-window-body pre::-webkit-scrollbar {
+    height: 8px;
+}
+
+.code-window-body pre::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.code-window-body pre::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+
+    .code-window-body pre::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+/* Footer opcional */
+.code-window-footer {
+    padding: 12px 16px;
+    background: var(--cw-header-bg);
+    border-top: 1px solid var(--cw-border);
+    font-size: 12px;
+    color: var(--cw-text-muted);
+}
+
+/* ============================================
+       EFECTO 3D INCLINADO
+       ============================================ */
+
+.code-window-tilted {
+    transform: perspective(1000px) rotateX(5deg) rotateY(-2deg);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    .code-window-tilted:hover {
+        transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+    }
+
+/* ============================================
+       VARIANTES DE TAMANO
+       ============================================ */
+
+.code-window-sm .code-window-header {
+    padding: 10px 14px;
+}
+
+.code-window-sm .code-window-dot {
+    width: 10px;
+    height: 10px;
+}
+
+.code-window-sm .code-window-title {
+    font-size: 12px;
+}
+
+.code-window-sm .code-window-body pre {
+    padding: 14px 18px;
+}
+
+.code-window-sm .code-window-body code,
+.code-window-sm .code-window-lines span {
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.code-window-lg .code-window-header {
+    padding: 14px 20px;
+}
+
+.code-window-lg .code-window-body pre {
+    padding: 24px 28px;
+}
+
+.code-window-lg .code-window-body code,
+.code-window-lg .code-window-lines span {
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+/* ============================================
+       TEMA CLARO
+       ============================================ */
+
+.code-window-light {
+    --cw-bg: #ffffff;
+    --cw-header-bg: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    --cw-border: #e2e8f0;
+    --cw-text: #1e293b;
+    --cw-text-muted: #64748b;
+    box-shadow: 0 0 0 1px var(--cw-border), 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+}
+
+    .code-window-light .code-window-lines {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+        .code-window-light .code-window-lines span {
+            color: rgba(0, 0, 0, 0.3);
+        }
+
+    .code-window-light .code-window-lang {
+        background: rgba(0, 0, 0, 0.06);
+    }
+
+    .code-window-light .code-window-btn:hover {
+        background: rgba(0, 0, 0, 0.08);
+    }
+
+/* ============================================
+       TEMA MONOKAI
+       ============================================ */
+
+.code-window-monokai {
+    --cw-bg: #272822;
+    --cw-header-bg: linear-gradient(180deg, #3e3d32 0%, #272822 100%);
+    --cw-text: #f8f8f2;
+}
+
+/* ============================================
+       TEMA DRACULA
+       ============================================ */
+
+.code-window-dracula {
+    --cw-bg: #282a36;
+    --cw-header-bg: linear-gradient(180deg, #44475a 0%, #282a36 100%);
+    --cw-text: #f8f8f2;
+    --cw-dot-red: #ff5555;
+    --cw-dot-yellow: #f1fa8c;
+    --cw-dot-green: #50fa7b;
+}
+
+/* ============================================
+       RESPONSIVE
+       ============================================ */
+
+@media (max-width: 640px) {
+    .code-window {
+        border-radius: 8px;
+    }
+
+    .code-window-header {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .code-window-dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .code-window-title {
+        font-size: 11px;
+    }
+
+    .code-window-body pre {
+        padding: 14px 16px;
+    }
+
+    .code-window-body code {
+        font-size: 12px;
+    }
+
+    .code-window-tilted {
+        transform: none;
+    }
+}
+

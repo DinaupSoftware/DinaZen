@@ -1,0 +1,30 @@
+@if (!string.IsNullOrEmpty(DocumentUrl))
+{
+	<div class="h-100 d-flex flex-column">
+		<div class="d-flex gap-2 mb-2">
+			<a href="@ViewerUrl" target="_blank">
+				<RadzenButton Icon="open_in_new" Text="Open" />
+			</a>
+			<a href="@DocumentUrl" target="_blank">
+				<RadzenButton Text="Download" Icon="download" />
+			</a>
+		</div>
+		<iframe src="@ViewerUrl" class="flex-grow-1" style="border:none; min-height:500px"></iframe>
+	</div>
+}
+else
+{
+	<p>@EmptyMessage</p>
+}
+
+@code {
+	/// <summary>URL of the Office document (Excel, Word, PowerPoint).</summary>
+	[Parameter, EditorRequired]
+	public string DocumentUrl { get; set; } = "";
+
+	/// <summary>Message shown when DocumentUrl is empty.</summary>
+	[Parameter]
+	public string EmptyMessage { get; set; } = "No document URL provided.";
+
+	private string ViewerUrl => $"https://view.officeapps.live.com/op/embed.aspx?src={Uri.EscapeDataString(DocumentUrl)}";
+}

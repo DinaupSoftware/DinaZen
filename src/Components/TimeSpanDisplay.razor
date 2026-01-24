@@ -1,0 +1,49 @@
+@if (Value.HasValue)
+{
+	<span class="dz-timespan-display" style="@Style">
+		@foreach (var part in GetTimeParts(Value.Value))
+		{
+			<span class="dz-timespan-part me-2">
+				<span class="@NumberClass">@part.Number</span>
+				<span class="@LabelClass">@part.Label</span>
+			</span>
+		}
+	</span>
+}
+else if (!string.IsNullOrEmpty(EmptyText))
+{
+	<span class="@NumberClass" style="@Style">@EmptyText</span>
+}
+
+@code {
+	[Parameter] public TimeSpan? Value { get; set; }
+	[Parameter] public bool ShowSeconds { get; set; } = false;
+	[Parameter] public string EmptyText { get; set; } = "";
+	[Parameter] public string NumberClass { get; set; } = "fw-semibold text-dark";
+	[Parameter] public string LabelClass { get; set; } = "text-muted small ms-1";
+	[Parameter] public string Style { get; set; } = "";
+
+	private record TimePart(int Number, string Label);
+
+	private List<TimePart> GetTimeParts(TimeSpan timeSpan)
+	{
+		var parts = new List<TimePart>();
+
+		if (timeSpan.Days != 0)
+			parts.Add(new TimePart(timeSpan.Days, "d"));
+
+		if (timeSpan.Hours != 0)
+			parts.Add(new TimePart(timeSpan.Hours, "h"));
+
+		if (timeSpan.Minutes != 0)
+			parts.Add(new TimePart(timeSpan.Minutes, "m"));
+
+		if (ShowSeconds && timeSpan.Seconds != 0)
+			parts.Add(new TimePart(timeSpan.Seconds, "s"));
+
+		if (parts.Count == 0)
+			parts.Add(new TimePart(0, "m"));
+
+		return parts;
+	}
+}

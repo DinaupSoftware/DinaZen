@@ -1,0 +1,224 @@
+@namespace DinaZen.Components
+@inject IJSRuntime JS
+
+<div class="code-window @SizeClass @ThemeClass @(Tilted ? "code-window-tilted" : "")">
+    <div class="code-window-header">
+        <div class="code-window-dots">
+            <span class="code-window-dot red"></span>
+            <span class="code-window-dot yellow"></span>
+            <span class="code-window-dot green"></span>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <span class="code-window-title">@Title</span>
+        }
+
+        <div class="code-window-actions">
+            @if (!string.IsNullOrEmpty(Language))
+            {
+                <span class="code-window-lang">@LanguageDisplay</span>
+            }
+            @if (ShowCopy)
+            {
+                <button type="button"
+                        class="code-window-btn @(copied ? "copied" : "")"
+                        @onclick="CopyCode"
+                        title="@(copied ? "Copiado!" : "Copiar codigo")">
+                    <RadzenIcon Icon="@(copied ? "check" : "content_copy")" />
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="code-window-body">
+        @if (ShowLineNumbers && !string.IsNullOrEmpty(Code))
+        {
+            <div class="code-window-lines" aria-hidden="true">
+                @for (int i = 1; i <= LineCount; i++)
+                {
+                    <span>@i</span>
+                }
+            </div>
+        }
+        <pre><code class="@LanguageClass" @ref="codeElement">@Code</code></pre>
+    </div>
+
+    @if (ChildContent != null)
+    {
+        <div class="code-window-footer">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Codigo fuente a mostrar
+    /// </summary>
+    [Parameter] public string Code { get; set; }
+
+    /// <summary>
+    /// Lenguaje del codigo (cs, js, json, sql, bash, etc.)
+    /// </summary>
+    [Parameter] public string Language { get; set; }
+
+    /// <summary>
+    /// Titulo de la ventana (nombre de archivo o descripcion)
+    /// </summary>
+    [Parameter] public string Title { get; set; }
+
+    /// <summary>
+    /// Mostrar boton de copiar
+    /// </summary>
+    [Parameter] public bool ShowCopy { get; set; } = true;
+
+    /// <summary>
+    /// Mostrar numeros de linea
+    /// </summary>
+    [Parameter] public bool ShowLineNumbers { get; set; } = false;
+
+    /// <summary>
+    /// Aplicar efecto 3D inclinado
+    /// </summary>
+    [Parameter] public bool Tilted { get; set; } = false;
+
+    /// <summary>
+    /// Tamano del componente
+    /// </summary>
+    [Parameter] public CodeWindowSize Size { get; set; } = CodeWindowSize.Default;
+
+    /// <summary>
+    /// Tema visual
+    /// </summary>
+    [Parameter] public CodeWindowTheme Theme { get; set; } = CodeWindowTheme.Dark;
+
+    /// <summary>
+    /// Contenido opcional para el footer
+    /// </summary>
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    /// <summary>
+    /// Clases CSS adicionales
+    /// </summary>
+    [Parameter] public string Class { get; set; }
+
+    private ElementReference codeElement;
+    private bool copied;
+    private bool highlighted;
+
+    public enum CodeWindowSize { Small, Default, Large }
+    public enum CodeWindowTheme { Dark, Light, Monokai, Dracula }
+
+    private string SizeClass => Size switch
+    {
+        CodeWindowSize.Small => "code-window-sm",
+        CodeWindowSize.Large => "code-window-lg",
+        _ => ""
+    };
+
+    private string ThemeClass => Theme switch
+    {
+        CodeWindowTheme.Light => "code-window-light",
+        CodeWindowTheme.Monokai => "code-window-monokai",
+        CodeWindowTheme.Dracula => "code-window-dracula",
+        _ => ""
+    };
+
+    private string LanguageForHighlight => Language?.ToLower() switch
+    {
+        "razor" or "cshtml" => "xml",
+        "csharp" or "cs" or "c#" => "csharp",
+        "javascript" or "js" => "javascript",
+        "typescript" or "ts" => "typescript",
+        "bash" or "sh" or "shell" or "terminal" or "curl" => "bash",
+        "vb" or "vbnet" or "vb.net" or "visualbasic" => "vbnet",
+        "yml" => "yaml",
+        "py" => "python",
+        "rb" => "ruby",
+        "go" => "go",
+        "rs" => "rust",
+        "kt" => "kotlin",
+        "swift" => "swift",
+        "php" => "php",
+        "dockerfile" => "dockerfile",
+        "md" or "markdown" => "markdown",
+        _ => Language?.ToLower() ?? ""
+    };
+
+    private string LanguageClass => !string.IsNullOrEmpty(Language) ? $"language-{LanguageForHighlight}" : "";
+
+    private string LanguageDisplay => Language?.ToUpper() switch
+    {
+        "CSHARP" or "CS" or "C#" => "C#",
+        "JAVASCRIPT" or "JS" => "JS",
+        "TYPESCRIPT" or "TS" => "TS",
+        "RAZOR" or "CSHTML" => "Razor",
+        "BASH" or "SHELL" or "SH" or "TERMINAL" => "Shell",
+        "CURL" => "cURL",
+        "VB" or "VBNET" or "VB.NET" => "VB",
+        "PYTHON" or "PY" => "Python",
+        "DOCKERFILE" => "Docker",
+        "MARKDOWN" or "MD" => "MD",
+        "YAML" or "YML" => "YAML",
+        _ => Language?.ToUpper()
+    };
+
+    private int LineCount => string.IsNullOrEmpty(Code) ? 0 : Code.Split('\n').Length;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || !highlighted)
+        {
+            try
+            {
+                await Task.Delay(50);
+
+                await JS.InvokeVoidAsync("eval", @"
+                    if (typeof hljs === 'undefined') {
+                        var link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = '/_content/DinaZen/highlight.min.css';
+                        document.head.appendChild(link);
+
+                        var script = document.createElement('script');
+                        script.src = '/_content/DinaZen/highlight.min.js';
+                        script.onload = function() { window.DinaZen && window.DinaZen.highlightCode && window.DinaZen.highlightCode(); };
+                        document.head.appendChild(script);
+                    }
+                ");
+
+                await JS.InvokeVoidAsync("DinaZen.highlightElement", codeElement);
+                highlighted = true;
+            }
+            catch { }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Reset highlight when code changes
+        if (!string.IsNullOrEmpty(Code))
+        {
+            highlighted = false;
+        }
+    }
+
+    private async Task CopyCode()
+    {
+        if (string.IsNullOrEmpty(Code)) return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Code);
+            copied = true;
+            StateHasChanged();
+
+            await Task.Delay(2000);
+            copied = false;
+            StateHasChanged();
+        }
+        catch { }
+    }
+}
+

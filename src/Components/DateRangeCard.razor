@@ -1,0 +1,80 @@
+@* DateRangeCard - Card with integrated date range selector and loading state *@
+
+<RadzenCard>
+	<CardTitle Title="@Title" Icon="@Icon" />
+
+	<DateRangeSelector OnRangeChanged="@HandleRangeChanged"
+					   SelectedPreset="@DefaultPreset"
+					   SelectedPresetChanged="@OnPresetChanged" />
+	<hr />
+
+	<div style="min-height:15px"></div>
+
+	@if (Loading)
+	{
+		<div class="d-flex justify-content-center align-items-center" style="min-height:200px">
+			<Loader />
+		</div>
+	}
+	else
+	{
+		<div class="d-flex flex-column gap-3">
+			@ChildContent
+
+			<hr class="my-1" />
+
+			<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+				<div class="d-flex align-items-center gap-2">
+					<RadzenIcon Icon="calendar_month" IconColor="#6B7280" />
+					<span class="rz-text-caption p-0 m-0 text-muted">
+						Period: <b>@_from?.ToString("dd/MM/yyyy")</b> - <b>@_to?.ToString("dd/MM/yyyy")</b>
+					</span>
+				</div>
+				@if (_lastUpdated.HasValue)
+				{
+					<div class="d-flex align-items-center gap-2">
+						<RadzenIcon Icon="refresh" IconColor="#6B7280" />
+						<span class="rz-text-caption p-0 m-0 text-muted">
+							Last update: <b>@_lastUpdated.Value.ToString("HH:mm")</b>
+						</span>
+					</div>
+				}
+			</div>
+		</div>
+	}
+</RadzenCard>
+
+@code {
+	[Parameter] public string Title { get; set; } = "";
+	[Parameter] public string Icon { get; set; } = "";
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+	[Parameter] public bool Loading { get; set; }
+	[Parameter] public DateRangeSelector.DateRangePreset DefaultPreset { get; set; } = DateRangeSelector.DateRangePreset.Last7Days;
+	[Parameter] public EventCallback<DateRangeSelector.DateRangePreset> PresetChanged { get; set; }
+	[Parameter] public EventCallback<(DateTime From, DateTime To)> OnRangeChanged { get; set; }
+
+	private DateOnly? _from;
+	private DateOnly? _to;
+	private DateTime? _lastUpdated;
+
+	private async Task HandleRangeChanged((DateOnly From, DateOnly To) range)
+	{
+		_from = range.From;
+		_to = range.To;
+
+		if (OnRangeChanged.HasDelegate)
+		{
+			var dateTimeRange = (range.From.ToDateTime(TimeOnly.MinValue), range.To.ToDateTime(TimeOnly.MaxValue));
+			await OnRangeChanged.InvokeAsync(dateTimeRange);
+			_lastUpdated = DateTime.Now;
+		}
+	}
+
+	private async Task OnPresetChanged(DateRangeSelector.DateRangePreset preset)
+	{
+		if (PresetChanged.HasDelegate)
+		{
+			await PresetChanged.InvokeAsync(preset);
+		}
+	}
+}
