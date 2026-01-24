@@ -4,7 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>10.11.0.5</Version>
+		<Version>10.11.0.6</Version>
 		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
