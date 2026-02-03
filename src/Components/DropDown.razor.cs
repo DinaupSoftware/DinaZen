@@ -27,7 +27,7 @@
 
 
 
-//		private Dinaup.EnumEstilosTextoEE getColor(dynamic context)
+//		private Dinaup.EnumTextoEstiloE getColor(dynamic context)
 //		{
 
 //			try
@@ -38,8 +38,8 @@
 //					var cp = ColorPropertyProp.GetValue(context, null) as string;
 //					if (cp.IsNotNull())
 //					{
-//						if (Enum.TryParse(typeof(Dinaup.EnumEstilosTextoEE), cp, out var parsedColor))
-//							return (Dinaup.EnumEstilosTextoEE)parsedColor;
+//						if (Enum.TryParse(typeof(Dinaup.EnumTextoEstiloE), cp, out var parsedColor))
+//							return (Dinaup.EnumTextoEstiloE)parsedColor;
 //					}
 
 //				}
@@ -49,7 +49,7 @@
 //			{
 //			}
 
-//			return Dinaup.EnumEstilosTextoEE.Indefinido;
+//			return Dinaup.EnumTextoEstiloE.Indefinido;
 //		}
 
 

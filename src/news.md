@@ -877,7 +877,7 @@ Smart badge that auto-colors based on semantic value (status, priority, time).
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `Value` | `string` | - | Text to display and auto-color |
-| `Color` | `EnumEstilosTextoEE` | `Indefinido` | Explicit color override |
+| `Color` | `EnumTextoEstiloE` | `Indefinido` | Explicit color override |
 | `BadgetStyle` | `Dictionary<string, int>` | - | Custom value-to-style mapping |
 | `Visible` | `bool` | `true` | Show/hide component |
 | `Style` | `string` | - | Additional inline styles |
