@@ -1,0 +1,356 @@
+@namespace DinaZen.Components.DinaupFlex
+
+@if (_isLoading)
+{
+	<Loader />
+}
+else if (_showResponse && _report != null)
+{
+	<div class="dnz-report-view">
+		<div class="dnz-report-header">
+			<RadzenIcon Icon="analytics" Style="font-size:18px" />
+			<span>Variables requeridas</span>
+		</div>
+		<div class="dnz-report-body" style="padding:16px">
+			@if (VariablesTemplate != null)
+			{
+				@VariablesTemplate(new DinaupVariablesContext
+				{
+					Document = _report,
+					VariableValues = VariablesValues ?? new(),
+					OnConfirm = EventCallback.Factory.Create<Dictionary<string, string>>(this, HandleVariableConfirm)
+				})
+			}
+			else
+			{
+				<RadzenCard>
+					<RadzenStack Gap="1rem">
+						<RadzenText TextStyle="TextStyle.Subtitle1">Se requieren variables para ejecutar este informe</RadzenText>
+						@if (_report?.VariableList?.Variables != null)
+						{
+							@foreach (var variable in _report.VariableList.Variables.Values)
+							{
+								<div>
+									<RadzenLabel Text="@variable.Label" />
+									<RadzenTextBox Style="width:100%"
+												   Change="@(value => { VariablesValues ??= new(); VariablesValues[variable.KeyWord] = value; })" />
+								</div>
+							}
+						}
+						<RadzenButton Text="Ejecutar" Icon="play_arrow" ButtonStyle="ButtonStyle.Primary"
+									  Click="@(() => HandleVariableConfirm(VariablesValues ?? new()))" />
+					</RadzenStack>
+				</RadzenCard>
+			}
+		</div>
+	</div>
+}
+else if (_dataList != null)
+{
+	<div class="dnz-report-view">
+		@if (ShowTitle)
+		{
+			<div class="dnz-report-header">
+				@if (_dataList.Section.IsNotNull())
+				{
+					<img onerror="this.src='https://cdn.dinaup.com/up/202505/bullet.svg'"
+						 src="@($"https://cdn.dinaup.com/public/{_dataList.Section.IconoID.STR()}.png")"
+						 width="20" height="20" style="border-radius:4px" />
+				}
+				<span>@Title.IfIsEmpty(_dataList.Title)</span>
+
+				<div class="d-flex align-items-center gap-2 ms-auto">
+					@if (ShowSearch)
+					{
+						<RadzenTextBox Placeholder="Buscar..." Style="max-width:300px"
+									   Change="@UpdateSearch" />
+					}
+					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small"
+								  Click="@(async () => await UpdateAsync())" />
+				</div>
+			</div>
+		}
+
+		<div class="dnz-report-body">
+			@if (RowTemplate != null)
+			{
+				@* Custom template mode — the host app renders each row *@
+				<RadzenDataGrid Data="@_rows" TItem="DinaupDynamicRowDTO"
+							   AllowSorting="true" AllowFiltering="@Filtrable"
+							   PageSize="@Limite" AllowPaging="@(_rows.Count > Limite)"
+							   Density="Density.Compact">
+					<Columns>
+						@foreach (var col in _dataList.Columns.Where(c => !c.isColumnHidden))
+						{
+							<RadzenDataGridColumn TItem="DinaupDynamicRowDTO"
+												  Title="@col.Label"
+												  Width="@(GetMaxChars(col.Label) > 0 ? $"{Math.Max(GetMaxChars(col.Label) * 8, 80)}px" : null)">
+								<Template Context="row">
+									@{
+										var value = row.GetLegible(col.Keyword);
+									}
+									@if (value.IsNotEmpty())
+									{
+										@value
+									}
+								</Template>
+							</RadzenDataGridColumn>
+						}
+						<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="" Width="50px" Sortable="false" Filterable="false">
+							<Template Context="row">
+								@RowTemplate(row)
+							</Template>
+						</RadzenDataGridColumn>
+					</Columns>
+				</RadzenDataGrid>
+			}
+			else
+			{
+				@* Default mode — simple data grid *@
+				<RadzenDataGrid Data="@_rows" TItem="DinaupDynamicRowDTO"
+							   AllowSorting="true" AllowFiltering="@Filtrable"
+							   PageSize="@Limite" AllowPaging="@(_rows.Count > Limite)"
+							   Density="Density.Compact"
+							   RowSelect="@HandleRowSelect">
+					<Columns>
+						@foreach (var col in _dataList.Columns.Where(c => !c.isColumnHidden))
+						{
+							<RadzenDataGridColumn TItem="DinaupDynamicRowDTO"
+												  Title="@col.Label"
+												  Width="@(GetMaxChars(col.Label) > 0 ? $"{Math.Max(GetMaxChars(col.Label) * 8, 80)}px" : null)">
+								<Template Context="row">
+									@{
+										var value = row.GetLegible(col.Keyword);
+									}
+									@if (value.IsNotEmpty())
+									{
+										@value
+									}
+								</Template>
+							</RadzenDataGridColumn>
+						}
+					</Columns>
+				</RadzenDataGrid>
+			}
+		</div>
+	</div>
+}
+else if (_errorMessage.IsNotEmpty())
+{
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+		@_errorMessage
+	</RadzenAlert>
+}
+
+@code {
+
+	/// <summary>
+	/// Cliente DinaupSL.
+	/// </summary>
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+
+	/// <summary>
+	/// ID del informe a ejecutar.
+	/// </summary>
+	[Parameter, EditorRequired] public string ReportId { get; set; } = "";
+
+	/// <summary>
+	/// Variables para el informe.
+	/// </summary>
+	[Parameter] public Dictionary<string, string> VariablesValues { get; set; }
+
+	/// <summary>
+	/// Busqueda textual.
+	/// </summary>
+	[Parameter] public string QuerySearch { get; set; } = "";
+
+	/// <summary>
+	/// Filtros avanzados.
+	/// </summary>
+	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
+
+	/// <summary>
+	/// Numero de filas por pagina.
+	/// </summary>
+	[Parameter] public int Limite { get; set; } = 100;
+
+	/// <summary>
+	/// Orden de columnas.
+	/// </summary>
+	[Parameter] public Dictionary<string, bool> Orden { get; set; }
+
+	/// <summary>
+	/// Mostrar titulo del informe.
+	/// </summary>
+	[Parameter] public bool ShowTitle { get; set; } = true;
+
+	/// <summary>
+	/// Titulo personalizado (si vacio, usa el del informe).
+	/// </summary>
+	[Parameter] public string Title { get; set; } = "";
+
+	/// <summary>
+	/// Mostrar barra de busqueda.
+	/// </summary>
+	[Parameter] public bool ShowSearch { get; set; } = true;
+
+	/// <summary>
+	/// Permitir filtrado en columnas.
+	/// </summary>
+	[Parameter] public bool Filtrable { get; set; } = true;
+
+	/// <summary>
+	/// Evento al seleccionar una fila.
+	/// </summary>
+	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
+
+	/// <summary>
+	/// Template para acciones por fila.
+	/// </summary>
+	[Parameter] public RenderFragment<DinaupDynamicRowDTO> RowTemplate { get; set; }
+
+	/// <summary>
+	/// Template de variables (la app host inyecta ResponseVariablesU).
+	/// </summary>
+	[Parameter] public RenderFragment<DinaupVariablesContext> VariablesTemplate { get; set; }
+
+	/// <summary>
+	/// Evento cuando los datos cambian.
+	/// </summary>
+	[Parameter] public EventCallback OnDataChanged { get; set; }
+
+	private DinaupReportDTO _report;
+	private DinaupReportDataDTO _dataList;
+	private List<DinaupDynamicRowDTO> _rows = new();
+	private bool _isLoading = true;
+	private bool _showResponse = false;
+	private string _errorMessage = "";
+	private bool _isDebouncing = false;
+	private string _lastQuerySearch = "";
+
+	protected override async Task OnInitializedAsync()
+	{
+		_lastQuerySearch = QuerySearch ?? "";
+		await LoadDataAsync();
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		var currentSearch = QuerySearch ?? "";
+		if (currentSearch != _lastQuerySearch)
+		{
+			_lastQuerySearch = currentSearch;
+			if (!_isLoading)
+				await LoadDataAsync();
+		}
+	}
+
+	private void HandleVariableConfirm(Dictionary<string, string> variableValues)
+	{
+		VariablesValues = variableValues;
+		_ = UpdateAsync();
+	}
+
+	private async void UpdateSearch(string query)
+	{
+		if (QuerySearch == query) return;
+		QuerySearch = query;
+
+		if (_isDebouncing) return;
+		_isDebouncing = true;
+		await Task.Delay(800);
+		_isDebouncing = false;
+		await LoadDataAsync();
+	}
+
+	public async Task UpdateAsync()
+	{
+		await LoadDataAsync();
+	}
+
+	private async Task LoadDataAsync()
+	{
+		try
+		{
+			ReportResponse response = await Client.Report_GetAsync(
+				new ReportRequestParameters(ReportId, Limite)
+				{
+					Variables = VariablesValues,
+					QuerySearch = QuerySearch,
+					Order = Orden,
+					Expresion = AdvancedFilter
+				}
+			);
+
+			if (response.IsNotNull())
+			{
+				_report = response.Report;
+				_showResponse = response.DataList.IsNull();
+				_dataList = response.DataList;
+				_rows = _dataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
+
+				if (OnDataChanged.HasDelegate)
+				{
+					try { await OnDataChanged.InvokeAsync(); } catch { }
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task HandleRowSelect(DinaupDynamicRowDTO row)
+	{
+		if (OnItemSelect.HasDelegate)
+			await OnItemSelect.InvokeAsync(row);
+	}
+
+	private int GetMaxChars(string columnLabel)
+	{
+		var maxCharsDict = _dataList?.Maximumcharacterspercolumn;
+		if (maxCharsDict != null && maxCharsDict.TryGetValue(columnLabel, out var maxChars))
+			return maxChars;
+		return 0;
+	}
+
+	// ── Static helper para abrir como modal ──
+
+	public static async Task OpenAsync(
+		DialogService dialogService,
+		DinaupClientC client,
+		string reportId,
+		Dictionary<string, string> variablesValues = null,
+		string title = "Informe",
+		string width = "90%",
+		string height = "80%")
+	{
+		var parameters = new Dictionary<string, object>
+		{
+			{ nameof(Client), client },
+			{ nameof(ReportId), reportId }
+		};
+
+		if (variablesValues != null)
+			parameters.Add(nameof(VariablesValues), variablesValues);
+
+		var options = new DialogOptions
+		{
+			Width = width,
+			Height = height,
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			ShowClose = true,
+			ShowTitle = true
+		};
+
+		await dialogService.OpenAsync<DinaupReportView>(title, parameters, options);
+	}
+}

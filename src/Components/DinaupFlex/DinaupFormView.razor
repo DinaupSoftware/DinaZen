@@ -1,0 +1,603 @@
+@namespace DinaZen.Components.DinaupFlex
+@implements IDisposable
+@implements ILiveForm
+
+@if (_isLoading)
+{
+	<Loader />
+}
+else if (_virtualForm.IsNotNull())
+{
+	<div class="dnz-form-view @(_isNewRecord ? "dnz-form-mode-new" : "dnz-form-mode-edit")">
+		@* ── Header ── *@
+		<div class="dnz-form-header">
+			<div class="dnz-form-header-info">
+				<img src=@($"https://cdn.dinaup.com/public/{_virtualForm.MainForm.Section.IconoID.STR()}.png") width="20px" height="20px" />
+				<span>@_virtualForm.MainForm.Section.Label</span>
+				@if (_isNewRecord)
+				{
+					<RadzenBadge BadgeStyle="BadgeStyle.Success" Variant="Variant.Flat" Text="Nuevo" />
+				}
+				else if (_virtualForm.MainForm.RowID.IsNotEmpty())
+				{
+					<RadzenButton Icon="info" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Size="ButtonSize.Small"
+								  Click="OpenInspector" title="Inspeccionar registro" />
+				}
+			</div>
+			<div class="d-flex align-items-center gap-1">
+				@if (_hasChanges)
+				{
+					<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="Modificado" />
+				}
+
+				@* ── Annotation buttons (only for existing records) ── *@
+				@if (!_isNewRecord && _virtualForm.MainForm.RowID.IsGUID())
+				{
+					<div class="dnz-form-annotations d-flex align-items-center gap-1">
+						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.Comments))" title="Comentarios">
+							<RadzenIcon Icon="chat" Style="font-size:18px" />
+							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Comments == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
+										 IsPill="true" Text="@_virtualForm.MainForm.Count_Comments.STR()" />
+						</div>
+						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.Files))" title="Archivos">
+							<RadzenIcon Icon="attach_file" Style="font-size:18px" />
+							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_AttachedFiles == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
+										 IsPill="true" Text="@_virtualForm.MainForm.Count_AttachedFiles.STR()" />
+						</div>
+						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.PublicGallery))" title="Galeria">
+							<RadzenIcon Icon="photo_library" Style="font-size:18px" />
+							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Gallery == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
+										 IsPill="true" Text="@_virtualForm.MainForm.Count_Gallery.STR()" />
+						</div>
+					</div>
+				}
+
+				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Text" Size="ButtonSize.Small" Click="CloseForm" Style="margin-left:12px; opacity:0.6" />
+			</div>
+		</div>
+
+		@* ── Mode indicator (thin line) ── *@
+		<div class="dnz-form-mode-strip @(_isNewRecord ? "dnz-mode-new" : "dnz-mode-edit")"></div>
+
+		@* ── Title tab (*) ── *@
+		<div class="dnz-form-title">
+			@foreach (var tab in _virtualForm.MainForm.Tabs.Where(x => x.TabName == "*"))
+			{
+				<FormTabU @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-star")
+						  Tab="tab"
+						  OnTabChanged="HandleTabChange"
+						  Callbacks="_callbacks" />
+			}
+		</div>
+
+		@* ── Body with tabs (scrollable) ── *@
+		<div class="dnz-form-body">
+			<RadzenTabs RenderMode="TabRenderMode.Server">
+				<Tabs>
+					@foreach (var tab in _virtualForm.MainForm.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
+					{
+						<RadzenTabsItem @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}")
+										Text="@(_virtualForm.MainForm.Tabs.Count == 2 ? "" : tab.TabName)">
+							<FormTabU @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-tabu")
+									  Tab="tab"
+									  OnTabChanged="HandleTabChange"
+									  Callbacks="_callbacks" />
+						</RadzenTabsItem>
+					}
+				</Tabs>
+			</RadzenTabs>
+
+			@if (_successMessage.IsNotEmpty())
+			{
+				<RadzenAlert AlertStyle="AlertStyle.Success" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _successMessage = "")" class="rz-mx-4 rz-mb-4">
+					@_successMessage
+				</RadzenAlert>
+			}
+
+			@if (_errorMessage.IsNotEmpty())
+			{
+				<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _errorMessage = "")" class="rz-mx-4 rz-mb-4">
+					@_errorMessage
+				</RadzenAlert>
+			}
+		</div>
+
+		@* ── Footer with Save / Cancel ── *@
+		<div class="dnz-form-footer">
+			<div class="d-flex justify-content-end align-items-center gap-2 w-100">
+				@if (_isSaving)
+				{
+					<Loader />
+				}
+				else if (_hasChanges || _virtualForm.HasChanged())
+				{
+					<RadzenButton IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
+					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" />
+				}
+				else
+				{
+					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
+					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cerrar" Click="@CloseForm" />
+				}
+			</div>
+		</div>
+	</div>
+}
+else if (_errorMessage.IsNotEmpty())
+{
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _errorMessage = "")">
+		@_errorMessage
+	</RadzenAlert>
+}
+
+
+@code {
+
+	// ──────────────────────────────────────────────────────────────
+	// IMPORTANTE: Ancho minimo 1000px
+	// ──────────────────────────────────────────────────────────────
+	// Los formularios de Dinaup requieren un ancho minimo de 1000px.
+	// No existe version responsive mas pequena.
+	// Si el contenedor es menor, el formulario hara scroll horizontal.
+	//
+	// Para adaptar a pantallas pequenas se puede usar CSS zoom/scale
+	// en el contenedor padre. Ejemplo:
+	//
+	//   <div style="zoom: 0.8">
+	//       <DinaupFormView ... />
+	//   </div>
+	//
+	// O con transform:
+	//
+	//   <div style="transform: scale(0.75); transform-origin: top left; width: 133%">
+	//       <DinaupFormView ... />
+	//   </div>
+	// ──────────────────────────────────────────────────────────────
+
+	/// <summary>
+	/// Cliente DinaupSL ya inicializado.
+	/// </summary>
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+
+	/// <summary>
+	/// GUID de la seccion a cargar.
+	/// </summary>
+	[Parameter, EditorRequired] public string SectionId { get; set; } = "";
+
+	/// <summary>
+	/// GUID del registro (opcional). Vacio = formulario nuevo.
+	/// </summary>
+	[Parameter] public string DatoId { get; set; } = "";
+
+	/// <summary>
+	/// ID del usuario (opcional).
+	/// </summary>
+	[Parameter] public string UserId { get; set; } = "";
+
+	/// <summary>
+	/// Callbacks opcionales para personalizar el comportamiento del formulario.
+	/// </summary>
+	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
+
+	/// <summary>
+	/// Se dispara cuando el formulario se cierra, con el resultado.
+	/// </summary>
+	[Parameter] public EventCallback<DinaupFormResult> OnClosed { get; set; }
+
+	/// <summary>
+	/// Evento que se dispara cuando se abren las anotaciones.
+	/// La app host puede personalizar como se abre el dialogo.
+	/// </summary>
+	[Parameter] public EventCallback<DinaupAnnotationRequest> OnAnnotationOpen { get; set; }
+
+	private VirtualFormDTO _virtualForm;
+	private bool _isLoading = false;
+	private bool _isSaving = false;
+	private string _errorMessage = "";
+	private string _successMessage = "";
+	private DinaZenFormCallbacks _callbacks;
+	private string _loadedSectionId;
+	private string _loadedDatoId;
+	private bool _hasChanges = false;
+	private bool _sessionExpired = false;
+	private bool _isNewRecord = false;
+	private DateTime _lastCompletedSync = DateTime.UtcNow;
+	private bool _isRegistered = false;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		InitCallbacks();
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		if (Client.IsNotNull() && SectionId.IsNotEmpty())
+		{
+			// Cargar si es la primera vez o si cambiaron los parametros
+			if (_loadedSectionId != SectionId || _loadedDatoId != (DatoId ?? ""))
+			{
+				await LoadForm();
+			}
+		}
+	}
+
+	private void InitCallbacks()
+	{
+		if (Callbacks != null)
+		{
+			_callbacks = Callbacks;
+		}
+		else
+		{
+			_callbacks = new DinaZenFormCallbacks
+			{
+				CanAddNewItem = () => false,
+				CanDeleteItem = (row) => false
+			};
+		}
+
+		_callbacks.Client ??= Client;
+
+		// Wire up OnOpenModalForm for "Acceder" button on relation fields
+		// This opens the related record in a nested modal using DinaupFormView.OpenAsync
+		if (_callbacks.OnOpenModalForm == null)
+		{
+			_callbacks.OnOpenModalForm = async (sectionId, datoId) =>
+			{
+				await OpenAsync(DialogService, Client, sectionId, datoId, Callbacks);
+			};
+		}
+	}
+
+	/// <summary>
+	/// Carga o recarga el formulario.
+	public async Task LoadForm()
+	{
+		if (Client.IsNull())
+	/// </summary>
+		{
+			_errorMessage = "Client es obligatorio.";
+			return;
+		}
+
+		if (SectionId.IsEmpty())
+		{
+			_errorMessage = "SectionId es obligatorio.";
+			return;
+		}
+
+		_isLoading = true;
+		_errorMessage = "";
+		_successMessage = "";
+		_hasChanges = false;
+		_sessionExpired = false;
+		StateHasChanged();
+
+		try
+		{
+			_virtualForm = await Client.FormOpenAsync(
+				SectionId,
+				DatoId ?? "",
+				null,
+				null
+			);
+			_loadedSectionId = SectionId;
+			_loadedDatoId = DatoId ?? "";
+			_isNewRecord = _virtualForm.MainForm.RowID.IsEmpty();
+
+			if (!_isRegistered)
+			{
+				DinaZenLiveFormsManager.Register(this);
+				_isRegistered = true;
+				_lastCompletedSync = DateTime.UtcNow;
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+			_virtualForm = null;
+		}
+		finally
+		{
+			_isLoading = false;
+			StateHasChanged();
+		}
+	}
+
+	private void HandleTabChange(VirtualFormDTO.Tab newTab)
+	{
+		try
+		{
+			_hasChanges = true;
+			_ = SyncForm(
+				_virtualForm.WithUpdatedForm(
+					_virtualForm.GetFormByTabToken(newTab.TabToken).WithTab(newTab)
+				)
+			);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task SyncForm(VirtualFormDTO vForm)
+	{
+		try
+		{
+			var result = await Client.FormUpdate(vForm);
+			_virtualForm = result.NewForm;
+			await InvokeAsync(StateHasChanged);
+		}
+		catch (Exception ex)
+		{
+			_sessionExpired = true;
+			_errorMessage = "Sesion caducada: " + ex.Message;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	// ── Save ──
+
+	/// <summary>
+	/// Guarda el formulario actual.
+	/// </summary>
+	private async Task SaveForm()
+	{
+		if (_isSaving || _sessionExpired) return;
+
+		_isSaving = true;
+		_errorMessage = "";
+		_successMessage = "";
+		StateHasChanged();
+
+		try
+		{
+			bool wasNew = _virtualForm.MainForm.RowID.IsEmpty();
+			var saveResult = await Client.FormSave(_virtualForm);
+			var newVirtualForm = saveResult.Item1;
+			var okResult = saveResult.Item2;
+
+			if (newVirtualForm.IsNotNull() && newVirtualForm.Aviso.IsNotEmpty())
+			{
+				// Server returned a warning — show it but don't close
+				NotificationService.Notify(new NotificationMessage
+				{
+					Severity = NotificationSeverity.Warning,
+					Duration = 15000,
+					Summary = newVirtualForm.Aviso
+				});
+			}
+			else if (newVirtualForm == null)
+			{
+				// Save successful — close the form
+				var result = new DinaupFormResult
+				{
+					Reason = DinaupFormCloseReason.Saved,
+					RowId = okResult?.RowID ?? _virtualForm?.MainForm?.RowID ?? "",
+					SectionId = _loadedSectionId ?? "",
+					WasModified = true,
+					Title = _virtualForm?.MainForm?.Tabs?.FirstOrDefault(t => t.TabName == "*")?.Controls?.FirstOrDefault()?.Value ?? ""
+				};
+
+				_virtualForm = null;
+				_loadedSectionId = null;
+				_loadedDatoId = null;
+				_hasChanges = false;
+
+				try { DialogService.Close(result); } catch { }
+				StateHasChanged();
+				await OnClosed.InvokeAsync(result);
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+			NotificationService.Notify(NotificationSeverity.Error, "Error al guardar", ex.Message);
+		}
+		finally
+		{
+			_isSaving = false;
+			StateHasChanged();
+		}
+	}
+
+	// ── Annotations ──
+
+	private async Task OpenAnnotations(AnnotationTypeE type)
+	{
+		if (_virtualForm?.MainForm?.RowID.IsGUID() != true) return;
+
+		var request = new DinaupAnnotationRequest
+		{
+			SectionId = _virtualForm.MainForm.Section.ID,
+			RowId = _virtualForm.MainForm.RowID.ToGUID(),
+			Type = type,
+			Client = Client
+		};
+
+		if (OnAnnotationOpen.HasDelegate)
+		{
+			await OnAnnotationOpen.InvokeAsync(request);
+		}
+		else
+		{
+			// Default: open built-in annotations dialog
+			await DinaupAnnotationsDialog.OpenAsync(DialogService, Client, request.SectionId, request.RowId, type);
+		}
+	}
+
+	// ── Inspector ──
+
+	private async Task OpenInspector()
+	{
+		if (_virtualForm?.MainForm == null) return;
+
+		var allFields = _virtualForm.MainForm.Tabs
+			.SelectMany(t => t.Controls ?? Enumerable.Empty<Dinaup.VirtualFormDTO.Control>())
+			.ToList();
+
+		var parameters = new Dictionary<string, object>
+		{
+			{ "RowId", _virtualForm.MainForm.RowID ?? "" },
+			{ "SectionId", _virtualForm.MainForm.Section.ID.STR() },
+			{ "SectionLabel", _virtualForm.MainForm.Section.Label ?? "" },
+			{ "Fields", allFields }
+		};
+
+		await DialogService.OpenAsync<DinaupFormInspector>(null, parameters, new DialogOptions
+		{
+			Width = "700px",
+			Height = "80%",
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			ShowClose = false,
+			ShowTitle = false
+		});
+	}
+
+	// ── Close / Result ──
+
+	/// <summary>
+	/// Construye el DinaupFormResult segun el estado actual.
+	/// </summary>
+	private DinaupFormResult BuildResult(DinaupFormCloseReason? overrideReason = null)
+	{
+		var reason = overrideReason
+			?? (_sessionExpired ? DinaupFormCloseReason.SessionExpired
+			   : _hasChanges ? DinaupFormCloseReason.Saved
+			   : DinaupFormCloseReason.Cancelled);
+
+		return new DinaupFormResult
+		{
+			Reason = reason,
+			RowId = _virtualForm?.MainForm?.RowID ?? "",
+			SectionId = _loadedSectionId ?? "",
+			WasModified = _hasChanges,
+			Title = _virtualForm?.MainForm?.Tabs?.FirstOrDefault(t => t.TabName == "*")?.Controls?.FirstOrDefault()?.Value ?? ""
+		};
+	}
+
+	private async Task CloseForm()
+	{
+		if (_isRegistered)
+		{
+			DinaZenLiveFormsManager.Unregister(this);
+			_isRegistered = false;
+		}
+
+		var result = BuildResult();
+
+		if (_virtualForm != null && Client != null)
+		{
+			try { await Client.FormCancel(_virtualForm); } catch { }
+		}
+
+		_virtualForm = null;
+		_loadedSectionId = null;
+		_loadedDatoId = null;
+		_errorMessage = "";
+		_hasChanges = false;
+
+		// Si estamos dentro de un Dialog, lo cerramos pasando el resultado
+		try { DialogService.Close(result); } catch { }
+
+		StateHasChanged();
+		await OnClosed.InvokeAsync(result);
+	}
+
+	// ── LiveForms (Ping) ──
+
+	public void Ping()
+	{
+		if (_sessionExpired || _virtualForm == null || Client == null) return;
+		if (_lastCompletedSync.AddSeconds(25) >= DateTime.UtcNow) return;
+
+		_ = InvokeAsync(async () =>
+		{
+			try
+			{
+				await SyncForm(_virtualForm);
+				_lastCompletedSync = DateTime.UtcNow;
+			}
+			catch
+			{
+				_sessionExpired = true;
+				_errorMessage = "Sesion de edicion caducada.";
+				StateHasChanged();
+			}
+		});
+	}
+
+	public void Dispose()
+	{
+		if (_isRegistered)
+		{
+			DinaZenLiveFormsManager.Unregister(this);
+			_isRegistered = false;
+		}
+		if (_virtualForm != null && Client != null)
+		{
+			try { _ = Client.FormCancel(_virtualForm); } catch { }
+		}
+		_virtualForm = null;
+	}
+
+	// ── Static helper para abrir como modal ──
+
+	/// <summary>
+	/// Abre un DinaupFormView como ventana modal (DialogService).
+	/// Devuelve DinaupFormResult con el estado al cerrar.
+	/// </summary>
+	public static async Task<DinaupFormResult> OpenAsync(
+		DialogService dialogService,
+		DinaupClientC client,
+		string sectionId,
+		string datoId = "",
+		DinaZenFormCallbacks callbacks = null,
+		string title = "",
+		string width = "1000px",
+		string height = "85%")
+	{
+		var parameters = new Dictionary<string, object>
+		{
+			{ nameof(Client), client },
+			{ nameof(SectionId), sectionId },
+			{ nameof(DatoId), datoId ?? "" }
+		};
+
+		if (callbacks != null)
+			parameters.Add(nameof(Callbacks), callbacks);
+
+		var options = new DialogOptions
+		{
+			WrapperCssClass = "dinaupdialogform",
+			Width = width,
+			Height = height,
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			CloseDialogOnOverlayClick = false,
+			ShowClose = false,
+			ShowTitle = !string.IsNullOrEmpty(title)
+		};
+
+		var dialogResult = await dialogService.OpenAsync<DinaupFormView>(title, parameters, options);
+
+		if (dialogResult is DinaupFormResult formResult)
+			return formResult;
+
+		// Si se cerro sin resultado (ESC, overlay, etc.)
+		return new DinaupFormResult
+		{
+			Reason = DinaupFormCloseReason.Cancelled,
+			SectionId = sectionId,
+			RowId = datoId ?? ""
+		};
+	}
+}

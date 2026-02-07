@@ -1,0 +1,1198 @@
+/* ================================================================
+   DinaZen Forms — dinazen-forms.css
+   ================================================================
+   Single source of truth for all dynamic-form styling.
+   Modern SaaS design with clear visual states.
+
+   Structure:
+     1.  Design Tokens (CSS custom properties)
+     2.  Scrollbar
+     3.  Form View Layout  (.dnz-form-view)
+     4.  Form Tab           (.dnp-form-tab)
+     5.  Control Wrapper    (.controlu)
+     6.  Input Fields       (.dup_input)
+     7.  Labels             (.labelinput, .labelch)
+     8.  Control States     (locked, modified, incorrect, big)
+     9.  State Indicators   (.ico_IsModified, .ico_IsRequired)
+     10. Checkbox Controls  (.dupch)
+     11. Radzen Overrides   (dropdown, datepicker, numeric, textarea)
+     12. Dropdown Popup     (.dup_dropdown, .dup_dropdownitem)
+     13. Containers         (.dnp-form-container, .ctrlucont)
+     14. Buttons            (ButtonU)
+     15. File Upload Cards
+     16. Utilities          (.autoHide, .rz-popup)
+   ================================================================ */
+
+
+/* ================================================================
+   1. DESIGN TOKENS
+   ================================================================
+   Change these to re-skin the entire form system.
+   ================================================================ */
+
+:root {
+    /* ── Sizing ── */
+    --dnz-input-height:        26px;
+    --dnz-input-font-size:     13px;
+    --dnz-label-font-size:     11px;
+    --dnz-label-gap:           3px;
+
+    /* ── Radii ── */
+    --dnz-input-radius:        6px;
+    --dnz-container-radius:    8px;
+
+    /* ── Spacing ── */
+    --dnz-input-padding-x:     10px;
+    --dnz-input-padding-y:     4px;
+
+    /* ── Shadows ── */
+    --dnz-input-shadow:        0 1px 2px rgba(0, 0, 0, .04);
+    --dnz-focus-ring:          0 0 0 3px rgba(52, 129, 229, .15);
+    --dnz-card-shadow:         0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+    --dnz-popup-shadow:        0 8px 30px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .06);
+
+    /* ── Colors — neutral ── */
+    --dnz-input-bg:            #fff;
+    --dnz-input-border:        #dfe5ec;
+    --dnz-input-border-hover:  #c4ccda;
+    --dnz-input-color:         var(--rz-base-900, #1b1d20);
+    --dnz-input-placeholder:   var(--rz-base-400, #bdbdbd);
+    --dnz-label-color:         var(--rz-base-600, #6b7280);
+    --dnz-surface:             #fff;
+    --dnz-surface-raised:      #f8fafb;
+
+    /* ── Colors — focus ── */
+    --dnz-focus-border:        var(--rz-primary, #3481e5);
+
+    /* ── Colors — modified ── */
+    --dnz-modified-bg:         #f0f9ff;
+    --dnz-modified-border:     #7dd3fc;
+    --dnz-modified-color:      #0369a1;
+    --dnz-modified-dot:        #0ea5e9;
+
+    /* ── Colors — locked ── */
+    --dnz-locked-bg:           #fafafa;
+    --dnz-locked-bg-stripe:    repeating-linear-gradient(
+                                   -45deg,
+                                   transparent,
+                                   transparent 4px,
+                                   rgba(0, 0, 0, .018) 4px,
+                                   rgba(0, 0, 0, .018) 8px
+                               );
+    --dnz-locked-border:       #e2e2e2;
+    --dnz-locked-color:        #8b8b8b;
+    --dnz-locked-label:        #999;
+    --dnz-locked-icon-color:   #bbb;
+
+    /* ── Colors — incorrect / error ── */
+    --dnz-error-bg:            #fef2f2;
+    --dnz-error-border:        #fca5a5;
+    --dnz-error-color:         #dc2626;
+    --dnz-error-ring:          0 0 0 3px rgba(220, 38, 38, .1);
+
+    /* ── Transitions ── */
+    --dnz-transition:          150ms ease;
+    --dnz-transition-slow:     250ms ease;
+
+    /* ── Form view ── */
+    --dnz-header-bg:           #fff;
+    --dnz-header-border:       #eef1f5;
+    --dnz-tab-content-bg:      #f0f1f3;
+    --dnz-tab-active-border:   var(--rz-primary, #3481e5);
+    --dnz-tab-hover-bg:        #e8eaed;
+}
+
+/* Legacy token bridge — keeps play.dinaup.com compatible */
+[data-bs-theme="light"] {
+    --controlu-background:            var(--dnz-input-bg);
+    --controlu-color:                 var(--dnz-input-color);
+    --controlu-background-modified:   var(--dnz-modified-bg);
+    --controlu-color-modified:        var(--dnz-modified-color);
+    --controlu-background-locked:     var(--dnz-locked-bg);
+    --controlu-color-locked:          var(--dnz-locked-color);
+    --controlu-border-locked:         1px solid var(--dnz-locked-border);
+    --controlu-background-incorrect:  var(--dnz-error-bg);
+    --controlu-color-incorrect:       var(--dnz-error-color);
+    --controlu-border-incorrect:      1px solid var(--dnz-error-border);
+}
+
+
+/* ================================================================
+   2. SCROLLBAR
+   ================================================================ */
+
+.dnz-form-view ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.dnz-form-view ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dnz-form-view ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .15);
+    border-radius: 3px;
+}
+
+.dnz-form-view ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, .25);
+}
+
+
+/* ================================================================
+   3. FORM VIEW LAYOUT  (.dnz-form-view)
+   ================================================================ */
+
+.dnz-form-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 1000px;
+    overflow: hidden;
+    background: #f4f4f4;
+    border-radius: var(--dnz-container-radius);
+    border: 1px solid var(--dnz-header-border);
+    box-shadow: var(--dnz-card-shadow);
+}
+
+.dnz-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--dnz-header-bg);
+    flex-shrink: 0;
+    min-height: 48px;
+}
+
+.dnz-form-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dnz-input-color);
+    min-width: 0;
+    letter-spacing: -0.01em;
+}
+
+.dnz-form-header-info img {
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.dnz-form-header-info span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Row ID badge in header */
+.dnz-form-header-info .rz-badge {
+    font-size: 10px;
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    letter-spacing: 0.02em;
+    opacity: .6;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dnz-form-title {
+    padding: 12px 16px 4px;
+    flex-shrink: 0;
+}
+
+.dnz-form-body {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+}
+
+.dnz-form-body > .rz-tabview {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.dnz-form-body > .rz-tabview > .rz-tabview-nav-content {
+    flex-shrink: 0;
+    background: var(--dnz-surface);
+    border-bottom: 1px solid var(--dnz-header-border);
+}
+
+.dnz-form-body > .rz-tabview > .rz-tabview-panels {
+    flex: 1;
+    overflow: auto;
+    background: inherit;
+}
+
+
+/* ================================================================
+   4. FORM TAB  (.dnp-form-tab)
+   ================================================================ */
+
+.dnp-form-tab {
+    position: relative;
+    /* height & min-width set inline by FormTabU */
+}
+
+
+/* ================================================================
+   5. CONTROL WRAPPER  (.controlu)
+   ================================================================
+   The outer div for every form control.
+   Position is set inline (absolute) by ControlU.razor.
+   ================================================================ */
+
+.controlu {
+    box-sizing: border-box;
+    transition: opacity var(--dnz-transition);
+}
+
+
+/* ================================================================
+   6. INPUT FIELDS  (.dup_input)
+   ================================================================ */
+
+.dup_input {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.dup_input label {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.dup_input select,
+.dup_input input,
+.dup_input .rz-inputtext {
+    font-size: var(--dnz-input-font-size) !important;
+    width: 100%;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* Standard inputs inside .controlu */
+.controlu input,
+.controlu .rz-dropdown,
+.controlu .rz-textbox {
+    height: var(--dnz-input-height) !important;
+    line-height: calc(var(--dnz-input-height) - 2px) !important;
+    /* padding: 0 var(--dnz-input-padding-x) !important; */
+    border-radius: var(--dnz-input-radius) !important;
+    font-size: var(--dnz-input-font-size) !important;
+    background: var(--dnz-input-bg);
+    border: 1px solid var(--dnz-input-border) !important;
+    color: var(--dnz-input-color);
+    box-shadow: var(--dnz-input-shadow);
+    transition:
+        border-color var(--dnz-transition),
+        box-shadow var(--dnz-transition),
+        background-color var(--dnz-transition);
+    flex: 1;
+    outline: none;
+}
+
+/* Text inputs: small horizontal padding */
+.controlu input,
+.controlu .rz-textbox {
+    padding: 0 4px !important;
+}
+
+/* Dropdowns: no extra padding (badge already provides spacing) */
+.controlu .rz-dropdown {
+    padding: 0 !important;
+}
+
+/* Hover — subtle border darkening */
+.controlu input:hover:not(:focus):not(:read-only):not(:disabled),
+.controlu .rz-dropdown:hover:not(:focus-within),
+.controlu .rz-textbox:hover:not(:focus):not(:read-only) {
+    border-color: var(--dnz-input-border-hover) !important;
+}
+
+/* Focus ring */
+.controlu input:focus:not(:read-only),
+.controlu .rz-dropdown:focus-within,
+.controlu .rz-textbox:focus:not(:read-only) {
+    border-color: var(--dnz-focus-border) !important;
+    box-shadow: var(--dnz-focus-ring) !important;
+}
+
+/* Placeholder */
+.controlu input::placeholder,
+.controlu .rz-textbox::placeholder {
+    color: var(--dnz-input-placeholder);
+    font-weight: 400;
+}
+
+
+/* ================================================================
+   7. LABELS  (.labelinput, .labelch)
+   ================================================================ */
+
+.labelinput {
+    font-size: var(--dnz-label-font-size);
+    font-weight: 500;
+    color: var(--dnz-label-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 0;
+    margin-bottom: var(--dnz-label-gap);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: color var(--dnz-transition);
+    user-select: none;
+}
+
+.labelch {
+    font-size: var(--dnz-label-font-size);
+    font-weight: 500;
+    color: var(--dnz-label-color);
+    white-space: nowrap;
+    overflow: visible;
+    letter-spacing: 0.02em;
+    user-select: none;
+    transition: color var(--dnz-transition);
+}
+
+
+/* ================================================================
+   8. CONTROL STATES
+   ================================================================ */
+
+/* ── Modified ── */
+div.controlu[data-IsModified="1"] .labelinput,
+div.controlu[data-IsModified="1"] .labelch,
+div.controlu[data-IsModified="1"] label {
+    color: var(--dnz-modified-color);
+}
+
+div.controlu[data-IsModified="1"] input,
+div.controlu[data-IsModified="1"] .rz-textbox,
+div.controlu[data-IsModified="1"] .rz-dropdown {
+    background: var(--dnz-modified-bg) !important;
+    border-color: var(--dnz-modified-border) !important;
+}
+
+div.controlu[data-IsModified="1"] input:focus,
+div.controlu[data-IsModified="1"] .rz-textbox:focus {
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, .12) !important;
+    border-color: var(--dnz-modified-dot) !important;
+}
+
+
+/* ── Locked ── */
+div.controlu[data-islocked="1"] input,
+div.controlu[data-islocked="1"] .rz-textbox,
+div.controlu[data-islocked="1"] .rz-dropdown {
+    background: var(--dnz-locked-bg) !important;
+    background-image: var(--dnz-locked-bg-stripe) !important;
+    border: 1px solid var(--dnz-locked-border) !important;
+    border-style: solid !important;
+    color: var(--dnz-locked-color) !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    opacity: .85;
+}
+
+div.controlu[data-islocked="1"] input:hover,
+div.controlu[data-islocked="1"] .rz-textbox:hover,
+div.controlu[data-islocked="1"] .rz-dropdown:hover {
+    border-color: var(--dnz-locked-border) !important;
+}
+
+div.controlu[data-islocked="1"] .labelinput,
+div.controlu[data-islocked="1"] .labelch,
+div.controlu[data-islocked="1"] label {
+    color: var(--dnz-locked-label) !important;
+}
+
+div.controlu[data-islocked="1"] .rz-chkbox {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* Lock icon hint — after the label */
+div.controlu[data-islocked="1"] .labelinput::after {
+    content: '\1F512';  /* unicode lock emoji */
+    font-size: 9px;
+    margin-left: 3px;
+    opacity: 0.4;
+    vertical-align: middle;
+}
+
+
+/* ── Incorrect / Error ── */
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) input,
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .rz-textbox,
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .rz-dropdown {
+    background: var(--dnz-error-bg) !important;
+    border: 1px solid var(--dnz-error-border) !important;
+    color: var(--dnz-error-color) !important;
+}
+
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) input:focus,
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .rz-textbox:focus {
+    box-shadow: var(--dnz-error-ring) !important;
+    border-color: var(--dnz-error-color) !important;
+}
+
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .labelinput,
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .labelch,
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) label {
+    color: var(--dnz-error-color) !important;
+}
+
+/* Shake animation for error fields */
+@keyframes dnz-shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-2px); }
+    40%      { transform: translateX(2px); }
+    60%      { transform: translateX(-1px); }
+    80%      { transform: translateX(1px); }
+}
+
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) {
+    animation: dnz-shake .4s ease-in-out;
+}
+
+
+/* ── Big (giant text) ── */
+div.controlu[data-IsBig="1"] input,
+div.controlu[data-IsBig="1"] .rz-textbox {
+    font-size: 22px !important;
+    font-weight: 600;
+    height: auto !important;
+    line-height: 1.3 !important;
+}
+
+
+/* ================================================================
+   9. STATE INDICATORS  (.ico_IsModified, .ico_IsRequired)
+   ================================================================ */
+
+.ico_IsModified,
+.ico_IsRequired {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+div.controlu[data-IsModified="1"] .ico_IsModified::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dnz-modified-dot);
+    margin-left: 4px;
+    vertical-align: middle;
+    box-shadow: 0 0 4px rgba(14, 165, 233, .4);
+}
+
+div.controlu[IsRequired="1"] .ico_IsRequired::after {
+    content: '*';
+    color: var(--dnz-error-color);
+    font-weight: 700;
+    font-size: 13px;
+    margin-left: 2px;
+    line-height: 1;
+}
+
+div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .ico_IsRequired::after {
+    color: var(--dnz-error-color);
+}
+
+
+/* ================================================================
+   10. CHECKBOX CONTROLS  (.dupch)
+   ================================================================ */
+
+.dupch {
+    overflow: visible;
+}
+
+/* Radzen checkbox override for consistent sizing */
+.dupch .rz-chkbox {
+    transition: opacity var(--dnz-transition);
+}
+
+.dupch .rz-chkbox-box {
+    border-radius: 4px !important;
+    width: 18px !important;
+    height: 18px !important;
+    border: 1.5px solid var(--dnz-input-border) !important;
+    transition: border-color var(--dnz-transition), background var(--dnz-transition), box-shadow var(--dnz-transition);
+}
+
+.dupch .rz-chkbox-box:hover {
+    border-color: var(--dnz-focus-border) !important;
+}
+
+.dupch .rz-chkbox-box.rz-state-active {
+    background: var(--rz-primary, #3481e5) !important;
+    border-color: var(--rz-primary, #3481e5) !important;
+}
+
+
+/* ================================================================
+   11. RADZEN OVERRIDES
+   ================================================================ */
+
+/* Dropdown & multiselect */
+.rz-multiselect,
+.rz-dropdown {
+    padding: 4px 8px !important;
+}
+
+/* Numeric */
+.controlu .rz-numeric {
+    height: auto !important;
+}
+
+.controlu .rz-numeric input {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Datepicker trigger icon */
+.rz-datepicker-trigger.rz-datepicker-field-button.rz-button.rz-button-icon-only {
+    color: var(--dnz-label-color);
+    font-size: 15px;
+    margin-top: 3px;
+    transition: color var(--dnz-transition);
+}
+
+.rz-datepicker-trigger.rz-datepicker-field-button.rz-button.rz-button-icon-only:hover {
+    color: var(--dnz-focus-border);
+}
+
+/* Textarea */
+.controlu textarea,
+textarea.rz-textarea {
+    font-size: var(--dnz-input-font-size) !important;
+    border-radius: var(--dnz-input-radius) !important;
+    border: 1px solid var(--dnz-input-border) !important;
+    padding: 8px var(--dnz-input-padding-x) !important;
+    background: var(--dnz-input-bg);
+    box-shadow: var(--dnz-input-shadow);
+    transition: border-color var(--dnz-transition), box-shadow var(--dnz-transition);
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.controlu textarea:hover:not(:focus):not(:read-only) {
+    border-color: var(--dnz-input-border-hover) !important;
+}
+
+.controlu textarea:focus {
+    border-color: var(--dnz-focus-border) !important;
+    box-shadow: var(--dnz-focus-ring) !important;
+    outline: none;
+}
+
+/* Tab panel spacing */
+.dnz-form-body .rz-tabview-panel,
+.dnz-form-view .rz-tabview-panel {
+    padding: 0 !important;
+}
+
+/* Tab nav styling */
+.dnz-form-view .rz-tabview-nav li .rz-tabview-nav-link {
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding: 10px 16px;
+    transition: color var(--dnz-transition), background var(--dnz-transition);
+}
+
+.dnz-form-view .rz-tabview-nav li .rz-tabview-nav-link:hover {
+    background: var(--dnz-tab-hover-bg);
+}
+
+.dnz-form-view .rz-tabview-nav li.rz-tabview-selected .rz-tabview-nav-link {
+    color: var(--dnz-tab-active-border);
+}
+
+/* Title input (tab *) */
+.dnz-form-title input.obli,
+.dnz-form-title .rz-textbox {
+    font-size: 20px !important;
+    font-weight: 600;
+    border: none !important;
+    border-bottom: 2px solid var(--dnz-header-border) !important;
+    border-radius: 0 !important;
+    padding: 6px 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    transition: border-color var(--dnz-transition-slow);
+    letter-spacing: -0.01em;
+}
+
+.dnz-form-title input.obli:focus,
+.dnz-form-title .rz-textbox:focus {
+    border-bottom-color: var(--dnz-focus-border) !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.dnz-form-title input.obli::placeholder,
+.dnz-form-title .rz-textbox::placeholder {
+    color: var(--dnz-input-placeholder);
+    font-weight: 400;
+}
+
+/* HTML Editor */
+.controlu .rz-html-editor {
+    border-radius: var(--dnz-input-radius) !important;
+    border: 1px solid var(--dnz-input-border) !important;
+    overflow: hidden;
+}
+
+.controlu .rz-html-editor:focus-within {
+    border-color: var(--dnz-focus-border) !important;
+    box-shadow: var(--dnz-focus-ring) !important;
+}
+
+.controlu .rz-html-editor-toolbar {
+    border-bottom: 1px solid var(--dnz-header-border) !important;
+    background: var(--dnz-surface-raised) !important;
+}
+
+
+/* ================================================================
+   12. DROPDOWN POPUP  (.dup_dropdown, .dup_dropdownitem)
+   ================================================================ */
+
+.DropDownArrow {
+    background-image: url('data:image/svg+xml;base64,CjxzdmcgaWQ9IkxheWVyXzEiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDEwMCAxMDAiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Zz48cGF0aCBkPSJtNjcuNDEgNDUuNDEtMi44Mi0yLjgyLTE0LjU5IDE0LjU4LTE0LjU5LTE0LjU4LTIuODIgMi44MiAxNy40MSAxNy40MnoiLz48L2c+PC9zdmc+');
+    background-size: 18px 18px;
+    background-position: center;
+    opacity: .4;
+    transition: opacity var(--dnz-transition);
+}
+
+.controlu:hover .DropDownArrow {
+    opacity: .7;
+}
+
+.dup_dropdown {
+    padding: 8px;
+}
+
+.dup_dropdownitem {
+    background-color: var(--dnz-surface);
+    color: var(--dnz-input-color);
+    transition:
+        background-color var(--dnz-transition),
+        color var(--dnz-transition),
+        transform var(--dnz-transition);
+    cursor: pointer;
+    border-radius: var(--dnz-input-radius);
+    margin-bottom: 2px;
+    padding: 7px 10px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dup_dropdownitem:hover {
+    background-color: var(--rz-primary-lighter, rgba(52, 129, 229, .08));
+    color: var(--rz-primary, #3481e5);
+}
+
+.dup_dropdownitem:active {
+    transform: scale(.98);
+}
+
+.dup_dropdownitem img {
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.rz-popup {
+    background-color: var(--dnz-surface);
+    border: 1px solid var(--dnz-header-border);
+    border-radius: var(--dnz-container-radius);
+    box-shadow: var(--dnz-popup-shadow) !important;
+    overflow: hidden;
+}
+
+
+/* ================================================================
+   13. CONTAINERS  (.dnp-form-container, .ctrlucont)
+   ================================================================ */
+
+.dnp-form-container.rz-card {
+    border-radius: var(--dnz-container-radius) !important;
+    border: 1px solid var(--dnz-header-border) !important;
+    box-shadow: none !important;
+    background: var(--dnz-surface) !important;
+    overflow: hidden;
+}
+
+.dnp-form-container .rz-data-grid {
+    width: auto !important;
+    max-height: 100%;
+    border: none !important;
+}
+
+.ctrlucont td,
+.ctrlucont th {
+    padding: 2px 4px !important;
+}
+
+.ctrlucont .rz-grid-table {
+    width: auto !important;
+}
+
+.ctrlucont th {
+    padding: 4px 8px !important;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dnz-label-color);
+    border-bottom: 1px solid var(--dnz-header-border);
+    border-left: none;
+    background: var(--dnz-surface-raised);
+}
+
+.ctrlucont td {
+    border-bottom: 1px solid var(--dnz-header-border);
+}
+
+.ctrlucont tr:last-child td {
+    border-bottom: none;
+}
+
+/* Container hover subtle highlight */
+.ctrlucont tr:hover td {
+    background: rgba(52, 129, 229, .02);
+}
+
+
+/* ================================================================
+   14. BUTTONS  (ButtonU)
+   ================================================================ */
+
+.dnp-form-tab .rz-button {
+    border-radius: var(--dnz-input-radius) !important;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition:
+        background var(--dnz-transition),
+        box-shadow var(--dnz-transition),
+        transform var(--dnz-transition);
+}
+
+.dnp-form-tab .rz-button:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
+}
+
+.dnp-form-tab .rz-button:active {
+    transform: scale(.97);
+}
+
+
+/* ================================================================
+   15. FILE UPLOAD CARDS
+   ================================================================ */
+
+.controlu .rz-card {
+    border-radius: var(--dnz-container-radius) !important;
+    border: 1px solid var(--dnz-header-border) !important;
+    box-shadow: none !important;
+    background: var(--dnz-surface) !important;
+}
+
+/* Empty file upload area */
+.controlu .rz-card > div[style*="display: flex"][style*="justify-content: center"] {
+    border: 2px dashed var(--dnz-input-border);
+    border-radius: var(--dnz-input-radius);
+    margin: 8px;
+    transition: border-color var(--dnz-transition), background var(--dnz-transition);
+}
+
+.controlu .rz-card:hover > div[style*="display: flex"][style*="justify-content: center"] {
+    border-color: var(--dnz-focus-border);
+    background: rgba(52, 129, 229, .02);
+}
+
+
+/* ================================================================
+   16. UTILITIES
+   ================================================================ */
+
+/* autoHide pattern (show on hover) */
+.controlu .autoHide {
+    display: none;
+    transition: opacity var(--dnz-transition);
+}
+
+.controlu:hover .autoHide {
+    display: flex;
+    align-items: center;
+}
+
+.controlu .autoHide .rz-button {
+    opacity: .5;
+    transition: opacity var(--dnz-transition);
+}
+
+.controlu .autoHide .rz-button:hover {
+    opacity: 1;
+}
+
+/* Dialog form content */
+.dinaupdialogform .rz-dialog-content {
+    height: 100%;
+    padding: 0%;
+}
+
+/* Selector search input */
+.desplegablecontent .rz-textbox {
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid var(--dnz-header-border) !important;
+    box-shadow: none !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    height: auto !important;
+}
+
+.desplegablecontent .rz-textbox:focus {
+    border-bottom-color: var(--dnz-focus-border) !important;
+}
+
+/* Badge selector within dropdown controls */
+.controlu .rz-badge {
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+
+/* ================================================================
+   17. FORM FOOTER  (.dnz-form-footer)
+   ================================================================ */
+
+.dnz-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--dnz-header-bg);
+    border-top: 1px solid var(--dnz-header-border);
+    flex-shrink: 0;
+    min-height: 48px;
+    gap: 8px;
+}
+
+
+/* ================================================================
+   18. MODE INDICATOR STRIP  (.dnz-form-mode-strip)
+   ================================================================ */
+
+.dnz-form-mode-strip {
+    flex-shrink: 0;
+    height: 2px;
+}
+
+.dnz-form-mode-strip.dnz-mode-new {
+    background: #86efac;
+}
+
+.dnz-form-mode-strip.dnz-mode-edit {
+    background: #93c5fd;
+}
+
+/* New record overall accent */
+.dnz-form-view.dnz-form-mode-new {
+    border-color: #86efac;
+}
+
+.dnz-form-view.dnz-form-mode-new .dnz-form-header {
+    background: linear-gradient(180deg, #f0fdf4 0%, #fff 100%);
+}
+
+/* Edit record overall accent */
+.dnz-form-view.dnz-form-mode-edit .dnz-form-header {
+    background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+
+/* ================================================================
+   19. ANNOTATION BUTTONS  (.dnz-form-annotations)
+   ================================================================ */
+
+.dnz-form-annotations {
+    border-left: 1px solid var(--dnz-header-border);
+    padding-left: 8px;
+    margin-left: 4px;
+}
+
+.dnz-annotation-btn-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity var(--dnz-transition), background var(--dnz-transition);
+    border-radius: 6px;
+}
+
+.dnz-annotation-btn-wrap:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.dnz-annotation-btn-wrap .rz-badge {
+    font-size: 11px;
+    min-width: 22px;
+    height: 22px;
+    line-height: 22px;
+    padding: 0 6px;
+}
+
+
+/* ================================================================
+   20. DIALOG LAYOUT OVERRIDES  (.dialog-estandar-layout)
+   ================================================================
+   Enhances the existing DialogLayout component styling
+   with design-token colors for consistency.
+   ================================================================ */
+
+.dialog-estandar-layout-header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--dnz-header-border);
+    background: var(--dnz-header-bg);
+}
+
+.dialog-estandar-layout-content {
+    background: var(--dnz-surface);
+}
+
+.dialog-estandar-layout-footer {
+    border-top: 1px solid var(--dnz-header-border);
+    background: var(--dnz-header-bg);
+}
+
+/* Dialog styling */
+.rz-dialog-wrapper .rz-dialog {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ================================================================
+   21. ANNOTATIONS DIALOG  (.dnz-annotations-dialog)
+   ================================================================ */
+
+.dnz-annotations-dialog {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.dnz-annotations-tabs {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--dnz-header-border);
+    flex-shrink: 0;
+}
+
+.dnz-annotations-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dnz-annotations-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    min-height: 200px;
+    color: var(--dnz-label-color);
+}
+
+.dnz-annotation-item {
+    background: var(--dnz-surface-raised);
+    border: 1px solid var(--dnz-header-border);
+    border-radius: var(--dnz-container-radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: box-shadow var(--dnz-transition);
+}
+
+.dnz-annotation-item:hover {
+    box-shadow: var(--dnz-card-shadow);
+}
+
+.dnz-annotation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dnz-annotation-body {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--dnz-input-color);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.dnz-annotation-file {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--dnz-focus-border);
+}
+
+.dnz-annotation-file a {
+    color: var(--dnz-focus-border);
+    text-decoration: none;
+}
+
+.dnz-annotation-file a:hover {
+    text-decoration: underline;
+}
+
+.dnz-annotation-image {
+    margin-top: 4px;
+}
+
+.dnz-annotations-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--dnz-header-border);
+    background: var(--dnz-surface);
+    flex-shrink: 0;
+}
+
+.dnz-annotations-input .rz-textbox {
+    height: 36px !important;
+}
+
+
+/* ================================================================
+   21. DOCUMENT VIEW  (.dnz-doc-view)
+   ================================================================ */
+
+.dnz-doc-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--dnz-surface);
+    border-radius: var(--dnz-container-radius);
+    border: 1px solid var(--dnz-header-border);
+    box-shadow: var(--dnz-card-shadow);
+}
+
+.dnz-doc-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--dnz-header-bg);
+    border-bottom: 1px solid var(--dnz-header-border);
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dnz-input-color);
+}
+
+.dnz-doc-body {
+    flex: 1;
+    overflow: auto;
+    background: var(--dnz-tab-content-bg);
+}
+
+
+/* ================================================================
+   22. REPORT VIEW  (.dnz-report-view)
+   ================================================================ */
+
+.dnz-report-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--dnz-surface);
+    border-radius: var(--dnz-container-radius);
+    border: 1px solid var(--dnz-header-border);
+    box-shadow: var(--dnz-card-shadow);
+}
+
+.dnz-report-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--dnz-header-bg);
+    border-bottom: 1px solid var(--dnz-header-border);
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dnz-input-color);
+}
+
+.dnz-report-header img {
+    flex-shrink: 0;
+}
+
+.dnz-report-body {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+}
+
+.dnz-report-body .rz-data-grid {
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.dnz-report-body .rz-datatable-thead th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--dnz-label-color);
+    background: var(--dnz-surface-raised);
+    border-bottom: 1px solid var(--dnz-header-border);
+    padding: 8px 12px !important;
+}
+
+.dnz-report-body .rz-datatable-tbody td {
+    font-size: 13px;
+    padding: 6px 12px !important;
+    border-bottom: 1px solid var(--dnz-header-border);
+}
+
+.dnz-report-body .rz-datatable-tbody tr:hover td {
+    background: rgba(52, 129, 229, .02);
+}
+
+.dnz-report-body .rz-datatable-tbody tr.rz-state-highlight td {
+    background: rgba(52, 129, 229, .06);
+}
