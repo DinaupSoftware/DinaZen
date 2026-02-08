@@ -1,0 +1,127 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Filters
+
+@if (Column.IsNull()) return;
+@if (DataColumn.IsNull()) return;
+
+<div class="p-3">
+	<RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Server">
+		<Tabs>
+			<RadzenTabsItem Text="Predefinido">
+				<div class="d-flex gap-2 flex-wrap flex-column">
+					<RadzenButton class="w-100" Text="Hoy" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("Hoy")) />
+					<RadzenButton class="w-100" Text="Ayer" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("Ayer")) />
+					<hr />
+					<RadzenButton class="w-100" Text="Últimos 7 días" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("Ultimos7Dias")) />
+					<RadzenButton class="w-100" Text="Últimos 30 días" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("Ultimos30Dias")) />
+					<RadzenButton class="w-100" Text="Últimos 90 días" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("Ultimos90Dias")) />
+					<hr />
+					<RadzenButton class="w-100" Text="Mes Actual" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("MesActual")) />
+					<RadzenButton class="w-100" Text="Mes Anterior" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("MesAnterior")) />
+					<hr />
+					<RadzenButton class="w-100" Text="Trimestre Actual" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("TrimestreActual")) />
+					<RadzenButton class="w-100" Text="Trimestre Anterior" Size="ButtonSize.Small" Click=@(() => ApplyPresetFilter("TrimestreAnterior")) />
+				</div>
+			</RadzenTabsItem>
+
+			<RadzenTabsItem Text="Igual">
+				<div class="d-flex gap-3 align-items-center">
+					<b>Igual</b>
+					<RadzenDatePicker @bind-Value="exactDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
+				</div>
+				<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Equals")) />
+			</RadzenTabsItem>
+
+			<RadzenTabsItem Text="Rango">
+				<div class="d-flex gap-3 align-items-center">
+					<b>Mayor que</b>
+					<RadzenDatePicker @bind-Value="minDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
+				</div>
+				<div class="d-flex gap-3 align-items-center">
+					<b>Menor que</b>
+					<RadzenDatePicker @bind-Value="maxDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
+				</div>
+				<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Range")) />
+			</RadzenTabsItem>
+		</Tabs>
+	</RadzenTabs>
+</div>
+
+@code {
+	public DateTime minDate;
+	public DateTime maxDate;
+	public DateTime exactDate;
+
+	[Parameter]
+	public DinaupFieldDTO Column { get; set; }
+	[Parameter]
+	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
+
+	void ApplyPresetFilter(string filtro)
+	{
+		switch (filtro)
+		{
+			case "Hoy":
+				minDate = DateTime.Today;
+				maxDate = DateTime.Today;
+				break;
+			case "Ayer":
+				minDate = DateTime.Today.AddDays(-1);
+				maxDate = DateTime.Today.AddDays(-1);
+				break;
+			case "Ultimos7Dias":
+				minDate = DateTime.Today.AddDays(-7);
+				maxDate = DateTime.Today;
+				break;
+			case "Ultimos30Dias":
+				minDate = DateTime.Today.AddDays(-30);
+				maxDate = DateTime.Today;
+				break;
+			case "Ultimos90Dias":
+				minDate = DateTime.Today.AddDays(-90);
+				maxDate = DateTime.Today;
+				break;
+			case "MesActual":
+				minDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+				maxDate = DateTime.Today;
+				break;
+			case "MesAnterior":
+				var firstDayOfPreviousMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-1);
+				minDate = firstDayOfPreviousMonth;
+				maxDate = firstDayOfPreviousMonth.AddMonths(1).AddDays(-1);
+				break;
+			case "TrimestreActual":
+				minDate = DateTime.Today.ComienzoDeTrimestre();
+				maxDate = DateTime.Today;
+				break;
+			case "TrimestreAnterior":
+				minDate = DateTime.Today.ComienzoDeTrimestre().AddTRimestre(-1);
+				maxDate = minDate.FinDeTrimestre();
+				break;
+		}
+
+		_ = ApplyFilterAsync("Range");
+	}
+
+	async Task ApplyFilterAsync(string filterType)
+	{
+		if (filterType == "Range" && minDate != default && maxDate != default)
+		{
+			minDate = minDate.KindToLocal();
+			maxDate = maxDate.KindToLocal();
+			DataColumn.ClearFilters();
+			DataColumn.SetFilterOperator(FilterOperator.GreaterThanOrEquals);
+			DataColumn.SetSecondFilterOperator(FilterOperator.LessThanOrEquals);
+			DataColumn.SetFilterValue(minDate.ToSQL_Date(), true);
+			await DataColumn.SetFilterValueAsync(maxDate.ToSQL_Date(), false);
+		}
+		else if (filterType == "Equals" && exactDate != default)
+		{
+			exactDate = exactDate.KindToLocal();
+			DataColumn.ClearFilters();
+			DataColumn.SetFilterOperator(FilterOperator.Equals);
+			await DataColumn.SetFilterValueAsync(exactDate.ToSQL_Date(), true);
+		}
+
+		await DataColumn.CloseFilter();
+	}
+}

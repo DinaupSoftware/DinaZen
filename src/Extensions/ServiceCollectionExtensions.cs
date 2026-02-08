@@ -1,5 +1,6 @@
 using Dinaup.CultureService;
 using DinaZen.Components.WindowManager;
+using DinaZen.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -15,6 +16,7 @@ public static class DinaZenServiceCollectionExtensions
         services.AddHttpClient();
         services.AddScoped<ICultureService, CultureService>();
         services.AddScoped<DnzWindowManagerService>();
+        services.AddScoped<DinaZenInterceptorService>();
         return services;
     }
 }

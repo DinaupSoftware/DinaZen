@@ -1,0 +1,52 @@
+@using DinaZen.Components
+<DialogLayout>
+	<TitleContent>
+		<div class="d-flex align-items-center justify-content-between w-100">
+			<div class="d-flex align-items-center gap-2">
+				<RadzenIcon Icon="search" Style="color:var(--rz-primary); font-size:20px" />
+				<span style="font-weight:600">Select an item</span>
+			</div>
+			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+						  Click="@(() => DialogService.Close(null))" Style="opacity:0.6" />
+		</div>
+	</TitleContent>
+	<BodyContent>
+		<DinaupReportView Client="Client"
+						  ReportId="@ReportId"
+						  ShowTitle="false"
+						  Limite="50"
+						  OnItemSelect="@(row => DialogService.Close(row))" />
+	</BodyContent>
+</DialogLayout>
+
+@code {
+
+	/// <summary>
+	/// Opens the item picker dialog and returns the selected row, or null if cancelled.
+	/// </summary>
+	public static async Task<DinaupDynamicRowDTO> OpenAsync(DialogService dialogService, DinaupClientC client, string reportId)
+	{
+		var parameters = new Dictionary<string, object>()
+		{
+			{ nameof(Client), client },
+			{ nameof(ReportId), reportId }
+		};
+		var options = new DialogOptions()
+		{
+			Width = "800px",
+			Height = "600px",
+			ShowClose = false,
+			ShowTitle = false,
+			Resizable = true,
+			Draggable = true,
+			CloseDialogOnOverlayClick = true,
+			CloseDialogOnEsc = true
+		};
+
+		var result = await dialogService.OpenAsync<ItemPickerDialog>("Select", parameters, options);
+		return result as DinaupDynamicRowDTO;
+	}
+
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public string ReportId { get; set; }
+}

@@ -1,0 +1,33 @@
+@namespace DinaZen.Components.DinaupFlex.DynamicDocuments
+@inject IJSRuntime JS
+
+<RadzenCard class="d-flex gap-2 align-content-center ">
+	<span onclick="printIframe('documentopreview')">
+		<RadzenButton Text="Imprimir / Guardar PDF" Icon="print" />
+	</span>
+</RadzenCard>
+
+<div align="center" class="m-4" style="flex:1">
+	<iframe class="rz-shadow-4" id="documentopreview" onload=@(AutoImprimir ? "printIframeOnce(this)" : "") style="width: 240mm;height: 100%;margin:auto;border-radius:10px"></iframe>
+</div>
+
+
+
+@code {
+
+	[Parameter]
+	public string HTML { get; set; }
+
+	[Parameter]
+	public bool AutoImprimir { get; set; }
+
+
+	protected override Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+			JS.InvokeVoidAsync("setIframeBlob", "documentopreview", HTML);
+
+		return base.OnAfterRenderAsync(firstRender);
+	}
+
+}

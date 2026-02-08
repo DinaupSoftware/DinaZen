@@ -4,8 +4,8 @@
 @if (DataColumn.IsNull()) return;
 
 <div class="d-flex gap-2 flex-wrap p-3 flex-column">
-	<RadzenButton class="w-100" Text="Sí" Size="ButtonSize.Small" Click=@((x) => SetFilter("1")) />
-	<RadzenButton class="w-100" Text="No" Size="ButtonSize.Small" Click=@((x) => SetFilter("0")) />
+	<RadzenButton class="w-100" Text="Sí" Size="ButtonSize.Small" Click=@((x) => ApplyFilterAsync("1")) />
+	<RadzenButton class="w-100" Text="No" Size="ButtonSize.Small" Click=@((x) => ApplyFilterAsync("0")) />
 </div>
 
 @code {
@@ -15,7 +15,7 @@
 	[Parameter]
 	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
 
-	async Task SetFilter(string v)
+	async Task ApplyFilterAsync(string v)
 	{
 		DataColumn.ClearFilters();
 		await DataColumn.SetFilterValueAsync(v);

@@ -51,15 +51,7 @@
 
 	@* ── Content ── *@
 	<div class="dnz-win-body">
-		<CascadingValue Value="true" Name="IsInsideWindow">
-			<CascadingValue Value="State.Id" Name="WindowId">
-				<CascadingValue Value="_closeAction" Name="CloseWindow">
-					<CascadingValue Value="_wm" Name="WindowManager">
-						@State.Content
-					</CascadingValue>
-				</CascadingValue>
-			</CascadingValue>
-		</CascadingValue>
+		@State.Content
 	</div>
 
 	@* ── Resize handles ── *@
@@ -80,7 +72,6 @@
 	[Parameter] public EventCallback<string> OnMaximizeRequest { get; set; }
 	[Parameter] public EventCallback<string> OnFocusRequest { get; set; }
 
-	private Action _closeAction;
 	private string _elementId => $"dnz-win-{State.Id}";
 
 	// Genera el style con InvariantCulture para evitar que culturas como es-ES
@@ -91,11 +82,6 @@
 	private IJSObjectReference _jsModule;
 	private DotNetObjectReference<DnzWindow> _dotNetRef;
 	private bool _jsInitialized;
-
-	protected override void OnInitialized()
-	{
-		_closeAction = () => OnCloseRequest.InvokeAsync(State.Id);
-	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{

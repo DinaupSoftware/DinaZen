@@ -7,29 +7,29 @@
 		<Tabs>
 			<RadzenTabsItem Text="Signo">
 				<div class="d-flex flex-column gap-3">
-					<BadgetAutoColor Value="Positivos" Click=@(() => AplicarFiltroSigno("Positivos")) />
-					<BadgetAutoColor Value="Cero" Click=@(() => AplicarFiltroSigno("Cero")) />
-					<BadgetAutoColor Value="Negativos" Click=@(() => AplicarFiltroSigno("Negativos")) />
+					<BadgetAutoColor Value="Positivos" Click=@(() => ApplySignFilterAsync("Positivos")) />
+					<BadgetAutoColor Value="Cero" Click=@(() => ApplySignFilterAsync("Cero")) />
+					<BadgetAutoColor Value="Negativos" Click=@(() => ApplySignFilterAsync("Negativos")) />
 				</div>
 			</RadzenTabsItem>
 
 			<RadzenTabsItem Text="Igual">
 				<div class="d-flex gap-3 align-items-center">
 					<b>Igual</b>
-					<RadzenNumeric Culture=@RegionService.Culture TValue="Decimal" Format="0.##################" @bind-Value="Igual" Style="width: 100px" />
-					<RadzenButton Text="Aplicar" Click=@(() => SetFilter("Igual")) />
+					<RadzenNumeric @bind-Value="exactValue" Style="width: 100px" />
+					<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Equals")) />
 				</div>
 			</RadzenTabsItem>
 
 			<RadzenTabsItem Text="Rango">
 				<div class="d-flex gap-3 align-items-center">
 					<b>Mayor qué</b>
-					<RadzenNumeric Culture=@RegionService.Culture TValue="Decimal" Format="0.##################" @bind-Value="Minimo" Style="width: 100px" />
+					<RadzenNumeric @bind-Value="minValue" Style="width: 100px" />
 				</div>
 				<div class="d-flex gap-3 align-items-center">
 					<b>Menor qué</b>
-					<RadzenNumeric Culture=@RegionService.Culture TValue="Decimal" Format="0.##################" @bind-Value="Maximo" Style="width: 100px" />
-					<RadzenButton Text="Aplicar" Click=@(() => SetFilter("Rango")) />
+					<RadzenNumeric @bind-Value="maxValue" Style="width: 100px" />
+					<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Range")) />
 				</div>
 			</RadzenTabsItem>
 		</Tabs>
@@ -37,18 +37,18 @@
 </div>
 
 @code {
-	decimal Igual;
-	decimal Minimo;
-	decimal Maximo;
+	int exactValue;
+	int minValue;
+	int maxValue;
 
 	[Parameter]
 	public DinaupFieldDTO Column { get; set; }
 	[Parameter]
 	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
 
-	async Task AplicarFiltroSigno(string signo)
+	async Task ApplySignFilterAsync(string sign)
 	{
-		switch (signo)
+		switch (sign)
 		{
 			case "Positivos":
 				DataColumn.ClearFilters();
@@ -71,22 +71,22 @@
 		}
 	}
 
-	async Task SetFilter(string tipoFiltro)
+	async Task ApplyFilterAsync(string filterType)
 	{
-		if (tipoFiltro == "Rango" && Minimo != default && Maximo != default)
+		if (filterType == "Range" && minValue != default && maxValue != default)
 		{
 			DataColumn.ClearFilters();
 			DataColumn.SetFilterOperator(FilterOperator.GreaterThanOrEquals);
 			DataColumn.SetSecondFilterOperator(FilterOperator.LessThanOrEquals);
-			DataColumn.SetFilterValue(Minimo.ToSQL());
-			await DataColumn.SetFilterValueAsync(Maximo.ToSQL(), false);
+			DataColumn.SetFilterValue(minValue);
+			await DataColumn.SetFilterValueAsync(maxValue, false);
 			await DataColumn.CloseFilter();
 		}
-		else if (tipoFiltro == "Igual" && Igual != default)
+		else if (filterType == "Equals" && exactValue != default)
 		{
 			DataColumn.ClearFilters();
 			DataColumn.SetFilterOperator(FilterOperator.Equals);
-			await DataColumn.SetFilterValueAsync(Igual.ToSQL());
+			await DataColumn.SetFilterValueAsync(exactValue);
 			await DataColumn.CloseFilter();
 		}
 	}

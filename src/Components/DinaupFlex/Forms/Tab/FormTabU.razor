@@ -14,12 +14,12 @@ else
 
 		@foreach (var control in Tab.Containers.Values)
 		{
-			<ContainerU @key=@control.Token OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Callbacks=Callbacks />
+			<ContainerU @key=@control.Token OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client ReportTemplate=ReportTemplate />
 		}
 
 		@foreach (var currentControl in Tab.Controls ?? new())
 		{
-			<ControlU @key=@currentControl.Token OnDataControlChanged=HandleControlChanged DataControl=currentControl Callbacks=Callbacks />
+			<ControlU @key=@currentControl.Token OnDataControlChanged=HandleControlChanged DataControl=currentControl Client=Client OnFormatearCodigo=OnFormatearCodigo />
 		}
 
 		@foreach (var currentButtom in Tab.Buttons ?? new())
@@ -42,7 +42,9 @@ else
 	[Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.FormDetail> OnOpenListItem { get; set; }
 
-	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
+	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 
 
@@ -57,19 +59,6 @@ else
 
 
 
-
-	DateTime _OnInitialized = DateTime.Now;
-	protected override void OnInitialized()
-	{
-
-		_OnInitialized = DateTime.Now;
-		base.OnInitialized();
-	}
-
-	protected override Task OnInitializedAsync()
-	{
-		return base.OnInitializedAsync();
-	}
 
 	private Task HandleRequiereGuardar(string mensaje)
 	{

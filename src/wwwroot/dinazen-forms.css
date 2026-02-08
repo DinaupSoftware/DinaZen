@@ -888,7 +888,7 @@ textarea.rz-textarea {
 
 .dnz-form-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     padding: 10px 16px;
     background: var(--dnz-header-bg);
@@ -1172,6 +1172,17 @@ textarea.rz-textarea {
     border-radius: 0 !important;
 }
 
+.dnz-report-body table {
+    width: auto;
+    table-layout: auto;
+}
+
+.dnz-report-body th,
+.dnz-report-body td {
+    white-space: nowrap;
+    word-break: keep-all;
+}
+
 .dnz-report-body .rz-datatable-thead th {
     font-size: 11px;
     font-weight: 600;
@@ -1195,4 +1206,147 @@ textarea.rz-textarea {
 
 .dnz-report-body .rz-datatable-tbody tr.rz-state-highlight td {
     background: rgba(52, 129, 229, .06);
+}
+
+
+/* ================================================================
+   23. FILE UPLOADER  (.dnz-file-*)
+   ================================================================ */
+
+/* ── Container ── */
+.dnz-file-uploader {
+    width: 100%;
+    height: 100%;
+    min-height: 60px;
+}
+
+/* ── Dropzone (label wrapping hidden input) ── */
+.dnz-file-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    min-height: 60px;
+    border: 2px dashed var(--dnz-input-border);
+    border-radius: var(--dnz-container-radius);
+    background: var(--dnz-surface);
+    cursor: pointer;
+    transition:
+        border-color var(--dnz-transition),
+        background var(--dnz-transition);
+    padding: 12px;
+    text-align: center;
+}
+
+.dnz-file-dropzone:hover {
+    border-color: var(--dnz-focus-border);
+    background: rgba(52, 129, 229, .02);
+}
+
+/* Dragging state */
+.dnz-file-dragging .dnz-file-dropzone {
+    border-color: var(--dnz-focus-border);
+    background: rgba(52, 129, 229, .06);
+    box-shadow: var(--dnz-focus-ring);
+}
+
+/* Hide native file input */
+.dnz-file-dropzone input[type=file],
+.dnz-file-btn-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Label text */
+.dnz-file-label {
+    font-size: var(--dnz-label-font-size);
+    color: var(--dnz-label-color);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* ── Progress state ── */
+.dnz-file-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    min-height: 60px;
+    padding: 12px;
+}
+
+.dnz-file-progress-text {
+    font-size: var(--dnz-label-font-size);
+    color: var(--dnz-label-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* ── Preview state ── */
+.dnz-file-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    border: 1px solid var(--dnz-header-border);
+    border-radius: var(--dnz-container-radius);
+    background: var(--dnz-surface);
+}
+
+.dnz-file-preview img {
+    max-width: 100%;
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.dnz-file-preview .rz-badge {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* ── Disabled state ── */
+.dnz-file-uploader.dnz-file-disabled .dnz-file-dropzone {
+    opacity: .5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ── Attachment badge (annotations footer) ── */
+.dnz-file-attached-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    background: var(--dnz-surface-raised);
+    border: 1px solid var(--dnz-header-border);
+    border-radius: 4px;
+    color: var(--dnz-input-color);
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dnz-file-attached-badge .rz-button {
+    padding: 0 !important;
+    min-width: auto !important;
+    width: 16px !important;
+    height: 16px !important;
 }

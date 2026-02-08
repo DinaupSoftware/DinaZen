@@ -20,4 +20,11 @@ public class DnzWindowOptions
 	public double InitialHeight { get; set; } = 620;
 	public double MinWidth { get; set; } = 1000;
 	public double MinHeight { get; set; } = 400;
+
+	/// <summary>
+	/// ID predefinido para la ventana (opcional).
+	/// Si se establece, Open() usara este ID en lugar de generar uno nuevo.
+	/// Util para pasar el WindowId como Parameter al contenido antes de abrir.
+	/// </summary>
+	public string PresetId { get; set; }
 }

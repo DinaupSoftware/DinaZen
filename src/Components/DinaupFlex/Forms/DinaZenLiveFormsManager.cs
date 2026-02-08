@@ -21,6 +21,14 @@ public static class DinaZenLiveFormsManager
 		}
 	}
 
+	public static IReadOnlyList<ILiveForm> GetAll()
+	{
+		lock (_forms)
+		{
+			return _forms.ToList();
+		}
+	}
+
 	public static void Unregister(ILiveForm form)
 	{
 		lock (_forms)

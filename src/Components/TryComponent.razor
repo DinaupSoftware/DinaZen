@@ -15,9 +15,9 @@
 	public RenderFragment ChildContent { get; set; } = default!;
 
 	[Parameter]
-	public RenderFragment<Exception>? ErrorContent { get; set; }
+	public RenderFragment<Exception> ErrorContent { get; set; }
 
-	private ErrorBoundary? errorBoundary;
+	private ErrorBoundary errorBoundary;
 
 	public void Recover() => errorBoundary?.Recover();
 }

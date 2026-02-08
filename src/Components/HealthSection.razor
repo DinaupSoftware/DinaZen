@@ -14,7 +14,7 @@ else
 
 @code {
     [Parameter] public string CheckName { get; set; } = string.Empty;
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
 
     private bool _isHealthy = false;
 

@@ -1,0 +1,47 @@
+@namespace DinaZen.Components.DinaupFlex.Annotations
+
+<div class="d-flex gap-1">
+	<RadzenCard Variant="Variant.Outlined" class="flex-grow-1">
+		<h4>Agregar un Comentario</h4>
+		<RadzenTextArea @bind-Value=@mensaje Style="min-height: 100px; width: 100%;" />
+		<RadzenButton class="ml-auto" Icon="send" Text="Comentar" Click=@GuardarComentarioAsync Variant="Variant.Text" />
+	</RadzenCard>
+</div>
+
+
+@code {
+
+	[Parameter, EditorRequired] public Dinaup.DinaupClientC Client { get; set; }
+	[Parameter] public Dictionary<string, string> MencionesDisponibles { get; set; }
+	[Parameter] public EventCallback ComentarioEnviado { get; set; }
+	[Parameter] public System.Guid rowId { get; set; }
+	[Parameter] public System.Guid sectionId { get; set; }
+	[Parameter] public Dinaup.AnnotationTypeE Type { get; set; }
+	public string mensaje;
+
+	async Task GuardarComentarioAsync()
+	{
+		try
+		{
+			await Client.Annotation_PutAsync((new Dinaup.AnotationParameters(sectionId, rowId, Type)).WithText(mensaje));
+
+			mensaje = "";
+
+			try
+			{
+				if (ComentarioEnviado.HasDelegate)
+				{
+					_ = ComentarioEnviado.InvokeAsync();
+				}
+			}
+			catch (Exception)
+			{
+			}
+
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(Radzen.NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+}

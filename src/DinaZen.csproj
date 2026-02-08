@@ -8,7 +8,15 @@
 		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
-
+	<PropertyGroup>
+		<Features>strict</Features>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+	<PropertyGroup>
+		<WarningsAsErrors>CS8618,MA0115</WarningsAsErrors>
+		<WarningsAsErrors>RZ10012,CS8632,CS8669,CS0162</WarningsAsErrors>
+	</PropertyGroup>
 	<ItemGroup>
 	  <Compile Remove="Controllers\**" />
 	  <Content Remove="Controllers\**" />
@@ -26,6 +34,10 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="DemoUp.MyDinaup" Version="10.12.0.2" />
+		<PackageReference Include="Meziantou.Analyzer" Version="2.0.298">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
 		<PackageReference Include="Radzen.Blazor" Version="8.7.5" />
 	</ItemGroup>

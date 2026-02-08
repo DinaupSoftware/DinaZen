@@ -37,5 +37,5 @@
 
 	private string ContainerClass => $"dz-stat-item d-flex flex-row gap-3 align-items-center {Class}";
 	private string ValueClass => $" {ValueSize} m-0";
-	private string? ValueStyle => string.IsNullOrWhiteSpace(ValueColor) ? null : $"color:{ValueColor};";
+	private string ValueStyle => string.IsNullOrWhiteSpace(ValueColor) ? null : $"color:{ValueColor};";
 }

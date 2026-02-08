@@ -5,36 +5,36 @@
 
 @if (Column.BadgetsStyle.IsNotEmpty())
 {
-	<FiltroBadgetU Column=Column DataColumn=DataColumn />
+	<BadgeFilterU Column=Column DataColumn=DataColumn />
 }
 else if (Column.Predefined_Values.IsNotEmpty())
 {
-	<FiltroPredefinedU Column=Column DataColumn=DataColumn />
+	<PredefinedFilterU Column=Column DataColumn=DataColumn />
 }
 else
 {
 	@switch (Column.Format)
 	{
 		case FieldFormatE.INT:
-			<FiltroEnteroU Column=Column DataColumn=DataColumn />
+			<IntegerFilterU Column=Column DataColumn=DataColumn />
 			break;
 		case FieldFormatE.DEC:
-			<FiltroDecimalU Column=Column DataColumn=DataColumn />
+			<DecimalFilterU Column=Column DataColumn=DataColumn />
 			break;
 		case FieldFormatE.DateAndTime:
-			<FiltroDateTimeU Column=Column DataColumn=DataColumn />
+			<DateTimeFilterU Column=Column DataColumn=DataColumn />
 			break;
 		case FieldFormatE.DATE:
-			<FiltroDateU Column=Column DataColumn=DataColumn />
+			<DateFilterU Column=Column DataColumn=DataColumn />
 			break;
 		case FieldFormatE.TIME:
-			<FiltroTimeU Column=Column DataColumn=DataColumn />
+			<TimeFilterU Column=Column DataColumn=DataColumn />
 			break;
 		case FieldFormatE.BOOL:
-			<FiltroBoolU Column=Column DataColumn=DataColumn />
+			<BoolFilterU Column=Column DataColumn=DataColumn />
 			break;
 		default:
-			<FiltroTextU Column=Column DataColumn=DataColumn />
+			<TextFilterU Column=Column DataColumn=DataColumn />
 			break;
 	}
 }

@@ -28,13 +28,12 @@
 
 
 				<div style="width: 100%; flex:1; display: flex; justify-content: center; align-items: center;">
-					@if (Callbacks?.FileUploaderTemplate != null)
-					{
-						@Callbacks.FileUploaderTemplate(EventCallback.Factory.Create<DinaupFileDTO>(this, OnComplete))
-					}
+					<DnzFileUploader Client="@Client"
+									ShowPreview="false"
+									Placeholder="Subir archivo"
+									OnFileUploaded="@OnComplete"
+									OnError="@(msg => NotificationService.Notify(NotificationSeverity.Error, msg))" />
 				</div>
-
-
 
 			}
 			else
@@ -49,10 +48,12 @@
 						{
 							<RadzenButton Icon="close" Size="ButtonSize.Small" Click=@EliminarRelacion></RadzenButton>
 						}
-						@if (Callbacks?.FileUploaderTemplate != null)
-						{
-							@Callbacks.FileUploaderTemplate(EventCallback.Factory.Create<DinaupFileDTO>(this, OnComplete))
-						}
+						<DnzFileUploaderButton Client="@Client"
+											   ButtonText="Cambiar"
+											   ButtonIcon="swap_horiz"
+											   ButtonStyle="ButtonStyle.Light"
+											   ButtonSize="ButtonSize.ExtraSmall"
+											   OnFileUploaded="@OnComplete" />
 					</div>
 
 
@@ -87,7 +88,6 @@
 			<div @ref=elDivX @onclick=@(args => OpenPopup()) style="cursor:pointer" class="dup_input  justify-content-between  dup_input_estandar d-flex align-items-center  align-content-center gap-2 flex-grow-1">
 				@if (ModoCelda == false)
 				{
-					<ControlUIconoU  DataControl=@DataControl Width="16"> </ControlUIconoU>
 					<RadzenLabel ContextMenu=ContextMenuAction  key=@(DataControl.Token + "-eti") style=@($"width:{DataControl.LabelWidth}px") class="labelinput" for="@DataControl.Token">
 						@DataControl.Label
 						<span class="ico_IsModified"></span>
@@ -106,14 +106,6 @@
 			@if (DataControl.Value_Img.IsNotEmpty() && DataControl.Value_Text != "Unidades")
 			{
 				<DynamicRowPreviewIMGU Style="margin-right:12px;zoom:0.9" Class="opacity-75" @key=@(DataControl.Token + "-1343499") Data=DataControl></DynamicRowPreviewIMGU>
-			}
-			else
-			{
-				@if (ModoCelda == false)
-				{
-					<ControlUIconoU  @key=@(DataControl.Token + "-3331")  DataControl=@DataControl Width="22"> </ControlUIconoU>
-				}
-
 			}
 
 			<div Style=" cursor:pointer" @key=@(DataControl.Token + "-2") @ref=elDivX @onclick=@(args => OpenPopup()) class="dup_input  dup_input_estandar d-flex flex-column w-100">
@@ -160,14 +152,14 @@
 						<RadzenButton style="zoom:0.9" @key=@(DataControl.Token + "-3") Icon="close" Variant="Variant.Text" Click=EliminarRelacion ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" />
 					}
 
-					@if (DataControl.TokenList != "" && Callbacks?.OnOpenModalForm != null)
+					@if (DataControl.TokenList != "" && Client != null)
 					{
 						<RadzenButton Click=@(async () => await AccederAsync()) style="zoom:0.9;margin-right:10px" @key=@(DataControl.Token + "-4") 	  Variant="Variant.Text" Icon="open_in_new" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" />
 					}
 				}
 				else
 				{
-					@if (DataControl.TokenList != "" && DataControl.IsLocked == false && Callbacks?.OnOpenFormAddRelation != null)
+					@if (DataControl.TokenList != "" && DataControl.IsLocked == false && Client != null)
 					{
 						<RadzenButton Click=@(async () => await AgregarAsync()) style="zoom:0.9" @key=@(DataControl.Token + "-5") Variant="Variant.Text" Icon="add" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" />
 					}
@@ -210,7 +202,7 @@
 			@if (DataControl.DropDowList != null && DataControl.DropDowList.Any())
 			{
 
-			}else if (Callbacks?.OnBuscarYSeleccionar != null){
+			}else if (Client != null && DataControl.TokenList.IsNotEmpty()){
 				<RadzenIcon Icon="open_in_new" @onclick=@AbrirEnPopUp />
 			}
 			<RadzenTextBox @ref=@txtBoxSearch @onkeydown=@OnKeyDown @key=@(DataControl.Token + "-7") id=@("search" + idSeach)  Placeholder="Escribe para buscar..." Style="width:100%;" @oninput=@(args => {
@@ -233,18 +225,9 @@
 			</div>
 
 		}
-		else if (Callbacks?.ReportSelectorTemplate != null)
+		else if (Client != null && DataControl.TokenList.IsNotEmpty())
 		{
-			@Callbacks.ReportSelectorTemplate(new FormReportSelectorContext
-			{
-				ReportId = DataControl.TokenList,
-				OnSelect = EventCallback.Factory.Create<DinaupDynamicRowDTO>(this, async (x) => { await this.SelectOrder(x); }),
-				AutoSelect = true
-			})
-		}
-		else if (Callbacks?.Client != null && DataControl.TokenList.IsNotEmpty())
-		{
-			<DinaupReportView Client="Callbacks.Client"
+			<DinaupReportView Client="Client"
 							  ReportId="@DataControl.TokenList"
 							  QuerySearch="@searchString"
 							  ShowTitle="false"
@@ -260,24 +243,24 @@
 
 @code {
 
+	// ── Parameters ──
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
+	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+	[Parameter] public EventCallback<MouseEventArgs> ContextMenuAction { get; set; }
+	[Parameter] public bool ModoCelda { get; set; }
 
-	async Task OnKeyDown(KeyboardEventArgs args)
-	{
-		// Keyboard navigation delegated to host via ReportSelectorTemplate
-	}
-
-
-
+	// ── Private fields ──
 	RadzenTextBox txtBoxSearch;
 	ElementReference elDivX;
 	Popup popup;
 	string searchString = "";
+	private string idSeach = Guid.NewGuid().ToString().Replace("-", "");
+	bool subiendoArchivo;
+	double subiendoArchivoProgreso;
+	DinaupFileDTO fileDTO;
 
-
-	protected override async Task OnInitializedAsync()
-	{
-		await base.OnInitializedAsync();
-	}
+	// ── Lifecycle ──
 
 	protected override Task OnParametersSetAsync()
 	{
@@ -285,70 +268,21 @@
 		return base.OnParametersSetAsync();
 	}
 
-
-
-
-	async Task AbrirEnPopUp()
-	{
-		if (Callbacks?.OnBuscarYSeleccionar != null)
-		{
-			var seleccion = await Callbacks.OnBuscarYSeleccionar("Seleccione", DataControl.TokenList);
-			if (seleccion.IsNotNull())
-				await this.SelectOrder(seleccion);
-		}
-	}
-
 	public void Dispose()
 	{
-
 		if (DinaZenFormConfig.DeepDispose)
 		{
 			DataControl = null;
 		}
 	}
 
-	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
-	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
-	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
-
-
-	async Task SelectOrder(VirtualFormDTO.DropDownItem dataRow)
-	{
-		try { await popup.CloseAsync(); } catch (Exception) { }
-		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.Value).WithValueText(dataRow.Title).WithValueImageURL(dataRow.Icon));
-	}
-	async Task SelectOrder(DinaupDynamicRowDTO dataRow)
-	{
-		Console.WriteLine("Select Row (antes):" + DataControl.Value_Text);
-		Console.WriteLine("Select Row (Ahora):" + dataRow.Title);
-		try { await popup.CloseAsync(); } catch (Exception) { }
-		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.ID).WithValueText(dataRow.Title).WithValueImageURL(dataRow.PreviewIMG));
-	}
-
-	async Task EliminarRelacion()
-	{
-		await OnDataControlChanged.InvokeAsync(DataControl.WithValue("").WithValueText(""));
-	}
-	async Task OnOpen()
-	{
-		if (DataControl.IsLocked == false)
-			await JS.InvokeVoidAsync("eval", "setTimeout(function(){ document.getElementById('search" + idSeach + "').focus(); }, 300)");
-	}
-
-	private string idSeach = Guid.NewGuid().ToString().Replace("-", "");
-
-}
-
-
-
-@code {
+	// ── Popup ──
 
 	void OpenPopup()
 	{
 		if (DataControl.IsLocked == false)
 		{
 			popup.ToggleAsync(elDivX);
-
 		}
 		else
 		{
@@ -356,11 +290,97 @@
 		}
 	}
 
+	async Task OnOpen()
+	{
+		if (DataControl.IsLocked == false)
+			await JS.InvokeVoidAsync("eval", "setTimeout(function(){ document.getElementById('search" + idSeach + "').focus(); }, 300)");
+	}
+
+	async Task OnKeyDown(KeyboardEventArgs args)
+	{
+		// Keyboard navigation delegated to host via ReportSelectorTemplate
+	}
+
+	// ── Selection ──
+
+	async Task SelectOrder(VirtualFormDTO.DropDownItem dataRow)
+	{
+		try { await popup.CloseAsync(); } catch { }
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.Value).WithValueText(dataRow.Title).WithValueImageURL(dataRow.Icon));
+	}
+
+	async Task SelectOrder(DinaupDynamicRowDTO dataRow)
+	{
+		try { await popup.CloseAsync(); } catch { }
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.ID).WithValueText(dataRow.Title).WithValueImageURL(dataRow.PreviewIMG));
+	}
+
+	async Task EliminarRelacion()
+	{
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue("").WithValueText(""));
+	}
+
+	async Task AbrirEnPopUp()
+	{
+		if (Client != null && DataControl.TokenList.IsNotEmpty())
+		{
+			var selectedItem = await ItemPickerDialog.OpenAsync(DialogService, Client, DataControl.TokenList);
+			if (selectedItem.IsNotNull())
+				await this.SelectOrder(selectedItem);
+		}
+	}
+
+	// ── Relation actions ──
+
+	async Task AccederAsync()
+	{
+		if (Client != null)
+			await DinaupFormView.OpenAsync(DialogService, Client, DataControl.RelationWithSectionId, DataControl.Value, null);
+	}
+
+	async Task AgregarAsync()
+	{
+		try
+		{
+			if (Client != null)
+			{
+				var result = await Client.OpenedFormAddRelation(DataControl.RelationWithSectionId, DataControl.Token);
+				var tokenForm = result?.TokenForm;
+				if (tokenForm.IsNotEmpty())
+				{
+					var options = new DialogOptions
+					{
+						WrapperCssClass = "dinaupdialogform",
+						Width = "90%",
+						Height = "90%",
+						CloseDialogOnEsc = true,
+						Resizable = true,
+						Draggable = true,
+						CloseDialogOnOverlayClick = false,
+						ShowClose = false,
+						ShowTitle = false
+					};
+
+					await DialogService.OpenAsync<FormByTokenView>("", new Dictionary<string, object>
+					{
+						{ nameof(FormByTokenView.Client), Client },
+						{ nameof(FormByTokenView.Token), tokenForm }
+					}, options);
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
+		}
+	}
+
+	// ── File upload ──
+
 	void OnProgress(UploadProgressArgs args, string name)
 	{
 		if (args.Progress == 100)
 		{
-
 			subiendoArchivo = false;
 			subiendoArchivoProgreso = 0;
 			InvokeAsync(StateHasChanged);
@@ -373,28 +393,19 @@
 		}
 	}
 
-
-
-	void OnChange(UploadChangeEventArgs x)
-	{
-
-
-	}
 	async Task OnComplete(DinaupFileDTO x)
 	{
-
 		try
 		{
 			await OnDataControlChanged.InvokeAsync(DataControl.WithValue(x.Id.STR()).WithValueText(x.Name));
-	_ = 		actualizarInfoArchivoAsync();
-
+			_ = actualizarInfoArchivoAsync();
 		}
 		catch (Exception ex)
 		{
 			NotificationService.Notify(NotificationSeverity.Error, ex.Message);
 		}
 		subiendoArchivo = false;
-	_= 	InvokeAsync(StateHasChanged);
+		_ = InvokeAsync(StateHasChanged);
 	}
 
 	void OnError(UploadErrorEventArgs args)
@@ -403,67 +414,26 @@
 		InvokeAsync(StateHasChanged);
 	}
 
-
-	[Parameter] public EventCallback<MouseEventArgs> ContextMenuAction { get; set; }
-
-	[Parameter] public bool ModoCelda { get; set; }
-
-
-	bool subiendoArchivo;
-	double subiendoArchivoProgreso;
-	DinaupFileDTO fileDTO;
-
-
 	async Task actualizarInfoArchivoAsync()
 	{
-
 		if (fileDTO != null && fileDTO.Id.STR() == DataControl.Value)
+			return;
+
+		if (fileDTO != null && DataControl.Value.IsGUID() == false)
 		{
+			fileDTO = null;
+			_ = InvokeAsync(StateHasChanged);
 			return;
 		}
 
-		if (fileDTO != null &&   DataControl.Value.IsGUID () == false)
-		{
-			fileDTO= null;
-				_ = InvokeAsync(StateHasChanged);
-			return;
-		}
-		if (DataControl.InputType == "file" && Callbacks?.OnFileGet != null)
+		if (DataControl.InputType == "file" && Client != null)
 		{
 			if (DataControl.Value.IsGUID())
 			{
-				FileResponse file = await Callbacks.OnFileGet(DataControl.Value.ToGUID());
+				FileResponse file = await Client.FileGetAsync(DataControl.Value.ToGUID());
 				fileDTO = file.Files.Values.First();
-					_ = InvokeAsync(StateHasChanged);
-			}
-
-		}
-
-	}
-
-
-	async Task AccederAsync()
-	{
-		if (Callbacks?.OnOpenModalForm != null)
-			await Callbacks.OnOpenModalForm(DataControl.RelationWithSectionId, DataControl.Value);
-	}
-
-	async Task AgregarAsync()
-	{
-
-		try
-		{
-			if (Callbacks?.OnOpenFormAddRelation != null && Callbacks?.OnOpenModalFormToken != null)
-			{
-				var tokenForm = await Callbacks.OnOpenFormAddRelation(DataControl.RelationWithSectionId, DataControl.Token);
-				await Callbacks.OnOpenModalFormToken(tokenForm);
+				_ = InvokeAsync(StateHasChanged);
 			}
 		}
-		catch (Exception ex)
-		{
-			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
-		}
-		;
 	}
-
 }

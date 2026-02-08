@@ -104,6 +104,7 @@ public class DnzWindowManagerService
 		// generarian CSS invalido (ej: "791,4px" en vez de "791px")
 		var state = new DnzWindowState
 		{
+			Id = options.PresetId.IsNotEmpty() ? options.PresetId : Guid.NewGuid().ToString("N")[..8],
 			Title = options.Title,
 			Subtitle = options.Subtitle,
 			Icon = options.Icon,

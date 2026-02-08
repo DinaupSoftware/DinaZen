@@ -4,13 +4,13 @@
 @if (DataColumn.IsNull()) return;
 
 <div class="p-4 d-flex flex-column">
-	<RadzenTextBox @bind-Value=@search Placeholder="Buscar..." Style="width: 400px" class="mb-1" />
-	<RadzenButton Text="Aplicar" Click=@(async () => await SetFilterAsync()) />
+	<RadzenTextBox @bind-Value=@searchText Placeholder="Buscar..." Style="width: 400px" class="mb-1" />
+	<RadzenButton Text="Aplicar" Click=@(async () => await ApplyFilterAsync()) />
 	<hr />
 
 	<div class="d-flex gap-3 justify-content-center">
-		<RadzenButton Text="Vacíos" Click=@(async () => await buscarVacios()) />
-		<RadzenButton Text="Rellenados" Click=@(async () => await buscarRellenados()) />
+		<RadzenButton Text="Vacíos" Click=@(async () => await FilterEmptyAsync()) />
+		<RadzenButton Text="Rellenados" Click=@(async () => await FilterFilledAsync()) />
 	</div>
 </div>
 
@@ -21,17 +21,17 @@
 	[Parameter]
 	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
 
-	string search;
+	string searchText;
 
-	async Task SetFilterAsync()
+	async Task ApplyFilterAsync()
 	{
 		DataColumn.ClearFilters();
 		DataColumn.SetFilterOperator(FilterOperator.Contains);
-		await DataColumn.SetFilterValueAsync(search);
+		await DataColumn.SetFilterValueAsync(searchText);
 		await DataColumn.CloseFilter();
 	}
 
-	async Task buscarVacios()
+	async Task FilterEmptyAsync()
 	{
 		DataColumn.ClearFilters();
 		DataColumn.SetFilterOperator(FilterOperator.IsEmpty);
@@ -39,7 +39,7 @@
 		await DataColumn.CloseFilter();
 	}
 
-	async Task buscarRellenados()
+	async Task FilterFilledAsync()
 	{
 		DataColumn.ClearFilters();
 		DataColumn.SetFilterOperator(FilterOperator.IsNotEmpty);

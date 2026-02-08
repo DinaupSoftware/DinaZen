@@ -1,3 +1,4 @@
+@namespace DinaZen.Components.DinaupFlex.Forms
 @using System;
 @using System.Collections.Generic;
 @using System.Reflection;
@@ -16,7 +17,7 @@
 			{
 				@if (tab.TabName == "*")
 				{
-					<FormTabU Tab=tab OnTabChanged=@HandleTabChange Callbacks=Callbacks @key=@(tab.TabToken + "-14")></FormTabU>
+					<FormTabU Tab=tab OnTabChanged=@HandleTabChange Client=Client ReportTemplate=ReportTemplate OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-14")></FormTabU>
 				}
 			}
 		</div>
@@ -28,7 +29,7 @@
 					{
 						<RadzenTabsItem class="h-100" Text="@tab.TabName" @key=@(tab.TabToken + "-93")>
 							<div style="height: 100%;overflow:scroll">
-								<FormTabU OnTabChanged=@HandleTabChange Callbacks=Callbacks @key=@(tab.TabToken + "-94") Tab=tab></FormTabU>
+								<FormTabU OnTabChanged=@HandleTabChange Client=Client ReportTemplate=ReportTemplate OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-94") Tab=tab></FormTabU>
 							</div>
 						</RadzenTabsItem>
 					}
@@ -71,7 +72,9 @@
 
 	[Parameter] public Dinaup.VirtualFormDTO.FormDetail FormList { get; set; }
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
-	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
+	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 	/// <summary>
 	/// Subscribe to external form change events. The host app should call the provided Action

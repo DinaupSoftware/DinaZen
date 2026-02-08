@@ -19,7 +19,7 @@
 	{
 
 
-		<FormSelectorRelacionControlU ContextMenuAction=ShowContextMenuWithItems ModoCelda=@ModoCelda OnDataControlChanged=HandleDatacontrolChanged @key=@(DataControl.Token + "-valor") DataControl=DataControl Callbacks=Callbacks />
+		<FormSelectorRelacionControlU ContextMenuAction=ShowContextMenuWithItems ModoCelda=@ModoCelda OnDataControlChanged=HandleDatacontrolChanged @key=@(DataControl.Token + "-valor") DataControl=DataControl Client=Client />
 
 
 	}
@@ -241,9 +241,23 @@
 
 @code {
 
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
+	[Parameter] public bool ModoCelda { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
+	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+
+	public void Dispose()
+	{
+		if (DinaZenFormConfig.DeepDispose)
+		{
+			DataControl = null;
+		}
+	}
+
 	void ShowContextMenuWithItems(MouseEventArgs args)
 	{
-		if (Callbacks?.OnVerHistorial == null && Callbacks?.Client == null) return;
+		if (Client == null) return;
 
 		ContextMenuService.Open(args,
 			new List<ContextMenuItem> {
@@ -260,29 +274,8 @@
 		}
 	}
 
-}
-
-
-@code {
-
-	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
-	[Parameter] public bool ModoCelda { get; set; }
-	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
-	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
-
-
-	public void Dispose()
-	{
-
-		if (DinaZenFormConfig.DeepDispose)
-		{
-			DataControl = null;
-		}
-	}
-
 	async Task HandleDatacontrolChangedDatePicket(Dinaup.VirtualFormDTO.Control controlChanged)
 	{
-
 		if (controlChanged.Value.IsNotEmpty() && controlChanged.FormatEnum == FieldFormatE.DateAndTime)
 		{
 			var fechaX = controlChanged.Value.ToDateDesdeMySQLNulable();
@@ -292,51 +285,34 @@
 
 		await HandleDatacontrolChanged(controlChanged);
 	}
+
 	async Task HandleDatacontrolChanged(Dinaup.VirtualFormDTO.Control controlChanged)
 	{
 		DataControl = controlChanged;
 		await OnDataControlChanged.InvokeAsync(controlChanged);
 	}
 
-
-
 	async Task controlKeyUp(KeyboardEventArgs eventArgs, Dinaup.VirtualFormDTO.Control controlChanged)
 	{
-
-
-		if (controlChanged.FieldRole == RoleFieldE.CodigoSubcuenta && Callbacks?.OnFormatearCodigo != null)
+		if (controlChanged.FieldRole == RoleFieldE.CodigoSubcuenta && OnFormatearCodigo != null)
 		{
-
-
 			if (eventArgs.Key == "Enter")
 			{
-
-				var nuevoValor = await Callbacks.OnFormatearCodigo(controlChanged.Value);
-
+				var nuevoValor = await OnFormatearCodigo(controlChanged.Value);
 				if (nuevoValor != controlChanged.Value)
 				{
 					controlChanged.Value = nuevoValor;
 					await OnDataControlChanged.InvokeAsync(controlChanged);
-
 				}
-
 			}
-
 		}
-
-
 	}
 
 	public async Task VerHistorial()
 	{
-		if (Callbacks?.OnVerHistorial != null)
+		if (Client != null)
 		{
-			await Callbacks.OnVerHistorial(DataControl.ParentForm.Section.ID, DataControl.ParentForm.RowID.ToGUID(), DataControl.Id);
-		}
-		else if (Callbacks?.Client != null)
-		{
-			await DinaZen.Dialogs.HistoricoDialog.Open(DialogService, Callbacks.Client, DataControl.ParentForm.Section.ID, DataControl.ParentForm.RowID.ToGUID(), DataControl.Id);
+			await DinaZen.Dialogs.HistoricoDialog.Open(DialogService, Client, DataControl.ParentForm.Section.ID, DataControl.ParentForm.RowID.ToGUID(), DataControl.Id);
 		}
 	}
-
 }

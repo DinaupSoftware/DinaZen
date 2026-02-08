@@ -93,10 +93,28 @@
 		</div>
 	</BodyContent>
 	<FooterContent>
+		@if (_pendingFileId != Guid.Empty)
+		{
+			<div class="d-flex align-items-center gap-1" style="padding:4px 16px 0">
+				<span class="dnz-file-attached-badge">
+					<RadzenIcon Icon="attachment" Style="font-size:13px" />
+					@_pendingFileName
+					<RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Text"
+								  ButtonStyle="ButtonStyle.Danger" Style="padding:0"
+								  Click="@(() => { _pendingFileId = Guid.Empty; _pendingFileName = null; })" />
+				</span>
+			</div>
+		}
 		<div class="dnz-annotations-input">
 			<RadzenTextBox @bind-Value="@_newMessage" Placeholder="@GetInputPlaceholder()" Style="flex:1" />
+			<DnzFileUploaderButton Client="@Client"
+								   ButtonIcon="attach_file"
+								   ButtonStyle="ButtonStyle.Light"
+								   ButtonSize="ButtonSize.Small"
+								   OnFileUploaded="@OnFileAttached"
+								   OnError="@(msg => NotificationService.Notify(NotificationSeverity.Error, msg))" />
 			<RadzenButton Icon="send" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small"
-						  Click="SendAnnotation" Disabled="@(_newMessage.IsEmpty())" IsBusy="@_isSending" />
+						  Click="SendAnnotation" Disabled="@(_newMessage.IsEmpty() && _pendingFileId == Guid.Empty)" IsBusy="@_isSending" />
 		</div>
 		<div class="d-flex justify-content-end align-items-center" style="margin-right:20px; margin-top:4px">
 			<RadzenButton Click="@(() => DialogService.Close())" ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" />
@@ -117,6 +135,8 @@
 	private bool _isLoading = true;
 	private bool _isSending = false;
 	private string _newMessage = "";
+	private Guid _pendingFileId = Guid.Empty;
+	private string _pendingFileName;
 
 	private static readonly AnnotationTypeE[] _tabTypes = { AnnotationTypeE.Comments, AnnotationTypeE.Files, AnnotationTypeE.PublicGallery };
 
@@ -156,18 +176,35 @@
 		}
 	}
 
+	private void OnFileAttached(DinaupFileDTO file)
+	{
+		if (file != null)
+		{
+			_pendingFileId = file.Id;
+			_pendingFileName = file.Name;
+		}
+		StateHasChanged();
+	}
+
 	private async Task SendAnnotation()
 	{
-		if (_newMessage.IsEmpty() || _isSending) return;
+		if (_newMessage.IsEmpty() && _pendingFileId == Guid.Empty) return;
+		if (_isSending) return;
 
 		_isSending = true;
 		StateHasChanged();
 
 		try
 		{
-			var parameters = new AnotationParameters(SectionId, RowId, _currentType).WithText(_newMessage);
+			var parameters = new AnotationParameters(SectionId, RowId, _currentType);
+			if (_newMessage.IsNotEmpty())
+				parameters.WithText(_newMessage);
+			if (_pendingFileId != Guid.Empty)
+				parameters.WithFile(_pendingFileId);
 			await Client.Annotation_PutAsync(parameters);
 			_newMessage = "";
+			_pendingFileId = Guid.Empty;
+			_pendingFileName = null;
 			await LoadAnnotations();
 		}
 		catch (Exception ex)

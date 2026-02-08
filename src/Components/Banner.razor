@@ -32,27 +32,27 @@
 	/// <summary>
 	/// Icono Material Symbols (ej: "favorite", "update", "bolt")
 	/// </summary>
-	[Parameter] public string? Icon { get; set; }
+	[Parameter] public string  Icon { get; set; }
 
 	/// <summary>
 	/// Título principal del banner
 	/// </summary>
-	[Parameter] public string? Title { get; set; }
+	[Parameter] public string Title { get; set; }
 
 	/// <summary>
 	/// Contenido HTML del banner (párrafos, strong, etc.)
 	/// </summary>
-	[Parameter] public RenderFragment? ChildContent { get; set; }
+	[Parameter] public RenderFragment  ChildContent { get; set; }
 
 	/// <summary>
 	/// Texto del botón de acción
 	/// </summary>
-	[Parameter] public string? ButtonText { get; set; }
+	[Parameter] public string  ButtonText { get; set; }
 
 	/// <summary>
 	/// URL de destino del botón
 	/// </summary>
-	[Parameter] public string? ButtonUrl { get; set; }
+	[Parameter] public string  ButtonUrl { get; set; }
 
 	/// <summary>
 	/// Abrir enlace en nueva pestaña (default: true)
@@ -67,7 +67,7 @@
 	/// <summary>
 	/// Clases CSS adicionales
 	/// </summary>
-	[Parameter] public string? AdditionalClass { get; set; }
+	[Parameter] public string  AdditionalClass { get; set; }
 
 	private string GetBannerClass()
 	{

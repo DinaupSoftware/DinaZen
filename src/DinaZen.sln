@@ -5,8 +5,6 @@ VisualStudioVersion = 18.3.11206.111
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DinaZen", "DinaZen.csproj", "{0DC060FE-943A-5461-E359-BD5F16952F61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DinaZen.Demo", "..\samples\DinaZen.Demo\DinaZen.Demo.csproj", "{5241A531-FFB8-445F-B2AE-8FEB328054E0}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{0DC060FE-943A-5461-E359-BD5F16952F61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DC060FE-943A-5461-E359-BD5F16952F61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DC060FE-943A-5461-E359-BD5F16952F61}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5241A531-FFB8-445F-B2AE-8FEB328054E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5241A531-FFB8-445F-B2AE-8FEB328054E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5241A531-FFB8-445F-B2AE-8FEB328054E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5241A531-FFB8-445F-B2AE-8FEB328054E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

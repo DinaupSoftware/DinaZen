@@ -8,15 +8,15 @@
 
 	@for (int i = 0; i < Column.Predefined_Text.Count; i++)
 	{
-		var posX = i;
+		var index = i;
 
 		<div style="cursor:pointer">
-			<div class="d-flex gap-2" onclick=@(() => SetFilter(posX)) style="cursor:pointer">
-				@if (Column.Predefined_Icons.IsNotEmpty() && Column.Predefined_Icons[posX].IsNotEmpty())
+			<div class="d-flex gap-2" onclick=@(() => ApplyFilterAsync(index)) style="cursor:pointer">
+				@if (Column.Predefined_Icons.IsNotEmpty() && Column.Predefined_Icons[index].IsNotEmpty())
 				{
-					<img src=@Column.Predefined_Icons[posX] width="32px" height="32px" />
+					<img src=@Column.Predefined_Icons[index] width="32px" height="32px" />
 				}
-				<span> @Column.Predefined_Text[posX] </span>
+				<span> @Column.Predefined_Text[index] </span>
 			</div>
 		</div>
 	}
@@ -24,8 +24,8 @@
 	<hr />
 
 	<div class="d-flex gap-3 justify-content-center">
-		<RadzenButton Text="Vacíos" Click=@(async () => await buscarVacios()) Size="ButtonSize.Small" />
-		<RadzenButton Text="Rellenados" Click=@(async () => await buscarRellenados()) Size="ButtonSize.Small" />
+		<RadzenButton Text="Vacíos" Click=@(async () => await FilterEmptyAsync()) Size="ButtonSize.Small" />
+		<RadzenButton Text="Rellenados" Click=@(async () => await FilterFilledAsync()) Size="ButtonSize.Small" />
 	</div>
 </div>
 
@@ -36,7 +36,7 @@
 	[Parameter]
 	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
 
-	async Task SetFilter(int v)
+	async Task ApplyFilterAsync(int v)
 	{
 		if (Column.Predefined_Values.IsNotEmpty())
 			await DataColumn.SetFilterValueAsync(Column.Predefined_Values[v]);
@@ -44,14 +44,14 @@
 		await DataColumn.CloseFilter();
 	}
 
-	async Task buscarVacios()
+	async Task FilterEmptyAsync()
 	{
 		DataColumn.SetFilterOperator(FilterOperator.IsEmpty);
 		await DataColumn.SetFilterValueAsync("a");
 		await DataColumn.CloseFilter();
 	}
 
-	async Task buscarRellenados()
+	async Task FilterFilledAsync()
 	{
 		DataColumn.SetFilterOperator(FilterOperator.IsNotEmpty);
 		await DataColumn.SetFilterValueAsync("a");

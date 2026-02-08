@@ -47,7 +47,7 @@
 @code {
 	[Parameter] public string Title { get; set; } = "";
 	[Parameter] public string Icon { get; set; } = "";
-	[Parameter] public RenderFragment? ChildContent { get; set; }
+	[Parameter] public RenderFragment ChildContent { get; set; }
 	[Parameter] public bool Loading { get; set; }
 	[Parameter] public DateRangeSelector.DateRangePreset DefaultPreset { get; set; } = DateRangeSelector.DateRangePreset.Last7Days;
 	[Parameter] public EventCallback<DateRangeSelector.DateRangePreset> PresetChanged { get; set; }

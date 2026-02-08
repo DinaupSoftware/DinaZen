@@ -1,6 +1,8 @@
 @namespace DinaZen.Components.DinaupFlex.Forms
 @implements IDisposable
 @implements ILiveForm
+@inject DnzWindowManagerService WindowManagerRef
+@inject DinaZenInterceptorService Interceptor
 
 @if (_isLoading)
 {
@@ -74,7 +76,10 @@ else if (_virtualForm.IsNotNull())
 				<FormTabU @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-star")
 						  Tab="tab"
 						  OnTabChanged="HandleTabChange"
-						  Callbacks="_callbacks" />
+						  OnAddItem="HandleAddItem"
+						  OnOpenListItem="HandleOpenListItem"
+						  OnDeleteItemPrimaryList="HandleDeleteListItem"
+						  Client="Client" ReportTemplate="ReportTemplate" OnFormatearCodigo="OnFormatearCodigo" />
 			}
 		</div>
 
@@ -89,7 +94,10 @@ else if (_virtualForm.IsNotNull())
 							<FormTabU @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-tabu")
 									  Tab="tab"
 									  OnTabChanged="HandleTabChange"
-									  Callbacks="_callbacks" />
+									  OnAddItem="HandleAddItem"
+									  OnOpenListItem="HandleOpenListItem"
+									  OnDeleteItemPrimaryList="HandleDeleteListItem"
+									  Client="Client" ReportTemplate="ReportTemplate" OnFormatearCodigo="OnFormatearCodigo" />
 						</RadzenTabsItem>
 					}
 				</Tabs>
@@ -110,9 +118,23 @@ else if (_virtualForm.IsNotNull())
 			}
 		</div>
 
-		@* ── Footer with Save / Cancel ── *@
+		@* ── Footer with Extensions + Save / Cancel ── *@
 		<div class="dnz-form-footer">
-			<div class="d-flex justify-content-end align-items-center gap-2 w-100">
+			@* -- Extension buttons (left) -- *@
+			<div class="d-flex align-items-center gap-1">
+				@foreach (var ext in _extensionButtons)
+				{
+					var capturedExt = ext;
+					<RadzenButton Size="ButtonSize.Small"
+								  ButtonStyle="ButtonStyle.Light"
+								  Icon="@capturedExt.Icon"
+								  Text="@capturedExt.Title"
+								  IsBusy="@capturedExt._isBusy"
+								  Click="@(() => RunExtension(capturedExt))" />
+				}
+			</div>
+			@* -- Save / Cancel (right) -- *@
+			<div class="d-flex align-items-center gap-2">
 				@if (_isSaving)
 				{
 					<Loader />
@@ -183,9 +205,14 @@ else if (_errorMessage.IsNotEmpty())
 	[Parameter] public string UserId { get; set; } = "";
 
 	/// <summary>
-	/// Callbacks opcionales para personalizar el comportamiento del formulario.
+	/// Template para renderizar reportes embebidos en containers.
 	/// </summary>
-	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
+	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
+
+	/// <summary>
+	/// Callback para formatear codigos contables (subcuenta).
+	/// </summary>
+	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 	/// <summary>
 	/// Se dispara cuando el formulario se cierra, con el resultado.
@@ -199,31 +226,18 @@ else if (_errorMessage.IsNotEmpty())
 	[Parameter] public EventCallback<DinaupAnnotationRequest> OnAnnotationOpen { get; set; }
 
 	/// <summary>
-	/// CascadingParameter: true cuando el form esta dentro de un DnzWindow.
+	/// ID de la ventana DnzWindow que contiene este form (opcional).
+	/// Si tiene valor, el form esta dentro de una ventana flotante.
 	/// </summary>
-	[CascadingParameter(Name = "IsInsideWindow")] public bool IsInsideWindow { get; set; }
+	[Parameter] public string WindowId { get; set; }
 
-	/// <summary>
-	/// CascadingParameter: ID de la ventana cuando esta dentro de un DnzWindow.
-	/// </summary>
-	[CascadingParameter(Name = "WindowId")] public string WindowId { get; set; }
-
-	/// <summary>
-	/// CascadingParameter: Action para cerrar la ventana contenedora.
-	/// </summary>
-	[CascadingParameter(Name = "CloseWindow")] public Action CloseWindowAction { get; set; }
-
-	/// <summary>
-	/// CascadingParameter: Referencia al WindowManager (para actualizar titulo/icono).
-	/// </summary>
-	[CascadingParameter(Name = "WindowManager")] public DnzWindowManagerService WindowManagerRef { get; set; }
+	private bool IsInsideWindow => WindowId.IsNotEmpty();
 
 	private VirtualFormDTO _virtualForm;
 	private bool _isLoading = false;
 	private bool _isSaving = false;
 	private string _errorMessage = "";
 	private string _successMessage = "";
-	private DinaZenFormCallbacks _callbacks;
 	private string _loadedSectionId;
 	private string _loadedDatoId;
 	private bool _hasChanges = false;
@@ -231,12 +245,7 @@ else if (_errorMessage.IsNotEmpty())
 	private bool _isNewRecord = false;
 	private DateTime _lastCompletedSync = DateTime.UtcNow;
 	private bool _isRegistered = false;
-
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		InitCallbacks();
-	}
+	private List<FormExtensionButton> _extensionButtons = new();
 
 	protected override async Task OnParametersSetAsync()
 	{
@@ -249,34 +258,6 @@ else if (_errorMessage.IsNotEmpty())
 			{
 				await LoadForm();
 			}
-		}
-	}
-
-	private void InitCallbacks()
-	{
-		if (Callbacks != null)
-		{
-			_callbacks = Callbacks;
-		}
-		else
-		{
-			_callbacks = new DinaZenFormCallbacks
-			{
-				CanAddNewItem = () => false,
-				CanDeleteItem = (row) => false
-			};
-		}
-
-		_callbacks.Client ??= Client;
-
-		// Wire up OnOpenModalForm for "Acceder" button on relation fields
-		// This opens the related record in a nested modal using DinaupFormView.OpenAsync
-		if (_callbacks.OnOpenModalForm == null)
-		{
-			_callbacks.OnOpenModalForm = async (sectionId, datoId) =>
-			{
-				await OpenAsync(DialogService, Client, sectionId, datoId, Callbacks);
-			};
 		}
 	}
 
@@ -317,7 +298,7 @@ else if (_errorMessage.IsNotEmpty())
 			_isNewRecord = _virtualForm.MainForm.RowID.IsEmpty();
 
 			// Actualizar titulo/icono de la ventana si esta dentro de una
-			if (IsInsideWindow && WindowManagerRef != null && WindowId.IsNotEmpty())
+			if (IsInsideWindow)
 			{
 				var sectionLabel = _virtualForm.MainForm.Section?.Label ?? "";
 				var formTitle = _virtualForm.Title ?? "";
@@ -339,6 +320,15 @@ else if (_errorMessage.IsNotEmpty())
 				_isRegistered = true;
 				_lastCompletedSync = DateTime.UtcNow;
 			}
+
+			// Cargar extensiones dinamicas del host
+			_extensionButtons = await Interceptor.GetFormExtensionsAsync(new FormExtensionsRequest
+			{
+				SectionId = _loadedSectionId ?? "",
+				RowId = DatoId ?? "",
+				IsNew = _isNewRecord,
+				Client = Client
+			});
 		}
 		catch (Exception ex)
 		{
@@ -428,14 +418,24 @@ else if (_errorMessage.IsNotEmpty())
 					Title = _virtualForm?.MainForm?.Tabs?.FirstOrDefault(t => t.TabName == "*")?.Controls?.FirstOrDefault()?.Value ?? ""
 				};
 
+				// Interceptor: si devuelve true, no cerrar el form
+				if (await Interceptor.TryFormSavedAsync(new FormSavedRequest
+				{
+					SectionId = result.SectionId,
+					RowId = result.RowId,
+					Title = result.Title,
+					WasNew = wasNew,
+					Client = Client
+				})) return;
+
 				_virtualForm = null;
 				_loadedSectionId = null;
 				_loadedDatoId = null;
 				_hasChanges = false;
 
-				if (IsInsideWindow && CloseWindowAction != null)
+				if (IsInsideWindow)
 				{
-					try { CloseWindowAction.Invoke(); } catch { }
+					try { WindowManagerRef.Close(WindowId); } catch { }
 				}
 				else
 				{
@@ -454,6 +454,28 @@ else if (_errorMessage.IsNotEmpty())
 		finally
 		{
 			_isSaving = false;
+			StateHasChanged();
+		}
+	}
+
+	// ── Extension buttons ──
+
+	private async Task RunExtension(FormExtensionButton ext)
+	{
+		if (ext.OnClick == null) return;
+		ext._isBusy = true;
+		StateHasChanged();
+		try
+		{
+			await ext.OnClick();
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+		finally
+		{
+			ext._isBusy = false;
 			StateHasChanged();
 		}
 	}
@@ -529,7 +551,7 @@ else if (_errorMessage.IsNotEmpty())
 			{ "Fields", allFields }
 		};
 
-		await DialogService.OpenAsync<DinaupFormInspector>(null, parameters, new DialogOptions
+		await DialogService.OpenAsync<DinaupFormInspectorDialog>(null, parameters, new DialogOptions
 		{
 			Width = "700px",
 			Height = "80%",
@@ -585,9 +607,9 @@ else if (_errorMessage.IsNotEmpty())
 		_hasChanges = false;
 
 		// Cerrar el contenedor (Dialog o Window)
-		if (IsInsideWindow && CloseWindowAction != null)
+		if (IsInsideWindow)
 		{
-			try { CloseWindowAction.Invoke(); } catch { }
+			try { WindowManagerRef.Close(WindowId); } catch { }
 		}
 		else
 		{
@@ -596,6 +618,86 @@ else if (_errorMessage.IsNotEmpty())
 
 		StateHasChanged();
 		await OnClosed.InvokeAsync(result);
+	}
+
+	// ── Public API para integraciones ──
+
+	/// <summary>
+	/// Formulario virtual actual (lectura).
+	/// </summary>
+	public VirtualFormDTO VirtualForm => _virtualForm;
+
+	/// <summary>
+	/// Agrega un nuevo item a la lista del formulario.
+	/// </summary>
+	public async Task List_AddNewItem(Dictionary<string, string> addValues = null)
+	{
+		if (_sessionExpired || _virtualForm == null || Client == null) return;
+
+		try
+		{
+			await SyncForm(await Client.FormNewListItem(_virtualForm, addValues));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task HandleAddItem()
+	{
+		await List_AddNewItem();
+	}
+
+	private async Task HandleOpenListItem(VirtualFormDTO.FormDetail formList)
+	{
+		if (_sessionExpired || formList == null) return;
+
+		try
+		{
+			var tabCallback = EventCallback.Factory.Create<VirtualFormDTO.Tab>(this, HandleTabChange);
+			var parameters = new Dictionary<string, object>
+			{
+				{ nameof(FormListU.FormList), formList },
+				{ nameof(FormListU.OnTabChanged), tabCallback },
+				{ nameof(FormListU.Client), Client },
+				{ nameof(FormListU.ReportTemplate), ReportTemplate },
+			};
+			if (OnFormatearCodigo != null)
+				parameters.Add(nameof(FormListU.OnFormatearCodigo), OnFormatearCodigo);
+
+			var options = new DialogOptions
+			{
+				ShowClose = false,
+				ShowTitle = false,
+				Width = "70%",
+				Height = "70%",
+				CloseDialogOnEsc = true,
+				Resizable = true,
+				Draggable = true,
+				CloseDialogOnOverlayClick = false
+			};
+
+			await DialogService.OpenAsync<FormListU>("", parameters, options);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task HandleDeleteListItem(string tokenListId)
+	{
+		if (_sessionExpired || _virtualForm == null || Client == null) return;
+
+		try
+		{
+			await SyncForm(await Client.FormRemoveListItem(_virtualForm, tokenListId));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
 	}
 
 	// ── LiveForms (Ping) ──
@@ -646,7 +748,7 @@ else if (_errorMessage.IsNotEmpty())
 		DinaupClientC client,
 		string sectionId,
 		string datoId = "",
-		DinaZenFormCallbacks callbacks = null,
+		RenderFragment<string> reportTemplate = null,
 		string title = "",
 		string width = "1000px",
 		string height = "85%")
@@ -658,8 +760,8 @@ else if (_errorMessage.IsNotEmpty())
 			{ nameof(DatoId), datoId ?? "" }
 		};
 
-		if (callbacks != null)
-			parameters.Add(nameof(Callbacks), callbacks);
+		if (reportTemplate != null)
+			parameters.Add(nameof(ReportTemplate), reportTemplate);
 
 		var options = new DialogOptions
 		{
@@ -699,23 +801,24 @@ else if (_errorMessage.IsNotEmpty())
 		DinaupClientC client,
 		string sectionId,
 		string datoId = "",
-		DinaZenFormCallbacks callbacks = null,
 		string title = "",
 		string icon = "")
 	{
+		var windowId = Guid.NewGuid().ToString("N")[..8];
+
 		RenderFragment content = builder =>
 		{
 			builder.OpenComponent<DinaupFormView>(0);
 			builder.AddAttribute(1, nameof(Client), client);
 			builder.AddAttribute(2, nameof(SectionId), sectionId);
 			builder.AddAttribute(3, nameof(DatoId), datoId ?? "");
-			if (callbacks != null)
-				builder.AddAttribute(4, nameof(Callbacks), callbacks);
+			builder.AddAttribute(4, nameof(WindowId), windowId);
 			builder.CloseComponent();
 		};
 
 		var options = new DnzWindowOptions
 		{
+			PresetId = windowId,
 			Title = title.IsNotEmpty() ? title : "Formulario",
 			Icon = icon,
 			InitialWidth = 1020,

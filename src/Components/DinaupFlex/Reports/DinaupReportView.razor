@@ -1,39 +1,35 @@
 @namespace DinaZen.Components.DinaupFlex.Reports
 @using DinaZen.Components.DinaupFlex.ResponseQuestions
 @using DinaZen.Components.DinaupFlex.Reports.Filters
+@inject DnzWindowManagerService WindowManager
+@inject DinaZenInterceptorService Interceptor
 
-@if (_isLoading)
-{
+@if (_isLoading) {
 	<Loader />
-}
-else if (_showResponse && _report?.VariableList?.Variables != null)
-{
-	<ResponseQuestions Variables="@_report.VariableList.Variables"
-					  VariableValues="@(VariablesValues ?? new())"
-					  OnConfirm="@HandleVariableConfirm" />
-}
-else if (_dataList != null)
-{
+} else if (_showResponse && _report?.VariableList?.Variables != null) {
+	<ResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
+} else if (_dataList != null) {
 	<div class="dnz-report-view">
-		@if (ShowTitle)
-		{
+		@if (ShowTitle) {
 			<div class="dnz-report-header">
-				@if (_dataList.Section.IsNotNull())
-				{
-					<img onerror="this.src='https://cdn.dinaup.com/up/202505/bullet.svg'"
-						 src="@($"https://cdn.dinaup.com/public/{_dataList.Section.IconoID.STR()}.png")"
-						 width="20" height="20" style="border-radius:4px" />
+				@if (_dataList.Section.IsNotNull()) {
+					<img onerror="this.src='https://cdn.dinaup.com/up/202505/bullet.svg'" src="@($"https://cdn.dinaup.com/public/{_dataList.Section.IconoID.STR()}.png")" width="20" height="20" style="border-radius:4px" />
 				}
 				<span>@Title.IfIsEmpty(_dataList.Title)</span>
 
 				<div class="d-flex align-items-center gap-2 ms-auto">
-					@if (ShowSearch)
-					{
+					@if (ToolBarTemplate != null) {
+						@ToolBarTemplate
+					}
+					@if (ShowAdd && _dataList?.Section != null) {
+						<RadzenButton Variant="Variant.Text" Icon="add" Size="ButtonSize.Small"
+									  Click="@HandleAddClick" />
+					}
+					@if (ShowSearch) {
 						<RadzenTextBox Placeholder="Buscar..." Style="max-width:300px"
 									   Change="@UpdateSearch" />
 					}
-					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small"
-								  Click="@(async () => await UpdateAsync())" />
+					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
 				</div>
 			</div>
 		}
@@ -51,21 +47,16 @@ else if (_dataList != null)
 							LogicalFilterOperator="LogicalFilterOperator.And"
 							RowSelect="@HandleRowSelect"
 							AllowColumnResize="true"
-							ShowPagingSummary="true"
-							KeyProperty="ID">
+							ShowPagingSummary="true" KeyProperty="ID">
 				<Columns>
 
-					@foreach (var col in _dataList.Columns.Where(c => !c.isColumnHidden))
-					{
-						switch (col.Format)
-						{
+					@foreach (var col in _dataList.Columns.Where(c => !c.isColumnHidden)) {
+						switch (col.Format) {
 							case FieldFormatE.DEC when col.Role == RoleFieldE.Moneda:
 
-								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)" Width="@ColWidth(col)"
-													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label" Property="@PropExpr(col)" Width="@ColWidth(col)" CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
-										<FiltroU Column=@col DataColumn=@data />
+										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
 									<Template Context="row">
 										<SpanMoney Amount="@row.GetDec(col.Keyword)" AutoColorRed=true />
@@ -82,15 +73,12 @@ else if (_dataList != null)
 													  Property="@PropExpr(col)" Width="@ColWidth(col)"
 													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
-										<FiltroU Column=@col DataColumn=@data />
+										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
 									<Template Context="row">
-										@if (col.Role == RoleFieldE.Minutos)
-										{
+										@if (col.Role == RoleFieldE.Minutos) {
 											<SpanMinutes Value=@row.GetDec(col.Keyword) />
-										}
-										else
-										{
+										} else {
 											<SpanDecimal Value="@row.GetDec(col.Keyword)" />
 										}
 									</Template>
@@ -106,15 +94,12 @@ else if (_dataList != null)
 													  Property="@PropExpr(col)" Width="@ColWidth(col)"
 													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
-										<FiltroU Column=@col DataColumn=@data />
+										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
 									<Template Context="row">
-										@if (col.Role == RoleFieldE.Minutos)
-										{
+										@if (col.Role == RoleFieldE.Minutos) {
 											<SpanMinutes Value=@((decimal?)row.GetInt(col.Keyword)) />
-										}
-										else
-										{
+										} else {
 											@row.GetLegible(col.Keyword)
 										}
 									</Template>
@@ -128,26 +113,22 @@ else if (_dataList != null)
 							case FieldFormatE.DATE:
 							case FieldFormatE.TIME:
 
-								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)" Width="@ColWidth(col)"
-													  CssClass="text-left text-nowrap">
-									<FilterTemplate Context="data">
-										<FiltroU Column=@col DataColumn=@data />
-									</FilterTemplate>
-									<Template Context="row">
-										@{ DateTime fecha = row.GetDateTime(col.Keyword); }
-										@if (fecha != default)
-										{
-											@if (col.Format == FieldFormatE.DateAndTime)
-											{
+				<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+									  Property="@PropExpr(col)" Width="@ColWidth(col)"
+									  CssClass="text-left text-nowrap">
+					<FilterTemplate Context="data">
+						<FilterU Column=@col DataColumn=@data />
+					</FilterTemplate>
+					<Template Context="row">
+						@{
+											DateTime fecha = row.GetDateTime(col.Keyword);
+										}
+										@if (fecha != default) {
+											@if (col.Format == FieldFormatE.DateAndTime) {
 												<span>@RegionService.ToLocalFriendlyDateTime(fecha)</span>
-											}
-											else if (col.Format == FieldFormatE.DATE)
-											{
+											} else if (col.Format == FieldFormatE.DATE) {
 												<span>@RegionService.ToLocalFriendlyDate(fecha)</span>
-											}
-											else
-											{
+											} else {
 												<span>@fecha.ToString("HH:mm")</span>
 											}
 										}
@@ -161,15 +142,12 @@ else if (_dataList != null)
 													  Property="@PropExpr(col)" Width="@ColWidth(col)"
 													  CssClass="text-center">
 									<FilterTemplate Context="data">
-										<FiltroU Column=@col DataColumn=@data />
+										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
 									<Template Context="row">
-										@if (row.GetBool(col.Keyword))
-										{
+										@if (row.GetBool(col.Keyword)) {
 											<RadzenBadge Text="Sí" BadgeStyle="BadgeStyle.Success" Shade="Shade.Light" />
-										}
-										else
-										{
+										} else {
 											<RadzenBadge Text="No" BadgeStyle="BadgeStyle.Danger" Shade="Shade.Light" />
 										}
 									</Template>
@@ -178,22 +156,20 @@ else if (_dataList != null)
 
 							default:
 
-								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)" Width="@ColWidth(col)"
-													  CssClass="text-left text-truncate">
-									<FilterTemplate Context="data">
-										<FiltroU Column=@col DataColumn=@data />
-									</FilterTemplate>
-									<Template Context="row">
-										@{	var value = row.GetLegible(col.Keyword); }
-										@if (value.IsNotEmpty())
-										{
-											@if (col.BadgetsStyle.IsNotEmpty() || col.Predefined_Values.IsNotEmpty())
-											{
+				<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+									  Property="@PropExpr(col)" Width="@ColWidth(col)"
+									  CssClass="text-left text-truncate">
+					<FilterTemplate Context="data">
+						<FilterU Column=@col DataColumn=@data />
+					</FilterTemplate>
+					<Template Context="row">
+						@{
+											var value = row.GetLegible(col.Keyword);
+										}
+										@if (value.IsNotEmpty()) {
+											@if (col.BadgetsStyle.IsNotEmpty() || col.Predefined_Values.IsNotEmpty()) {
 												<BadgetAutoColor Value=@value BadgetStyle=col.BadgetsStyle />
-											}
-											else
-											{
+											} else {
 												@value
 											}
 										}
@@ -203,22 +179,12 @@ else if (_dataList != null)
 						}
 					}
 
-					@if (RowTemplate != null)
-					{
-						<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="" Width="50px" Sortable="false" Filterable="false">
-							<Template Context="row">
-								@RowTemplate(row)
-							</Template>
-						</RadzenDataGridColumn>
-					}
 
 				</Columns>
 			</RadzenDataGrid>
 		</div>
 	</div>
-}
-else if (_errorMessage.IsNotEmpty())
-{
+} else if (_errorMessage.IsNotEmpty()) {
 	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
 		@_errorMessage
 	</RadzenAlert>
@@ -227,6 +193,7 @@ else if (_errorMessage.IsNotEmpty())
 @code {
 
 	// ── Parámetros ──
+	[Parameter] public bool AdminMode { get; set; } = false;
 
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
 	[Parameter, EditorRequired] public string ReportId { get; set; } = "";
@@ -239,8 +206,9 @@ else if (_errorMessage.IsNotEmpty())
 	[Parameter] public string Title { get; set; } = "";
 	[Parameter] public bool ShowSearch { get; set; } = true;
 	[Parameter] public bool Filtrable { get; set; } = true;
+	[Parameter] public bool ShowAdd { get; set; } = true;
+	[Parameter] public RenderFragment ToolBarTemplate { get; set; }
 	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
-	[Parameter] public RenderFragment<DinaupDynamicRowDTO> RowTemplate { get; set; }
 	[Parameter] public EventCallback OnDataChanged { get; set; }
 
 	// ── Estado ──
@@ -258,16 +226,14 @@ else if (_errorMessage.IsNotEmpty())
 
 	// ── Helpers de columna ──
 
-	private string PropExpr(DinaupFieldDTO col)
-	{
+	private string PropExpr(DinaupFieldDTO col) {
 		var t = Nullable.GetUnderlyingType(col.NetType) ?? col.NetType;
 		var n = (Nullable.GetUnderlyingType(col.NetType) != null) ? "?" : "";
 		var typeName = t.IsEnum ? "Int32" : t.Name;
 		return $@"Convert(Convert(it[""{col.Keyword}""], {typeName}{n}), Object)";
 	}
 
-	private string ColWidth(DinaupFieldDTO col)
-	{
+	private string ColWidth(DinaupFieldDTO col) {
 		var d = _dataList?.Maximumcharacterspercolumn;
 		if (d != null && d.TryGetValue(col.Label, out var c))
 			return c < 6 ? "60px" : c < 10 ? "100px" : c < 20 ? "150px" : "200px";
@@ -276,30 +242,25 @@ else if (_errorMessage.IsNotEmpty())
 
 	// ── Ciclo de vida ──
 
-	protected override async Task OnInitializedAsync()
-	{
+	protected override async Task OnInitializedAsync() {
 		_lastQuerySearch = QuerySearch ?? "";
 		await LoadDataAsync();
 	}
 
-	protected override async Task OnParametersSetAsync()
-	{
+	protected override async Task OnParametersSetAsync() {
 		var s = QuerySearch ?? "";
-		if (s != _lastQuerySearch)
-		{
+		if (s != _lastQuerySearch) {
 			_lastQuerySearch = s;
 			if (!_isLoading) await LoadDataAsync();
 		}
 	}
 
-	private void HandleVariableConfirm(Dictionary<string, string> v)
-	{
+	private void HandleVariableConfirm(Dictionary<string, string> v) {
 		VariablesValues = v;
 		_ = UpdateAsync();
 	}
 
-	public async void UpdateSearch(string query)
-	{
+	public async void UpdateSearch(string query) {
 		if (QuerySearch == query) return;
 		QuerySearch = query;
 		if (_isDebouncing) return;
@@ -313,10 +274,8 @@ else if (_errorMessage.IsNotEmpty())
 
 	// ── Server-side LoadData ──
 
-	private async void HandleLoadDataEvent(LoadDataArgs args)
-	{
-		var ld = new LoadDataReportC
-		{
+	private async void HandleLoadDataEvent(LoadDataArgs args) {
+		var ld = new LoadDataReportC {
 			Skip = args.Skip,
 			Top = args.Top,
 			OrderBy = args.OrderBy,
@@ -334,29 +293,27 @@ else if (_errorMessage.IsNotEmpty())
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private string ResolveColId(string name)
-	{
+	private string ResolveColId(string name) {
 		if (name.IsNotEmpty() && name.Contains("[\""))
 			name = Dinaup.extensions.ParseBetween(ref name, "[\"", "\"]");
 		var col = _dataList?.ColumnsByKeyword?.GetM(name);
 		return col.IsNotNull() ? (col.ReportColID.IsGUID() ? col.ReportColID : col.NativeName) : name;
 	}
 
-	private static FilterFunctionE MapOp(FilterOperator op) => op switch
-	{
-		FilterOperator.Equals              => FilterFunctionE.Equals,
-		FilterOperator.NotEquals           => FilterFunctionE.NotEquals,
-		FilterOperator.LessThan            => FilterFunctionE.LessThan,
-		FilterOperator.LessThanOrEquals    => FilterFunctionE.LessThanOrEqualTo,
-		FilterOperator.GreaterThan         => FilterFunctionE.GreaterThan,
+	private static FilterFunctionE MapOp(FilterOperator op) => op switch {
+		FilterOperator.Equals => FilterFunctionE.Equals,
+		FilterOperator.NotEquals => FilterFunctionE.NotEquals,
+		FilterOperator.LessThan => FilterFunctionE.LessThan,
+		FilterOperator.LessThanOrEquals => FilterFunctionE.LessThanOrEqualTo,
+		FilterOperator.GreaterThan => FilterFunctionE.GreaterThan,
 		FilterOperator.GreaterThanOrEquals => FilterFunctionE.GreaterThanOrEqualTo,
-		FilterOperator.Contains            => FilterFunctionE.Contains,
-		FilterOperator.StartsWith          => FilterFunctionE.StartsWith,
-		FilterOperator.EndsWith            => FilterFunctionE.EndsWith,
-		FilterOperator.DoesNotContain      => FilterFunctionE.DoesNotContain,
-		FilterOperator.IsEmpty             => FilterFunctionE.IsEmpty,
-		FilterOperator.IsNotEmpty          => FilterFunctionE.IsNotEmpty,
-		_                                  => FilterFunctionE.Contains
+		FilterOperator.Contains => FilterFunctionE.Contains,
+		FilterOperator.StartsWith => FilterFunctionE.StartsWith,
+		FilterOperator.EndsWith => FilterFunctionE.EndsWith,
+		FilterOperator.DoesNotContain => FilterFunctionE.DoesNotContain,
+		FilterOperator.IsEmpty => FilterFunctionE.IsEmpty,
+		FilterOperator.IsNotEmpty => FilterFunctionE.IsNotEmpty,
+		_ => FilterFunctionE.Contains
 	};
 
 	private static LogicalOperatorE MapLogical(LogicalFilterOperator op) =>
@@ -364,26 +321,23 @@ else if (_errorMessage.IsNotEmpty())
 
 	// ── Carga de datos ──
 
-	private async Task LoadDataAsync(LoadDataReportC filter = null)
-	{
+	private async Task LoadDataAsync(LoadDataReportC filter = null) {
 		if (Limite == 0) Limite = 100;
 		filter ??= new LoadDataReportC { Skip = 0, Top = Limite };
 		_lastFilter = filter;
 
-		try
-		{
-			var p = new ReportRequestParameters(ReportId, Limite)
-			{
+		try {
+			var p = new ReportRequestParameters(ReportId, Limite) {
 				Variables = VariablesValues,
 				QuerySearch = QuerySearch,
 				Order = Orden,
-				Expresion = AdvancedFilter
+				Expresion = AdvancedFilter,
+				AdminMode = AdminMode
 			};
 			p.ApplyLoadingConfiguration(filter);
 
 			var response = await Client.Report_GetAsync(p);
-			if (response.IsNotNull())
-			{
+			if (response.IsNotNull()) {
 				_report = response.Report;
 				_showResponse = response.DataList.IsNull();
 				_dataList = response.DataList;
@@ -392,18 +346,47 @@ else if (_errorMessage.IsNotEmpty())
 				if (OnDataChanged.HasDelegate)
 					try { await OnDataChanged.InvokeAsync(); } catch { }
 			}
-		}
-		catch (Exception ex) { _errorMessage = ex.Message; }
-		finally
-		{
+		} catch (Exception ex) { _errorMessage = ex.Message; } finally {
 			_isLoading = false;
 			await InvokeAsync(StateHasChanged);
 		}
 	}
 
-	private async Task HandleRowSelect(DinaupDynamicRowDTO row)
-	{
-		if (OnItemSelect.HasDelegate) await OnItemSelect.InvokeAsync(row);
+	private async Task HandleAddClick() {
+		var sectionId = _dataList?.Section?.ID.STR();
+		if (sectionId.IsEmpty()) return;
+
+		if (await Interceptor.TryOpenNewRecordAsync(new OpenNewRecordRequest {
+			SectionId = sectionId,
+			Client = Client
+		})) return;
+
+		if (WindowManager != null)
+			DinaupFormView.OpenAsWindow(WindowManager, Client, sectionId, title: "Nuevo");
+		else
+			await DinaupFormView.OpenAsync(DialogService, Client, sectionId, title: "Nuevo");
+	}
+
+	private async Task HandleRowSelect(DinaupDynamicRowDTO row) {
+		if (OnItemSelect.HasDelegate) {
+			await OnItemSelect.InvokeAsync(row);
+			return;
+		}
+
+		if (string.IsNullOrEmpty(row.SectionId)) return; // informes agrupados no tienen sección
+
+		if (await Interceptor.TryOpenRecordAsync(new OpenRecordRequest {
+			SectionId = row.SectionId,
+			RowId = row.ID,
+			Title = row.Title ?? "",
+			Client = Client
+		})) return;
+
+		// Comportamiento por defecto: abrir formulario en ventana flotante
+		if (WindowManager != null)
+			DinaupFormView.OpenAsWindow(WindowManager, Client, row.SectionId, row.ID, title: row.Title ?? "Formulario");
+		else
+			await DinaupFormView.OpenAsync(DialogService, Client, row.SectionId, row.ID);
 	}
 
 	// ── Helpers estáticos para abrir ──
@@ -411,8 +394,7 @@ else if (_errorMessage.IsNotEmpty())
 	public static async Task OpenAsync(
 		DialogService ds, DinaupClientC client, string reportId,
 		Dictionary<string, string> vars = null, string title = "Informe",
-		string width = "90%", string height = "80%")
-	{
+		string width = "90%", string height = "80%") {
 		var p = new Dictionary<string, object>
 		{
 			{ nameof(Client), client },
@@ -420,19 +402,21 @@ else if (_errorMessage.IsNotEmpty())
 		};
 		if (vars != null) p.Add(nameof(VariablesValues), vars);
 
-		await ds.OpenAsync<DinaupReportView>(title, p, new DialogOptions
-		{
-			Width = width, Height = height, CloseDialogOnEsc = true,
-			Resizable = true, Draggable = true, ShowClose = true, ShowTitle = true
+		await ds.OpenAsync<DinaupReportView>(title, p, new DialogOptions {
+			Width = width,
+			Height = height,
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			ShowClose = true,
+			ShowTitle = true
 		});
 	}
 
 	public static string OpenAsWindow(
 		DnzWindowManagerService wm, DinaupClientC client, string reportId,
-		Dictionary<string, string> vars = null, string title = "Informe", string icon = "analytics")
-	{
-		RenderFragment content = b =>
-		{
+		Dictionary<string, string> vars = null, string title = "Informe", string icon = "analytics") {
+		RenderFragment content = b => {
 			b.OpenComponent<DinaupReportView>(0);
 			b.AddAttribute(1, nameof(Client), client);
 			b.AddAttribute(2, nameof(ReportId), reportId);

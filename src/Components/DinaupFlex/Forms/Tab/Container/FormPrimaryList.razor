@@ -17,10 +17,7 @@
 
 	<RadzenTextBox Change=@(async (x) => { 	_ =  this.UpdateSearchAsync(x); }) Placeholder="Buscar..." Style="width: 400px" id="search" />
 
-	@if (Callbacks?.ToolbarExtensions != null)
-	{
-		@Callbacks.ToolbarExtensions
-	}
+
 </div>
 
 
@@ -78,7 +75,7 @@
 										<ControlU ModoCelda="true" @key="row.ListForm.GetControl(column.Value.NativeName).Item2.Token"
 												  DataControl="row.ListForm.GetControl(column.Value.NativeName).Item2"
 												  OnDataControlChanged="@(args => HandleControlChanged(row, column.Key, column.Value, args))"
-												  Callbacks="Callbacks" />
+												  Client="Client" />
 									</div>
 
 								}
@@ -88,7 +85,7 @@
 									<ControlU ModoCelda="true" @key="row.ListForm.GetControl(column.Value.NativeName).Item2.Token"
 											  DataControl="row.ListForm.GetControl(column.Value.NativeName).Item2"
 											  OnDataControlChanged="@(args => HandleControlChanged(row, column.Key, column.Value, args))"
-											  Callbacks="Callbacks" />
+											  Client="Client" />
 								}
 
 							}
@@ -117,7 +114,7 @@
 
 
 
-	[Parameter] public DinaZenFormCallbacks Callbacks { get; set; }
+	[Parameter] public DinaupClientC Client { get; set; }
 
 
 
@@ -158,14 +155,6 @@
 
 
 
-	DateTime _OnInitialized = DateTime.Now;
-	protected override void OnInitialized()
-	{
-
-		_OnInitialized = DateTime.Now;
-		base.OnInitialized();
-	}
-
 	protected override async Task OnParametersSetAsync()
 	{
 
@@ -198,24 +187,9 @@
 
 	async Task OnAddNewItem()
 	{
-
-		if (Callbacks?.CanAddNewItem != null && !Callbacks.CanAddNewItem())
-		{
-			NotificationService.Notify(NotificationSeverity.Error, "No se puede agregar", "No está permitido agregar elementos en este contexto.");
-			return;
-		}
-
 		await OnAddItem.InvokeAsync();
 	}
 
-
-
-	protected override async Task OnInitializedAsync()
-	{
-		await base.OnInitializedAsync();
-
-
-	}
 
 
 	public void ClickRow(ListItem.ListItemRow itemData)
@@ -226,13 +200,6 @@
 
 	async Task DeleteRowAsync(ListItem.ListItemRow itemData)
 	{
-
-		if (Callbacks?.CanDeleteItem != null && !Callbacks.CanDeleteItem(itemData))
-		{
-			NotificationService.Notify(NotificationSeverity.Error, "No se puede eliminar", "No está permitido eliminar este elemento.");
-			return;
-		}
-
 		await OnDeleteItemPrimaryList.InvokeAsync(itemData.Token);
 	}
 

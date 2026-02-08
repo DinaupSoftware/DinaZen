@@ -1,0 +1,138 @@
+@namespace DinaZen.Components
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="dnz-file-uploader @(_isDragging ? "dnz-file-dragging" : "") @(Disabled ? "dnz-file-disabled" : "")" @ondragenter="@(() => _isDragging = true)" @ondragenter:preventDefault @ondragleave="@(() => _isDragging = false)"  @ondragover:preventDefault>
+
+	@if (_isUploading)
+	{
+		<div class="dnz-file-progress">
+			<RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Info" ShowValue="true" Value="@_progress" />
+			<span class="dnz-file-progress-text">Subiendo @_currentFileName...</span>
+		</div>
+	}
+	else if (_uploadedFile != null && ShowPreview)
+	{
+		<div class="dnz-file-preview">
+			@if (_uploadedFile.IsImage && _uploadedFile.url_300.IsNotEmpty())
+			{
+				<img src="@_uploadedFile.url_300" alt="@_uploadedFile.Name" />
+			}
+			else
+			{
+				<FileName FileNameDisplay="@_uploadedFile.Name"
+						  FileSize="@_uploadedFile.SizeInBytes"
+						  DownloadURL="@_uploadedFile.url_original" />
+			}
+			@if (!Disabled)
+			{
+				<RadzenButton Icon="close" Size="ButtonSize.ExtraSmall"
+							  ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+							  Click="@RemoveFile" />
+			}
+		</div>
+	}
+	else
+	{
+		<label class="dnz-file-dropzone">
+			<InputFile OnChange="@OnFileSelected" accept="@AcceptString" multiple="@Multiple" disabled="@Disabled" />
+			<RadzenIcon Icon="@Icon" Style="font-size:32px; opacity:0.4" />
+			<span class="dnz-file-label">@Placeholder</span>
+		</label>
+	}
+</div>
+
+@code {
+
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public string[] AcceptExtensions { get; set; } = [];
+	[Parameter] public long MaxSizeBytes { get; set; } = 80 * 1024 * 1024;
+	[Parameter] public bool Multiple { get; set; }
+	[Parameter] public bool Disabled { get; set; }
+	[Parameter] public bool ShowPreview { get; set; } = true;
+	[Parameter] public string Placeholder { get; set; } = "Arrastra o haz clic para subir";
+	[Parameter] public string Icon { get; set; } = "cloud_upload";
+	[Parameter] public EventCallback<DinaupFileDTO> OnFileUploaded { get; set; }
+	[Parameter] public EventCallback<string> OnError { get; set; }
+
+	private bool _isUploading;
+	private bool _isDragging;
+	private double _progress;
+	private string _currentFileName = "";
+	private DinaupFileDTO _uploadedFile;
+
+	private string AcceptString => AcceptExtensions.Length > 0 ? string.Join(",", AcceptExtensions.Select(e => e.StartsWith(".") ? e : "." + e)) : null;
+
+	private async Task OnFileSelected(InputFileChangeEventArgs e)
+	{
+		if (Client == null)
+		{
+			await OnError.InvokeAsync("No se proporcionó Client");
+			return;
+		}
+
+		var files = Multiple ? e.GetMultipleFiles(20) : new[] { e.File };
+
+		_isUploading = true;
+		_isDragging = false;
+		StateHasChanged();
+
+		foreach (var file in files)
+		{
+			try
+			{
+				if (file.Size > MaxSizeBytes)
+				{
+					await OnError.InvokeAsync($"{file.Name} supera el límite de {MaxSizeBytes / 1024 / 1024}MB");
+					continue;
+				}
+
+				if (AcceptExtensions.Length > 0)
+				{
+					var ext = System.IO.Path.GetExtension(file.Name).TrimStart('.').ToLowerInvariant();
+					var allowed = AcceptExtensions.Select(x => x.TrimStart('.').ToLowerInvariant());
+					if (!allowed.Contains(ext))
+					{
+						await OnError.InvokeAsync($"{file.Name}: extensión .{ext} no permitida");
+						continue;
+					}
+				}
+
+				_currentFileName = file.Name;
+				_progress = 10;
+				StateHasChanged();
+
+				using var stream = file.OpenReadStream(maxAllowedSize: MaxSizeBytes);
+				using var ms = new System.IO.MemoryStream();
+				await stream.CopyToAsync(ms);
+				var bytes = ms.ToArray();
+
+				_progress = 50;
+				StateHasChanged();
+
+				var response = await Client.File_UploadBytesAsync(bytes, file.Name);
+
+				_progress = 100;
+				StateHasChanged();
+
+				if (response?.FileData != null)
+				{
+					_uploadedFile = response.FileData;
+					await OnFileUploaded.InvokeAsync(response.FileData);
+				}
+			}
+			catch (Exception ex)
+			{
+				await OnError.InvokeAsync($"Error subiendo {file.Name}: {ex.Message}");
+			}
+		}
+
+		_isUploading = false;
+		StateHasChanged();
+	}
+
+	private async Task RemoveFile()
+	{
+		_uploadedFile = null;
+		await OnFileUploaded.InvokeAsync(null);
+	}
+}
