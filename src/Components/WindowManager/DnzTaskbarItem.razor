@@ -1,0 +1,97 @@
+@namespace DinaZen.Components.WindowManager
+
+<div class="dnz-taskbar-item @(State.IsActive ? "active" : "") @(State.IsMinimized ? "minimized" : "")"
+	 @onclick="OnClick" @onmousedown="OnMouseDown" title="@FullTitle">
+
+	@* ── Chip icon ── *@
+	@if (State.IconUrl.IsNotEmpty())
+	{
+		<div class="dnz-taskbar-icon-wrap">
+			<img src="@State.IconUrl" alt="" onerror="this.src='https://cdn.dinaup.com/up/202505/bullet.svg'" />
+		</div>
+	}
+	else
+	{
+		<div class="dnz-taskbar-icon-wrap" style="background:@ChipColor">
+			@if (State.Icon.IsNotEmpty())
+			{
+				<RadzenIcon Icon="@State.Icon" />
+			}
+			else
+			{
+				<span style="font-size:10px;font-weight:700;color:white;">@Initials</span>
+			}
+		</div>
+	}
+
+	@* ── Text ── *@
+	<div class="dnz-taskbar-text">
+		@if (State.Subtitle.IsNotEmpty())
+		{
+			<span class="dnz-taskbar-label">@TruncatedTitle</span>
+			<span class="dnz-taskbar-sublabel">@TruncatedSubtitle</span>
+		}
+		else
+		{
+			<span class="dnz-taskbar-label-single">@TruncatedTitle</span>
+		}
+	</div>
+
+	@* ── Close ── *@
+	<button class="dnz-taskbar-close" @onclick="OnCloseClick" @onclick:stopPropagation="true" title="Cerrar">
+		<svg viewBox="0 0 10 10" width="10" height="10"><path d="M2.8 2.8l4.4 4.4M7.2 2.8l-4.4 4.4" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" /></svg>
+	</button>
+</div>
+
+@code {
+	[Parameter, EditorRequired] public DnzWindowState State { get; set; }
+	[Parameter] public EventCallback<string> OnToggle { get; set; }
+	[Parameter] public EventCallback<string> OnClose { get; set; }
+
+	private static readonly string[] Colors = [
+		"#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
+		"#ec4899", "#14b8a6", "#f97316", "#06b6d4", "#84cc16"
+	];
+
+	private string FullTitle => State.Subtitle.IsNotEmpty()
+		? $"{State.Title} — {State.Subtitle}"
+		: State.Title;
+
+	private string TruncatedTitle =>
+		State.Title.Length > 20 ? State.Title[..18] + "\u2026" : State.Title;
+
+	private string TruncatedSubtitle =>
+		(State.Subtitle ?? "").Length > 22 ? State.Subtitle[..20] + "\u2026" : State.Subtitle ?? "";
+
+	private string Initials
+	{
+		get
+		{
+			var words = State.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			if (words.Length >= 2)
+				return $"{char.ToUpper(words[0][0])}{char.ToUpper(words[1][0])}";
+			if (words.Length == 1 && words[0].Length >= 2)
+				return $"{char.ToUpper(words[0][0])}{char.ToUpper(words[0][1])}";
+			return State.Title.Length > 0 ? char.ToUpper(State.Title[0]).ToString() : "?";
+		}
+	}
+
+	private string ChipColor
+	{
+		get
+		{
+			var hash = Math.Abs(State.Id.GetHashCode());
+			return Colors[hash % Colors.Length];
+		}
+	}
+
+	private async Task OnClick() => await OnToggle.InvokeAsync(State.Id);
+	private async Task OnCloseClick() => await OnClose.InvokeAsync(State.Id);
+
+	private async Task OnMouseDown(MouseEventArgs e)
+	{
+		// Middle click (button 1) = cerrar ventana
+		if (e.Button == 1)
+			await OnClose.InvokeAsync(State.Id);
+	}
+}

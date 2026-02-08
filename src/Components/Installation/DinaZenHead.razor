@@ -1,0 +1,15 @@
+@using System.Reflection
+
+@{
+    var v = Version;
+}
+
+<link rel="stylesheet" href="@($"/_content/DinaZen/dinazen.css?v={v}")" />
+<link rel="stylesheet" href="@($"/_content/DinaZen/dinazen-forms.css?v={v}")" />
+<link rel="stylesheet" href="@($"/_content/DinaZen/highlight.min.css?v={v}")" />
+<link rel="stylesheet" href="@($"/_content/DinaZen/dinazen-windows.css?v={v}")" />
+
+@code {
+    private static readonly string Version =
+        typeof(DinaZenHead).Assembly.GetName().Version?.ToString() ?? "0";
+}

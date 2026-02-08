@@ -1,4 +1,4 @@
-@namespace DinaZen.Components.DinaupFlex
+@namespace DinaZen.Components.DinaupFlex.Forms
 @implements IDisposable
 @implements ILiveForm
 
@@ -30,10 +30,18 @@ else if (_virtualForm.IsNotNull())
 					<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="Modificado" />
 				}
 
-				@* ── Annotation buttons (only for existing records) ── *@
+				@* ── Print & Annotation buttons (only for existing records) ── *@
 				@if (!_isNewRecord && _virtualForm.MainForm.RowID.IsGUID())
 				{
 					<div class="dnz-form-annotations d-flex align-items-center gap-1">
+						@if (_virtualForm.MainForm.Count_PrintDynamicDocumentoList > 0)
+						{
+							<div class="dnz-annotation-btn-wrap" @onclick="PrintCurrent" title="Imprimir">
+								<RadzenIcon Icon="print" Style="font-size:18px" />
+								<RadzenBadge BadgeStyle="BadgeStyle.Secondary" IsPill="true"
+											 Text="@_virtualForm.MainForm.Count_PrintDynamicDocumentoList.STR()" />
+							</div>
+						}
 						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.Comments))" title="Comentarios">
 							<RadzenIcon Icon="chat" Style="font-size:18px" />
 							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Comments == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
@@ -190,6 +198,26 @@ else if (_errorMessage.IsNotEmpty())
 	/// </summary>
 	[Parameter] public EventCallback<DinaupAnnotationRequest> OnAnnotationOpen { get; set; }
 
+	/// <summary>
+	/// CascadingParameter: true cuando el form esta dentro de un DnzWindow.
+	/// </summary>
+	[CascadingParameter(Name = "IsInsideWindow")] public bool IsInsideWindow { get; set; }
+
+	/// <summary>
+	/// CascadingParameter: ID de la ventana cuando esta dentro de un DnzWindow.
+	/// </summary>
+	[CascadingParameter(Name = "WindowId")] public string WindowId { get; set; }
+
+	/// <summary>
+	/// CascadingParameter: Action para cerrar la ventana contenedora.
+	/// </summary>
+	[CascadingParameter(Name = "CloseWindow")] public Action CloseWindowAction { get; set; }
+
+	/// <summary>
+	/// CascadingParameter: Referencia al WindowManager (para actualizar titulo/icono).
+	/// </summary>
+	[CascadingParameter(Name = "WindowManager")] public DnzWindowManagerService WindowManagerRef { get; set; }
+
 	private VirtualFormDTO _virtualForm;
 	private bool _isLoading = false;
 	private bool _isSaving = false;
@@ -288,6 +316,23 @@ else if (_errorMessage.IsNotEmpty())
 			_loadedDatoId = DatoId ?? "";
 			_isNewRecord = _virtualForm.MainForm.RowID.IsEmpty();
 
+			// Actualizar titulo/icono de la ventana si esta dentro de una
+			if (IsInsideWindow && WindowManagerRef != null && WindowId.IsNotEmpty())
+			{
+				var sectionLabel = _virtualForm.MainForm.Section?.Label ?? "";
+				var formTitle = _virtualForm.Title ?? "";
+				var iconUrl = _virtualForm.MainForm.Section?.IconoID.IsNotEmpty() == true
+					? $"https://cdn.dinaup.com/public/{_virtualForm.MainForm.Section.IconoID}.png"
+					: "";
+
+				WindowManagerRef.UpdateWindowInfo(
+					WindowId,
+					title: sectionLabel,
+					subtitle: formTitle.IsNotEmpty() ? formTitle : (_isNewRecord ? "Nuevo" : null),
+					iconUrl: iconUrl
+				);
+			}
+
 			if (!_isRegistered)
 			{
 				DinaZenLiveFormsManager.Register(this);
@@ -307,12 +352,12 @@ else if (_errorMessage.IsNotEmpty())
 		}
 	}
 
-	private void HandleTabChange(VirtualFormDTO.Tab newTab)
+	private async Task HandleTabChange(VirtualFormDTO.Tab newTab)
 	{
 		try
 		{
 			_hasChanges = true;
-			_ = SyncForm(
+			await SyncForm(
 				_virtualForm.WithUpdatedForm(
 					_virtualForm.GetFormByTabToken(newTab.TabToken).WithTab(newTab)
 				)
@@ -388,7 +433,14 @@ else if (_errorMessage.IsNotEmpty())
 				_loadedDatoId = null;
 				_hasChanges = false;
 
-				try { DialogService.Close(result); } catch { }
+				if (IsInsideWindow && CloseWindowAction != null)
+				{
+					try { CloseWindowAction.Invoke(); } catch { }
+				}
+				else
+				{
+					try { DialogService.Close(result); } catch { }
+				}
 				StateHasChanged();
 				await OnClosed.InvokeAsync(result);
 				return;
@@ -403,6 +455,34 @@ else if (_errorMessage.IsNotEmpty())
 		{
 			_isSaving = false;
 			StateHasChanged();
+		}
+	}
+
+	// ── Print ──
+
+	private async Task PrintCurrent()
+	{
+		if (_virtualForm?.MainForm?.PrintDynamicDocumentoList.IsEmpty() != false) return;
+
+		try
+		{
+			var doc = _virtualForm.MainForm.PrintDynamicDocumentoList.First();
+			var variables = new Dictionary<string, string>
+			{
+				{ doc.VariableList.Variables.First().Key, _virtualForm.MainForm.RowID }
+			};
+
+			await DinaupDynamicDocumentView.OpenAsync(
+				DialogService,
+				Client,
+				doc.IDSTR,
+				variables,
+				_virtualForm.MainForm.PrintDynamicDocumentoList 
+			);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
 		}
 	}
 
@@ -504,8 +584,15 @@ else if (_errorMessage.IsNotEmpty())
 		_errorMessage = "";
 		_hasChanges = false;
 
-		// Si estamos dentro de un Dialog, lo cerramos pasando el resultado
-		try { DialogService.Close(result); } catch { }
+		// Cerrar el contenedor (Dialog o Window)
+		if (IsInsideWindow && CloseWindowAction != null)
+		{
+			try { CloseWindowAction.Invoke(); } catch { }
+		}
+		else
+		{
+			try { DialogService.Close(result); } catch { }
+		}
 
 		StateHasChanged();
 		await OnClosed.InvokeAsync(result);
@@ -599,5 +686,42 @@ else if (_errorMessage.IsNotEmpty())
 			SectionId = sectionId,
 			RowId = datoId ?? ""
 		};
+	}
+
+	// ── Static helper para abrir como ventana flotante ──
+
+	/// <summary>
+	/// Abre un DinaupFormView como ventana flotante (DnzWindowManager).
+	/// Retorna el windowId para referencia.
+	/// </summary>
+	public static string OpenAsWindow(
+		DnzWindowManagerService windowManager,
+		DinaupClientC client,
+		string sectionId,
+		string datoId = "",
+		DinaZenFormCallbacks callbacks = null,
+		string title = "",
+		string icon = "")
+	{
+		RenderFragment content = builder =>
+		{
+			builder.OpenComponent<DinaupFormView>(0);
+			builder.AddAttribute(1, nameof(Client), client);
+			builder.AddAttribute(2, nameof(SectionId), sectionId);
+			builder.AddAttribute(3, nameof(DatoId), datoId ?? "");
+			if (callbacks != null)
+				builder.AddAttribute(4, nameof(Callbacks), callbacks);
+			builder.CloseComponent();
+		};
+
+		var options = new DnzWindowOptions
+		{
+			Title = title.IsNotEmpty() ? title : "Formulario",
+			Icon = icon,
+			InitialWidth = 1020,
+			InitialHeight = 650
+		};
+
+		return windowManager.Open(options, content);
 	}
 }

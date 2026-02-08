@@ -1,0 +1,22 @@
+@using System.Reflection
+
+@{
+    var v = Version;
+}
+
+<script src="@($"/_content/DinaZen/dinazen.js?v={v}")"></script>
+
+@if (IncludeHighlight)
+{
+    <script src="@($"/_content/DinaZen/highlight.min.js?v={v}")"></script>
+}
+
+@code {
+    /// <summary>
+    /// Incluye highlight.min.js para resaltado de sintaxis (componente HighlightCode).
+    /// </summary>
+    [Parameter] public bool IncludeHighlight { get; set; } = true;
+
+    private static readonly string Version =
+        typeof(DinaZenScripts).Assembly.GetName().Version?.ToString() ?? "0";
+}

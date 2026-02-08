@@ -140,7 +140,7 @@
 				@if (DataControl.FormatEnum == FieldFormatE.TIME || DataControl.FormatEnum == FieldFormatE.DATE || DataControl.FormatEnum == FieldFormatE.DateAndTime)
 				{
 					<RadzenDatePicker Culture=@RegionService.Culture
-									  @bind-value:after=@(() => HandleDatacontrolChangedDatePicket( DataControl ) )
+									  @bind-value:after=@(async () => await HandleDatacontrolChangedDatePicket( DataControl ) )
 									  @bind-value=@DataControl.Value_DateTimeNullable
 									  Style="width: none !important; flex:1"
 									  @key=@(DataControl.Token + "-valor") TValue="DateTime?"
@@ -188,7 +188,7 @@
 
 
 						<RadzenDatePicker Culture=@RegionService.Culture
-						@bind-value:after=@(() => {HandleDatacontrolChangedDatePicket( DataControl );} )
+						@bind-value:after=@(async () => { await HandleDatacontrolChangedDatePicket( DataControl ); } )
 						@bind-value=@DataControl.Value_DateTimeNullable TValue="DateTime?" Style="width: none !important; flex:1" @key=@(DataControl.Token + "-valor") ShowTime=DataControl.ShowTime ShowSeconds=DataControl.ShowSeconds TimeOnly=@(DataControl.FormatEnum == FieldFormatE.TIME) HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat=@DataControl.DateForma>
 
 
@@ -198,14 +198,14 @@
 										@if (DataControl.FormatEnum == FieldFormatE.DateAndTime)
 										{
 
-											<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now; HandleDatacontrolChangedDatePicket(DataControl); }) Text="Ahora" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
-											<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now.AddDays(1); HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now; await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Ahora" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now.AddDays(1); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
 
 										}
 										else if (DataControl.FormatEnum == FieldFormatE.DATE)
 										{
-											<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now.Date; HandleDatacontrolChangedDatePicket(DataControl); }) Text="Hoy" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
-											<RadzenButton Click=@(args => { DataControl.Value_DateTime = DateTime.Now.Date.AddDays(1); HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now.Date; await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Hoy" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now.Date.AddDays(1); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
 										}
 									</div>
 								</FooterTemplate>
@@ -243,7 +243,7 @@
 
 	void ShowContextMenuWithItems(MouseEventArgs args)
 	{
-		if (Callbacks?.OnVerHistorial == null) return;
+		if (Callbacks?.OnVerHistorial == null && Callbacks?.Client == null) return;
 
 		ContextMenuService.Open(args,
 			new List<ContextMenuItem> {
@@ -280,7 +280,7 @@
 		}
 	}
 
-	void HandleDatacontrolChangedDatePicket(Dinaup.VirtualFormDTO.Control controlChanged)
+	async Task HandleDatacontrolChangedDatePicket(Dinaup.VirtualFormDTO.Control controlChanged)
 	{
 
 		if (controlChanged.Value.IsNotEmpty() && controlChanged.FormatEnum == FieldFormatE.DateAndTime)
@@ -290,19 +290,12 @@
 				controlChanged.Value = fechaX.Value.KindToLocal().ToUniversalTime().ToSQL();
 		}
 
-
-
-
-		HandleDatacontrolChanged(controlChanged);
+		await HandleDatacontrolChanged(controlChanged);
 	}
-	void HandleDatacontrolChanged(Dinaup.VirtualFormDTO.Control controlChanged)
+	async Task HandleDatacontrolChanged(Dinaup.VirtualFormDTO.Control controlChanged)
 	{
-
-
-
 		DataControl = controlChanged;
-		_ = 	OnDataControlChanged.InvokeAsync(controlChanged);
-
+		await OnDataControlChanged.InvokeAsync(controlChanged);
 	}
 
 
@@ -323,7 +316,7 @@
 				if (nuevoValor != controlChanged.Value)
 				{
 					controlChanged.Value = nuevoValor;
-					_ = OnDataControlChanged.InvokeAsync(controlChanged);
+					await OnDataControlChanged.InvokeAsync(controlChanged);
 
 				}
 
@@ -337,7 +330,13 @@
 	public async Task VerHistorial()
 	{
 		if (Callbacks?.OnVerHistorial != null)
+		{
 			await Callbacks.OnVerHistorial(DataControl.ParentForm.Section.ID, DataControl.ParentForm.RowID.ToGUID(), DataControl.Id);
+		}
+		else if (Callbacks?.Client != null)
+		{
+			await DinaZen.Dialogs.HistoricoDialog.Open(DialogService, Callbacks.Client, DataControl.ParentForm.Section.ID, DataControl.ParentForm.RowID.ToGUID(), DataControl.Id);
+		}
 	}
 
 }

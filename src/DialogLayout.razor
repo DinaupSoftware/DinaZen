@@ -1,7 +1,9 @@
-﻿@inject IJSRuntime JS
+@inject IJSRuntime JS
 <style>
 	.rz-dialog-content {
-		height:100%;
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
 		padding: 0;
 	}
 
@@ -14,46 +16,76 @@
 	.scrollable-content {
 		overflow-y: auto;
 	}
-
 </style>
- 
-<div @ref=rootElement class="dialog-estandar-layout  h-100 grid-layout ">
+
+<div @ref=rootElement class="dialog-estandar-layout h-100 grid-layout">
 	<div class="dialog-estandar-layout-header">
-		@TitleContent
-	</div>
-
- 
-	<div class="dialog-estandar-layout-content   scrollable-content" style=@ContentStyle>
-		@BodyContent
-	</div>
-
-
-	<div class="dialog-estandar-layout-footer my-3">
-		@if (FooterContent == null)
+		@if (TitleContent != null)
 		{
-			<div class="d-flex justify-content-end gap-1  align-items-center " style="margin-right:20px">
-				<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text"></RadzenButton>
-			</div>
+			@TitleContent
 		}
 		else
 		{
-			@FooterContent
+			<div class="d-flex align-items-center justify-content-between w-100">
+				<div class="d-flex align-items-center gap-2">
+					@if (Icon.IsNotEmpty())
+					{
+						<RadzenIcon Icon="@Icon" Style="color:var(--rz-primary); font-size:20px" />
+					}
+					<span style="font-weight:600">@Title</span>
+				</div>
+				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+							  Click="@Cerrar" Style="opacity:0.6" />
+			</div>
 		}
 	</div>
 
-</div>
+	<div class="dialog-estandar-layout-content scrollable-content" style=@ContentStyle>
+		@BodyContent
+	</div>
 
+	<div class="dialog-estandar-layout-footer my-3">
+		@if (FooterContent != null)
+		{
+			@FooterContent
+		}
+		else
+		{
+			<div class="d-flex justify-content-end gap-1 align-items-center" style="margin-right:20px">
+				<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" />
+			</div>
+		}
+	</div>
+</div>
 
 @code {
 
-
-	 
-
 	private ElementReference rootElement;
+	private bool isClosed = false;
 
+	/// <summary>
+	/// Titulo del dialog (se usa si no se proporciona TitleContent).
+	/// </summary>
+	[Parameter] public string Title { get; set; }
 
+	/// <summary>
+	/// Icono Material Design del header (se usa si no se proporciona TitleContent).
+	/// </summary>
+	[Parameter] public string Icon { get; set; }
 
-	private bool  isClosed = false;
+	/// <summary>
+	/// Header custom. Si se omite, se genera automaticamente con Title + Icon + boton close.
+	/// </summary>
+	[Parameter] public RenderFragment TitleContent { get; set; }
+
+	[Parameter] public RenderFragment BodyContent { get; set; }
+
+	/// <summary>
+	/// Footer custom. Si se omite, se muestra boton "Cerrar" por defecto.
+	/// </summary>
+	[Parameter] public RenderFragment FooterContent { get; set; }
+
+	[Parameter] public string ContentStyle { get; set; }
 
 	void Cerrar()
 	{
@@ -64,14 +96,6 @@
 		}
 	}
 
-
-
-	[Parameter] public RenderFragment TitleContent { get; set; }
-	[Parameter] public RenderFragment BodyContent { get; set; }
-	[Parameter] public RenderFragment FooterContent { get; set; }
-	[Parameter] public string ContentStyle { get; set; }
-
-
 	public async Task SetWidth(string width)
 	{
 		await JS.InvokeVoidAsync("DinaZen.setDialogWidth", rootElement, width);
@@ -81,6 +105,4 @@
 	{
 		await JS.InvokeVoidAsync("DinaZen.setDialogHeight", rootElement, height);
 	}
-
-
 }

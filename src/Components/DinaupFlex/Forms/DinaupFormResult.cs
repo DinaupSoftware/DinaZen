@@ -1,4 +1,4 @@
-namespace DinaZen.Components.DinaupFlex;
+namespace DinaZen.Components.DinaupFlex.Forms;
 
 /// <summary>
 /// Resultado devuelto cuando un DinaupFormView se cierra.

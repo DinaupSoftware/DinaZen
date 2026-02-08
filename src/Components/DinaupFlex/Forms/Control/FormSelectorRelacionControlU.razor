@@ -325,10 +325,9 @@
 		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.ID).WithValueText(dataRow.Title).WithValueImageURL(dataRow.PreviewIMG));
 	}
 
-	void EliminarRelacion()
+	async Task EliminarRelacion()
 	{
-		OnDataControlChanged.InvokeAsync(DataControl.WithValue("").WithValueText(""));
-
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue("").WithValueText(""));
 	}
 	async Task OnOpen()
 	{

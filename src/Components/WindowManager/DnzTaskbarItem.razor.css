@@ -1,0 +1,201 @@
+/* ================================================================
+   DnzTaskbarItem — Scoped CSS
+   Light Glass Chips style — square icons (no rounding)
+   ================================================================ */
+
+/* ── Item container (chip) ── */
+
+.dnz-taskbar-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px 14px 7px 8px;
+	border-radius: 20px;
+	background: transparent;
+	border: 1.5px solid transparent;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	max-width: 260px;
+	min-width: 0;
+	user-select: none;
+	-webkit-user-select: none;
+	position: relative;
+}
+
+.dnz-taskbar-item:hover {
+	background: rgba(255, 255, 255, 0.5);
+	border-color: rgba(0, 0, 0, 0.04);
+}
+
+.dnz-taskbar-item:active {
+	transform: scale(.97);
+	transition-duration: 80ms;
+}
+
+.dnz-taskbar-item.active {
+	background:
+		radial-gradient(circle at 15% 50%, rgba(0,191,254,0.10) 0%, transparent 50%),
+		radial-gradient(circle at 40% 50%, rgba(248,96,77,0.08) 0%, transparent 50%),
+		radial-gradient(circle at 65% 50%, rgba(0,255,0,0.07) 0%, transparent 50%),
+		radial-gradient(circle at 90% 50%, rgba(250,213,27,0.09) 0%, transparent 50%),
+		rgba(255, 255, 255, 0.75);
+	border-color: rgba(255, 255, 255, 0.5);
+	box-shadow:
+		0 1px 4px rgba(0, 0, 0, 0.05),
+		0 4px 16px rgba(0,191,254,0.06),
+		0 2px 8px rgba(248,96,77,0.04),
+		inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ── 4 color dots centered below active item ── */
+.dnz-taskbar-item.active::after {
+	content: '';
+	position: absolute;
+	bottom: 3px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 22px;
+	height: 4px;
+	background:
+		radial-gradient(circle at 2px 2px,  #00BFFE 1.5px, transparent 1.5px),
+		radial-gradient(circle at 8px 2px,  #F8604D 1.5px, transparent 1.5px),
+		radial-gradient(circle at 14px 2px, #00FF00 1.5px, transparent 1.5px),
+		radial-gradient(circle at 20px 2px, #FAD51B 1.5px, transparent 1.5px);
+	opacity: 0.8;
+}
+
+.dnz-taskbar-item.minimized {
+	opacity: 0.4;
+}
+
+.dnz-taskbar-item.minimized:hover {
+	opacity: 0.65;
+}
+
+
+/* ── Icon wrapper — square, no border-radius ── */
+
+.dnz-taskbar-icon-wrap {
+	width: 24px;
+	height: 24px;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+	transition: box-shadow 0.2s ease;
+	position: relative;
+	z-index: 1;
+	overflow: hidden;
+}
+
+.dnz-taskbar-item.active .dnz-taskbar-icon-wrap {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dnz-taskbar-icon-wrap ::deep img {
+	width: 24px;
+	height: 24px;
+	border-radius: 0;
+	object-fit: contain;
+}
+
+.dnz-taskbar-icon-wrap ::deep .rzi {
+	font-size: 16px !important;
+	color: white;
+}
+
+
+/* ── Text ── */
+
+.dnz-taskbar-text {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	line-height: 1.25;
+	min-width: 0;
+	gap: 0;
+}
+
+.dnz-taskbar-label {
+	font-size: 12px;
+	font-weight: 500;
+	color: rgba(0, 0, 0, 0.5);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.dnz-taskbar-sublabel {
+	font-size: 10px;
+	color: rgba(0, 0, 0, 0.25);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.dnz-taskbar-label-single {
+	font-size: 12px;
+	font-weight: 500;
+	color: rgba(0, 0, 0, 0.5);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Active text states */
+.dnz-taskbar-item.active .dnz-taskbar-label,
+.dnz-taskbar-item.active .dnz-taskbar-label-single {
+	color: rgba(0, 0, 0, 0.8);
+	font-weight: 600;
+}
+
+.dnz-taskbar-item.active .dnz-taskbar-sublabel {
+	color: rgba(0, 0, 0, 0.4);
+}
+
+/* Minimized text states */
+.dnz-taskbar-item.minimized .dnz-taskbar-label,
+.dnz-taskbar-item.minimized .dnz-taskbar-label-single {
+	color: rgba(0, 0, 0, 0.25);
+}
+
+.dnz-taskbar-item.minimized .dnz-taskbar-sublabel {
+	color: rgba(0, 0, 0, 0.15);
+}
+
+
+/* ── Close button ── */
+
+.dnz-taskbar-close {
+	width: 18px;
+	height: 18px;
+	border-radius: 5px;
+	border: none;
+	background: transparent;
+	color: rgba(0, 0, 0, 0.15);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	flex-shrink: 0;
+	opacity: 0;
+	transition: all 0.12s ease;
+	margin-left: auto;
+}
+
+.dnz-taskbar-item:hover .dnz-taskbar-close {
+	opacity: 1;
+}
+
+.dnz-taskbar-close:hover {
+	background: rgba(239, 68, 68, 0.1);
+	color: #dc2626;
+	opacity: 1;
+}
+
+.dnz-taskbar-close:active {
+	transform: scale(.9);
+}

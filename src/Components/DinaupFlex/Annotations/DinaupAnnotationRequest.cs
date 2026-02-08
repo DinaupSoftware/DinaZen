@@ -1,4 +1,4 @@
-namespace DinaZen.Components.DinaupFlex;
+namespace DinaZen.Components.DinaupFlex.Annotations;
 
 /// <summary>
 /// Datos para abrir un dialogo de anotaciones desde DinaupFormView.

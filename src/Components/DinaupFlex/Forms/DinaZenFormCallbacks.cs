@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Dinaup;
 using static Dinaup.VirtualFormDTO;
 
-namespace DinaZen.Components.DinaupFlex;
+namespace DinaZen.Components.DinaupFlex.Forms;
 
 public class DinaZenFormCallbacks
 {

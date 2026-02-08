@@ -1,0 +1,49 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Filters
+
+@if (Column.IsNull()) return;
+@if (DataColumn.IsNull()) return;
+
+<div class="p-4 d-flex flex-column">
+	<RadzenTextBox @bind-Value=@search Placeholder="Buscar..." Style="width: 400px" class="mb-1" />
+	<RadzenButton Text="Aplicar" Click=@(async () => await SetFilterAsync()) />
+	<hr />
+
+	<div class="d-flex gap-3 justify-content-center">
+		<RadzenButton Text="Vacíos" Click=@(async () => await buscarVacios()) />
+		<RadzenButton Text="Rellenados" Click=@(async () => await buscarRellenados()) />
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public DinaupFieldDTO Column { get; set; }
+	[Parameter]
+	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
+
+	string search;
+
+	async Task SetFilterAsync()
+	{
+		DataColumn.ClearFilters();
+		DataColumn.SetFilterOperator(FilterOperator.Contains);
+		await DataColumn.SetFilterValueAsync(search);
+		await DataColumn.CloseFilter();
+	}
+
+	async Task buscarVacios()
+	{
+		DataColumn.ClearFilters();
+		DataColumn.SetFilterOperator(FilterOperator.IsEmpty);
+		await DataColumn.SetFilterValueAsync(string.Empty);
+		await DataColumn.CloseFilter();
+	}
+
+	async Task buscarRellenados()
+	{
+		DataColumn.ClearFilters();
+		DataColumn.SetFilterOperator(FilterOperator.IsNotEmpty);
+		await DataColumn.SetFilterValueAsync(string.Empty);
+		await DataColumn.CloseFilter();
+	}
+}

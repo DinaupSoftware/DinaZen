@@ -1,0 +1,93 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Filters
+
+@if (Column == null || DataColumn == null) return;
+
+<div class="d-flex flex-column p-4 gap-2">
+	<RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Server">
+		<Tabs>
+			<RadzenTabsItem Text="Signo">
+				<div class="d-flex flex-column gap-3">
+					<BadgetAutoColor Value="Positivos" Click=@(() => AplicarFiltroSigno("Positivos")) />
+					<BadgetAutoColor Value="Cero" Click=@(() => AplicarFiltroSigno("Cero")) />
+					<BadgetAutoColor Value="Negativos" Click=@(() => AplicarFiltroSigno("Negativos")) />
+				</div>
+			</RadzenTabsItem>
+
+			<RadzenTabsItem Text="Igual">
+				<div class="d-flex gap-3 align-items-center">
+					<b>Igual</b>
+					<RadzenNumeric @bind-Value="Igual" Style="width: 100px" />
+					<RadzenButton Text="Aplicar" Click=@(() => SetFilter("Igual")) />
+				</div>
+			</RadzenTabsItem>
+
+			<RadzenTabsItem Text="Rango">
+				<div class="d-flex gap-3 align-items-center">
+					<b>Mayor qué</b>
+					<RadzenNumeric @bind-Value="Minimo" Style="width: 100px" />
+				</div>
+				<div class="d-flex gap-3 align-items-center">
+					<b>Menor qué</b>
+					<RadzenNumeric @bind-Value="Maximo" Style="width: 100px" />
+					<RadzenButton Text="Aplicar" Click=@(() => SetFilter("Rango")) />
+				</div>
+			</RadzenTabsItem>
+		</Tabs>
+	</RadzenTabs>
+</div>
+
+@code {
+	int Igual;
+	int Minimo;
+	int Maximo;
+
+	[Parameter]
+	public DinaupFieldDTO Column { get; set; }
+	[Parameter]
+	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
+
+	async Task AplicarFiltroSigno(string signo)
+	{
+		switch (signo)
+		{
+			case "Positivos":
+				DataColumn.ClearFilters();
+				DataColumn.SetFilterOperator(FilterOperator.GreaterThan);
+				await DataColumn.SetFilterValueAsync(0);
+				await DataColumn.CloseFilter();
+				break;
+			case "Negativos":
+				DataColumn.ClearFilters();
+				DataColumn.SetFilterOperator(FilterOperator.LessThan);
+				await DataColumn.SetFilterValueAsync(0);
+				await DataColumn.CloseFilter();
+				break;
+			case "Cero":
+				DataColumn.ClearFilters();
+				DataColumn.SetFilterOperator(FilterOperator.Equals);
+				await DataColumn.SetFilterValueAsync(0);
+				await DataColumn.CloseFilter();
+				break;
+		}
+	}
+
+	async Task SetFilter(string tipoFiltro)
+	{
+		if (tipoFiltro == "Rango" && Minimo != default && Maximo != default)
+		{
+			DataColumn.ClearFilters();
+			DataColumn.SetFilterOperator(FilterOperator.GreaterThanOrEquals);
+			DataColumn.SetSecondFilterOperator(FilterOperator.LessThanOrEquals);
+			DataColumn.SetFilterValue(Minimo);
+			await DataColumn.SetFilterValueAsync(Maximo, false);
+			await DataColumn.CloseFilter();
+		}
+		else if (tipoFiltro == "Igual" && Igual != default)
+		{
+			DataColumn.ClearFilters();
+			DataColumn.SetFilterOperator(FilterOperator.Equals);
+			await DataColumn.SetFilterValueAsync(Igual);
+			await DataColumn.CloseFilter();
+		}
+	}
+}

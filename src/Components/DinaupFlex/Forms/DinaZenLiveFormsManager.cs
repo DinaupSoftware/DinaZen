@@ -1,4 +1,4 @@
-namespace DinaZen.Components.DinaupFlex;
+namespace DinaZen.Components.DinaupFlex.Forms;
 
 /// <summary>
 /// Gestor estatico de formularios vivos. Mantiene un timer que llama a Ping()

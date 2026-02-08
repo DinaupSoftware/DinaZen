@@ -1,0 +1,263 @@
+/* ================================================================
+   HistoricoDialog - Vertical Timeline
+   ================================================================ */
+
+/* -- Timeline container -- */
+.dnz-history-timeline {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 20px 20px 20px;
+}
+
+/* -- Date group separator -- */
+.dnz-history-date-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 10px 0;
+    padding-left: 4px;
+}
+
+.dnz-history-date-group:first-child {
+    margin-top: 0;
+}
+
+.dnz-history-date-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.dnz-history-date-line {
+    flex: 1;
+    height: 1px;
+    background: #eef1f5;
+}
+
+/* -- Timeline entry -- */
+.dnz-history-entry {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    min-height: 56px;
+}
+
+/* -- Rail (dot + connector) -- */
+.dnz-history-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 12px;
+    flex-shrink: 0;
+    padding-top: 6px;
+}
+
+.dnz-history-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #dfe5ec;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #dfe5ec;
+    flex-shrink: 0;
+    z-index: 1;
+    transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.dnz-history-date-group + .dnz-history-entry .dnz-history-dot {
+    background: var(--rz-primary, #3481e5);
+    box-shadow: 0 0 0 2px rgba(52, 129, 229, 0.2);
+}
+
+.dnz-history-connector {
+    width: 2px;
+    flex: 1;
+    background: #eef1f5;
+    margin-top: 4px;
+}
+
+.dnz-history-entry:last-child .dnz-history-connector {
+    background: transparent;
+}
+
+/* -- Entry content -- */
+.dnz-history-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 16px;
+    min-width: 0;
+    border-radius: 6px;
+    transition: background 150ms ease;
+}
+
+/* -- Meta row (avatar + name + time) -- */
+.dnz-history-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dnz-history-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1b1d20;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* -- Diff block (expanded) -- */
+.dnz-history-diff {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.dnz-history-diff-removed {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+::deep .dnz-history-diff-removed .rzi {
+    color: #ef4444;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dnz-history-diff-added {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+::deep .dnz-history-diff-added .rzi {
+    color: #22c55e;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.dnz-history-diff-empty {
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #f8fafb;
+    border: 1px dashed #dfe5ec;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* -- Compact view -- */
+.dnz-history-entry.compact {
+    min-height: 36px;
+}
+
+.dnz-history-entry.compact .dnz-history-content {
+    padding-bottom: 10px;
+    gap: 2px;
+}
+
+.dnz-history-compact-diff {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    line-height: 1.3;
+    gap: 2px;
+    min-width: 0;
+}
+
+.dnz-history-compact-old {
+    color: #991b1b;
+    text-decoration: line-through;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.dnz-history-compact-new {
+    color: #166534;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+
+/* -- Hover -- */
+.dnz-history-entry:hover .dnz-history-dot {
+    transform: scale(1.25);
+}
+
+.dnz-history-entry:hover .dnz-history-content {
+    background: #f8fafb;
+}
+
+/* -- Empty state -- */
+.dnz-history-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    gap: 4px;
+}
+
+/* -- Skeleton loading -- */
+.dnz-history-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 16px 20px;
+}
+
+.dnz-history-skeleton-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.dnz-history-skeleton-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    flex-shrink: 0;
+    margin-top: 6px;
+    animation: dnz-history-shimmer 1.25s ease-in-out infinite;
+}
+
+.dnz-history-skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+@keyframes dnz-history-shimmer {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}

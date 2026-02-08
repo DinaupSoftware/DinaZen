@@ -1,0 +1,43 @@
+@namespace DinaZen.Components.WindowManager
+@implements IDisposable
+@inject DnzWindowManagerService WM
+
+@if (WM.Windows.Any())
+{
+	<div class="dnz-taskbar">
+		@foreach (var win in WM.Windows)
+		{
+			<DnzTaskbarItem @key="win.Id"
+							State="win"
+							OnToggle="HandleToggle"
+							OnClose="HandleClose" />
+		}
+	</div>
+}
+
+@code {
+	protected override void OnInitialized()
+	{
+		WM.OnChanged += HandleStateChanged;
+	}
+
+	private void HandleToggle(string windowId)
+	{
+		WM.ToggleMinimize(windowId);
+	}
+
+	private void HandleClose(string windowId)
+	{
+		WM.Close(windowId);
+	}
+
+	private void HandleStateChanged()
+	{
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		WM.OnChanged -= HandleStateChanged;
+	}
+}

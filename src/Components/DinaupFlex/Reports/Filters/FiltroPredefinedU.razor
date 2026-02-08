@@ -1,0 +1,60 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Filters
+
+@if (Column.IsNull()) return;
+@if (DataColumn.IsNull()) return;
+@if (Column.Predefined_Text.IsEmpty()) return;
+
+<div class="d-flex gap-2 flex-wrap p-3 flex-column">
+
+	@for (int i = 0; i < Column.Predefined_Text.Count; i++)
+	{
+		var posX = i;
+
+		<div style="cursor:pointer">
+			<div class="d-flex gap-2" onclick=@(() => SetFilter(posX)) style="cursor:pointer">
+				@if (Column.Predefined_Icons.IsNotEmpty() && Column.Predefined_Icons[posX].IsNotEmpty())
+				{
+					<img src=@Column.Predefined_Icons[posX] width="32px" height="32px" />
+				}
+				<span> @Column.Predefined_Text[posX] </span>
+			</div>
+		</div>
+	}
+
+	<hr />
+
+	<div class="d-flex gap-3 justify-content-center">
+		<RadzenButton Text="Vacíos" Click=@(async () => await buscarVacios()) Size="ButtonSize.Small" />
+		<RadzenButton Text="Rellenados" Click=@(async () => await buscarRellenados()) Size="ButtonSize.Small" />
+	</div>
+</div>
+
+@code {
+
+	[Parameter]
+	public DinaupFieldDTO Column { get; set; }
+	[Parameter]
+	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
+
+	async Task SetFilter(int v)
+	{
+		if (Column.Predefined_Values.IsNotEmpty())
+			await DataColumn.SetFilterValueAsync(Column.Predefined_Values[v]);
+
+		await DataColumn.CloseFilter();
+	}
+
+	async Task buscarVacios()
+	{
+		DataColumn.SetFilterOperator(FilterOperator.IsEmpty);
+		await DataColumn.SetFilterValueAsync("a");
+		await DataColumn.CloseFilter();
+	}
+
+	async Task buscarRellenados()
+	{
+		DataColumn.SetFilterOperator(FilterOperator.IsNotEmpty);
+		await DataColumn.SetFilterValueAsync("a");
+		await DataColumn.CloseFilter();
+	}
+}

@@ -1,4 +1,4 @@
-namespace DinaZen.Components.DinaupFlex;
+namespace DinaZen.Components.DinaupFlex.DynamicDocuments;
 
 /// <summary>
 /// Datos para enviar un documento dinamico por email.

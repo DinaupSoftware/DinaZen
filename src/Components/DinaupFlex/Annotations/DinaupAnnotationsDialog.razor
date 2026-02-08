@@ -1,4 +1,4 @@
-@namespace DinaZen.Components.DinaupFlex
+@namespace DinaZen.Components.DinaupFlex.Annotations
 
 <DialogLayout>
 	<TitleContent>
@@ -11,8 +11,7 @@
 					<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@_annotations.Count.ToString()" Style="font-size:11px" />
 				}
 			</div>
-			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
-						  Click="@(() => DialogService.Close())" Style="opacity:0.6" />
+			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"   Click="@(() => DialogService.Close())" Style="opacity:0.6" />
 		</div>
 	</TitleContent>
 	<BodyContent>

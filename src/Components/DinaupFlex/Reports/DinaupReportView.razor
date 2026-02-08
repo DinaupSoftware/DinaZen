@@ -1,0 +1,444 @@
+@namespace DinaZen.Components.DinaupFlex.Reports
+@using DinaZen.Components.DinaupFlex.ResponseQuestions
+@using DinaZen.Components.DinaupFlex.Reports.Filters
+
+@if (_isLoading)
+{
+	<Loader />
+}
+else if (_showResponse && _report?.VariableList?.Variables != null)
+{
+	<ResponseQuestions Variables="@_report.VariableList.Variables"
+					  VariableValues="@(VariablesValues ?? new())"
+					  OnConfirm="@HandleVariableConfirm" />
+}
+else if (_dataList != null)
+{
+	<div class="dnz-report-view">
+		@if (ShowTitle)
+		{
+			<div class="dnz-report-header">
+				@if (_dataList.Section.IsNotNull())
+				{
+					<img onerror="this.src='https://cdn.dinaup.com/up/202505/bullet.svg'"
+						 src="@($"https://cdn.dinaup.com/public/{_dataList.Section.IconoID.STR()}.png")"
+						 width="20" height="20" style="border-radius:4px" />
+				}
+				<span>@Title.IfIsEmpty(_dataList.Title)</span>
+
+				<div class="d-flex align-items-center gap-2 ms-auto">
+					@if (ShowSearch)
+					{
+						<RadzenTextBox Placeholder="Buscar..." Style="max-width:300px"
+									   Change="@UpdateSearch" />
+					}
+					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small"
+								  Click="@(async () => await UpdateAsync())" />
+				</div>
+			</div>
+		}
+
+		<div class="dnz-report-body">
+			<RadzenDataGrid Data="@_rows" TItem="DinaupDynamicRowDTO"
+							AllowSorting="true" AllowFiltering="@Filtrable"
+							Count="@_totalResults"
+							PageSize="@Limite" AllowPaging="true"
+							PagerAlwaysVisible="false"
+							Density="Density.Compact"
+							LoadData="@HandleLoadDataEvent"
+							FilterMode="FilterMode.Advanced"
+							FilterPopupRenderMode="PopupRenderMode.OnDemand"
+							LogicalFilterOperator="LogicalFilterOperator.And"
+							RowSelect="@HandleRowSelect"
+							AllowColumnResize="true"
+							ShowPagingSummary="true"
+							KeyProperty="ID">
+				<Columns>
+
+					@foreach (var col in _dataList.Columns.Where(c => !c.isColumnHidden))
+					{
+						switch (col.Format)
+						{
+							case FieldFormatE.DEC when col.Role == RoleFieldE.Moneda:
+
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+									<FilterTemplate Context="data">
+										<FiltroU Column=@col DataColumn=@data />
+									</FilterTemplate>
+									<Template Context="row">
+										<SpanMoney Amount="@row.GetDec(col.Keyword)" AutoColorRed=true />
+									</Template>
+									<FooterTemplate>
+										Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b>
+									</FooterTemplate>
+								</RadzenDataGridColumn>
+								break;
+
+							case FieldFormatE.DEC:
+
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+									<FilterTemplate Context="data">
+										<FiltroU Column=@col DataColumn=@data />
+									</FilterTemplate>
+									<Template Context="row">
+										@if (col.Role == RoleFieldE.Minutos)
+										{
+											<SpanMinutes Value=@row.GetDec(col.Keyword) />
+										}
+										else
+										{
+											<SpanDecimal Value="@row.GetDec(col.Keyword)" />
+										}
+									</Template>
+									<FooterTemplate>
+										Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b>
+									</FooterTemplate>
+								</RadzenDataGridColumn>
+								break;
+
+							case FieldFormatE.INT:
+
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+									<FilterTemplate Context="data">
+										<FiltroU Column=@col DataColumn=@data />
+									</FilterTemplate>
+									<Template Context="row">
+										@if (col.Role == RoleFieldE.Minutos)
+										{
+											<SpanMinutes Value=@((decimal?)row.GetInt(col.Keyword)) />
+										}
+										else
+										{
+											@row.GetLegible(col.Keyword)
+										}
+									</Template>
+									<FooterTemplate>
+										Suma: <b>@_rows.Sum(o => o.GetInt(col.Keyword))</b>
+									</FooterTemplate>
+								</RadzenDataGridColumn>
+								break;
+
+							case FieldFormatE.DateAndTime:
+							case FieldFormatE.DATE:
+							case FieldFormatE.TIME:
+
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  CssClass="text-left text-nowrap">
+									<FilterTemplate Context="data">
+										<FiltroU Column=@col DataColumn=@data />
+									</FilterTemplate>
+									<Template Context="row">
+										@{ DateTime fecha = row.GetDateTime(col.Keyword); }
+										@if (fecha != default)
+										{
+											@if (col.Format == FieldFormatE.DateAndTime)
+											{
+												<span>@RegionService.ToLocalFriendlyDateTime(fecha)</span>
+											}
+											else if (col.Format == FieldFormatE.DATE)
+											{
+												<span>@RegionService.ToLocalFriendlyDate(fecha)</span>
+											}
+											else
+											{
+												<span>@fecha.ToString("HH:mm")</span>
+											}
+										}
+									</Template>
+								</RadzenDataGridColumn>
+								break;
+
+							case FieldFormatE.BOOL:
+
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  CssClass="text-center">
+									<FilterTemplate Context="data">
+										<FiltroU Column=@col DataColumn=@data />
+									</FilterTemplate>
+									<Template Context="row">
+										@if (row.GetBool(col.Keyword))
+										{
+											<RadzenBadge Text="Sí" BadgeStyle="BadgeStyle.Success" Shade="Shade.Light" />
+										}
+										else
+										{
+											<RadzenBadge Text="No" BadgeStyle="BadgeStyle.Danger" Shade="Shade.Light" />
+										}
+									</Template>
+								</RadzenDataGridColumn>
+								break;
+
+							default:
+
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
+													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  CssClass="text-left text-truncate">
+									<FilterTemplate Context="data">
+										<FiltroU Column=@col DataColumn=@data />
+									</FilterTemplate>
+									<Template Context="row">
+										@{	var value = row.GetLegible(col.Keyword); }
+										@if (value.IsNotEmpty())
+										{
+											@if (col.BadgetsStyle.IsNotEmpty() || col.Predefined_Values.IsNotEmpty())
+											{
+												<BadgetAutoColor Value=@value BadgetStyle=col.BadgetsStyle />
+											}
+											else
+											{
+												@value
+											}
+										}
+									</Template>
+								</RadzenDataGridColumn>
+								break;
+						}
+					}
+
+					@if (RowTemplate != null)
+					{
+						<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="" Width="50px" Sortable="false" Filterable="false">
+							<Template Context="row">
+								@RowTemplate(row)
+							</Template>
+						</RadzenDataGridColumn>
+					}
+
+				</Columns>
+			</RadzenDataGrid>
+		</div>
+	</div>
+}
+else if (_errorMessage.IsNotEmpty())
+{
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+		@_errorMessage
+	</RadzenAlert>
+}
+
+@code {
+
+	// ── Parámetros ──
+
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+	[Parameter, EditorRequired] public string ReportId { get; set; } = "";
+	[Parameter] public Dictionary<string, string> VariablesValues { get; set; }
+	[Parameter] public string QuerySearch { get; set; } = "";
+	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
+	[Parameter] public int Limite { get; set; } = 100;
+	[Parameter] public Dictionary<string, bool> Orden { get; set; }
+	[Parameter] public bool ShowTitle { get; set; } = true;
+	[Parameter] public string Title { get; set; } = "";
+	[Parameter] public bool ShowSearch { get; set; } = true;
+	[Parameter] public bool Filtrable { get; set; } = true;
+	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
+	[Parameter] public RenderFragment<DinaupDynamicRowDTO> RowTemplate { get; set; }
+	[Parameter] public EventCallback OnDataChanged { get; set; }
+
+	// ── Estado ──
+
+	private DinaupReportDTO _report;
+	private DinaupReportDataDTO _dataList;
+	private List<DinaupDynamicRowDTO> _rows = new();
+	private int _totalResults;
+	private bool _isLoading = true;
+	private bool _showResponse;
+	private string _errorMessage = "";
+	private bool _isDebouncing;
+	private string _lastQuerySearch = "";
+	private LoadDataReportC _lastFilter;
+
+	// ── Helpers de columna ──
+
+	private string PropExpr(DinaupFieldDTO col)
+	{
+		var t = Nullable.GetUnderlyingType(col.NetType) ?? col.NetType;
+		var n = (Nullable.GetUnderlyingType(col.NetType) != null) ? "?" : "";
+		var typeName = t.IsEnum ? "Int32" : t.Name;
+		return $@"Convert(Convert(it[""{col.Keyword}""], {typeName}{n}), Object)";
+	}
+
+	private string ColWidth(DinaupFieldDTO col)
+	{
+		var d = _dataList?.Maximumcharacterspercolumn;
+		if (d != null && d.TryGetValue(col.Label, out var c))
+			return c < 6 ? "60px" : c < 10 ? "100px" : c < 20 ? "150px" : "200px";
+		return null;
+	}
+
+	// ── Ciclo de vida ──
+
+	protected override async Task OnInitializedAsync()
+	{
+		_lastQuerySearch = QuerySearch ?? "";
+		await LoadDataAsync();
+	}
+
+	protected override async Task OnParametersSetAsync()
+	{
+		var s = QuerySearch ?? "";
+		if (s != _lastQuerySearch)
+		{
+			_lastQuerySearch = s;
+			if (!_isLoading) await LoadDataAsync();
+		}
+	}
+
+	private void HandleVariableConfirm(Dictionary<string, string> v)
+	{
+		VariablesValues = v;
+		_ = UpdateAsync();
+	}
+
+	public async void UpdateSearch(string query)
+	{
+		if (QuerySearch == query) return;
+		QuerySearch = query;
+		if (_isDebouncing) return;
+		_isDebouncing = true;
+		await Task.Delay(800);
+		_isDebouncing = false;
+		await LoadDataAsync();
+	}
+
+	public async Task UpdateAsync() => await LoadDataAsync(_lastFilter);
+
+	// ── Server-side LoadData ──
+
+	private async void HandleLoadDataEvent(LoadDataArgs args)
+	{
+		var ld = new LoadDataReportC
+		{
+			Skip = args.Skip,
+			Top = args.Top,
+			OrderBy = args.OrderBy,
+			Filter = args.Filter,
+			Filters = args.Filters?.Select(f => new FilterDescriptorC(
+				ResolveColId(f.Property), f.FilterValue, MapOp(f.FilterOperator),
+				f.SecondFilterValue, MapOp(f.SecondFilterOperator), MapLogical(f.LogicalFilterOperator)
+			)).ToList(),
+			Sorts = args.Sorts?.Select(s => new OrdenDescriptorC(
+				ResolveColId(s.Property), (OrderModeE)s.SortOrder
+			)).ToList()
+		};
+
+		await LoadDataAsync(ld);
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private string ResolveColId(string name)
+	{
+		if (name.IsNotEmpty() && name.Contains("[\""))
+			name = Dinaup.extensions.ParseBetween(ref name, "[\"", "\"]");
+		var col = _dataList?.ColumnsByKeyword?.GetM(name);
+		return col.IsNotNull() ? (col.ReportColID.IsGUID() ? col.ReportColID : col.NativeName) : name;
+	}
+
+	private static FilterFunctionE MapOp(FilterOperator op) => op switch
+	{
+		FilterOperator.Equals              => FilterFunctionE.Equals,
+		FilterOperator.NotEquals           => FilterFunctionE.NotEquals,
+		FilterOperator.LessThan            => FilterFunctionE.LessThan,
+		FilterOperator.LessThanOrEquals    => FilterFunctionE.LessThanOrEqualTo,
+		FilterOperator.GreaterThan         => FilterFunctionE.GreaterThan,
+		FilterOperator.GreaterThanOrEquals => FilterFunctionE.GreaterThanOrEqualTo,
+		FilterOperator.Contains            => FilterFunctionE.Contains,
+		FilterOperator.StartsWith          => FilterFunctionE.StartsWith,
+		FilterOperator.EndsWith            => FilterFunctionE.EndsWith,
+		FilterOperator.DoesNotContain      => FilterFunctionE.DoesNotContain,
+		FilterOperator.IsEmpty             => FilterFunctionE.IsEmpty,
+		FilterOperator.IsNotEmpty          => FilterFunctionE.IsNotEmpty,
+		_                                  => FilterFunctionE.Contains
+	};
+
+	private static LogicalOperatorE MapLogical(LogicalFilterOperator op) =>
+		op == LogicalFilterOperator.Or ? LogicalOperatorE.Or : LogicalOperatorE.And;
+
+	// ── Carga de datos ──
+
+	private async Task LoadDataAsync(LoadDataReportC filter = null)
+	{
+		if (Limite == 0) Limite = 100;
+		filter ??= new LoadDataReportC { Skip = 0, Top = Limite };
+		_lastFilter = filter;
+
+		try
+		{
+			var p = new ReportRequestParameters(ReportId, Limite)
+			{
+				Variables = VariablesValues,
+				QuerySearch = QuerySearch,
+				Order = Orden,
+				Expresion = AdvancedFilter
+			};
+			p.ApplyLoadingConfiguration(filter);
+
+			var response = await Client.Report_GetAsync(p);
+			if (response.IsNotNull())
+			{
+				_report = response.Report;
+				_showResponse = response.DataList.IsNull();
+				_dataList = response.DataList;
+				_rows = _dataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
+				_totalResults = _dataList?.TotalResults ?? _rows.Count;
+				if (OnDataChanged.HasDelegate)
+					try { await OnDataChanged.InvokeAsync(); } catch { }
+			}
+		}
+		catch (Exception ex) { _errorMessage = ex.Message; }
+		finally
+		{
+			_isLoading = false;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task HandleRowSelect(DinaupDynamicRowDTO row)
+	{
+		if (OnItemSelect.HasDelegate) await OnItemSelect.InvokeAsync(row);
+	}
+
+	// ── Helpers estáticos para abrir ──
+
+	public static async Task OpenAsync(
+		DialogService ds, DinaupClientC client, string reportId,
+		Dictionary<string, string> vars = null, string title = "Informe",
+		string width = "90%", string height = "80%")
+	{
+		var p = new Dictionary<string, object>
+		{
+			{ nameof(Client), client },
+			{ nameof(ReportId), reportId }
+		};
+		if (vars != null) p.Add(nameof(VariablesValues), vars);
+
+		await ds.OpenAsync<DinaupReportView>(title, p, new DialogOptions
+		{
+			Width = width, Height = height, CloseDialogOnEsc = true,
+			Resizable = true, Draggable = true, ShowClose = true, ShowTitle = true
+		});
+	}
+
+	public static string OpenAsWindow(
+		DnzWindowManagerService wm, DinaupClientC client, string reportId,
+		Dictionary<string, string> vars = null, string title = "Informe", string icon = "analytics")
+	{
+		RenderFragment content = b =>
+		{
+			b.OpenComponent<DinaupReportView>(0);
+			b.AddAttribute(1, nameof(Client), client);
+			b.AddAttribute(2, nameof(ReportId), reportId);
+			if (vars != null) b.AddAttribute(3, nameof(VariablesValues), vars);
+			b.CloseComponent();
+		};
+		return wm.Open(new DnzWindowOptions { Title = title, Icon = icon, InitialWidth = 1100, InitialHeight = 650 }, content);
+	}
+}
