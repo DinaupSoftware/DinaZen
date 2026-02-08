@@ -1,0 +1,109 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Provider
+
+@if (Context?.Mapping?.CanChart == true && Context.Rows.IsNotEmpty())
+{
+	<div class="dnz-chart-view">
+		@if (_chartData.IsNotEmpty())
+		{
+			<RadzenChart>
+				@switch (ChartType)
+				{
+					case ChartTypeE.Bar:
+						<RadzenBarSeries Data="@_chartData" CategoryProperty="Category" ValueProperty="Value"
+										 Title="@_valueCol.Label" />
+						break;
+					case ChartTypeE.Line:
+						<RadzenLineSeries Data="@_chartData" CategoryProperty="Category" ValueProperty="Value"
+										  Title="@_valueCol.Label" Smooth=true />
+						break;
+					case ChartTypeE.Area:
+						<RadzenAreaSeries Data="@_chartData" CategoryProperty="Category" ValueProperty="Value"
+										  Title="@_valueCol.Label" Smooth=true />
+						break;
+					case ChartTypeE.Pie:
+						<RadzenPieSeries Data="@_chartData" CategoryProperty="Category" ValueProperty="Value"
+										 Title="@_valueCol.Label" />
+						break;
+					default:
+						<RadzenColumnSeries Data="@_chartData" CategoryProperty="Category" ValueProperty="Value"
+											Title="@_valueCol.Label" />
+						break;
+				}
+				<RadzenCategoryAxis>
+					<RadzenAxisTitle Text="@_catCol?.Label" />
+				</RadzenCategoryAxis>
+				<RadzenValueAxis>
+					<RadzenAxisTitle Text="@_valueCol.Label" />
+				</RadzenValueAxis>
+				<RadzenLegend Visible=false />
+			</RadzenChart>
+		}
+	</div>
+}
+
+@code {
+
+	[CascadingParameter] public ReportContext Context { get; set; }
+	[Parameter] public ChartTypeE ChartType { get; set; } = ChartTypeE.Column;
+	[Parameter] public string ValueColumn { get; set; }
+	[Parameter] public string CategoryColumn { get; set; }
+	[Parameter] public int MaxItems { get; set; } = 20;
+
+	public enum ChartTypeE { Column, Bar, Line, Area, Pie }
+
+	private List<ChartItem> _chartData = new();
+	private DinaupFieldDTO _valueCol;
+	private DinaupFieldDTO _catCol;
+
+	protected override void OnParametersSet()
+	{
+		if (Context?.Rows == null || Context.Mapping == null) return;
+		BuildChart();
+	}
+
+	private void BuildChart()
+	{
+		var m = Context.Mapping;
+
+		_valueCol = ValueColumn.IsNotEmpty()
+			? m.AllVisible.FirstOrDefault(c => c.Keyword == ValueColumn)
+			: m.PrimaryNumeric;
+
+		_catCol = CategoryColumn.IsNotEmpty()
+			? m.AllVisible.FirstOrDefault(c => c.Keyword == CategoryColumn)
+			: m.StatusColumn ?? m.AllStrings.FirstOrDefault();
+
+		if (_valueCol == null) return;
+
+		if (_catCol.IsNotNull())
+		{
+			_chartData = Context.Rows
+				.GroupBy(r => r.GetLegible(_catCol.Keyword) ?? "(vacío)")
+				.Select(g => new ChartItem
+				{
+					Category = g.Key.IsEmpty() ? "(vacío)" : g.Key,
+					Value = (double)g.Sum(r => r.GetDec(_valueCol.Keyword))
+				})
+				.OrderByDescending(x => x.Value)
+				.Take(MaxItems)
+				.ToList();
+		}
+		else
+		{
+			_chartData = Context.Rows
+				.Take(MaxItems)
+				.Select(r => new ChartItem
+				{
+					Category = r.Title ?? r.ID,
+					Value = (double)r.GetDec(_valueCol.Keyword)
+				})
+				.ToList();
+		}
+	}
+
+	private class ChartItem
+	{
+		public string Category { get; set; }
+		public double Value { get; set; }
+	}
+}

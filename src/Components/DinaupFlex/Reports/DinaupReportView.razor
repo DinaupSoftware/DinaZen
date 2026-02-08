@@ -1,10 +1,14 @@
 @namespace DinaZen.Components.DinaupFlex.Reports
+@using DinaZen.Components.DinaupFlex.Reports.Provider
 @using DinaZen.Components.DinaupFlex.ResponseQuestions
 @using DinaZen.Components.DinaupFlex.Reports.Filters
 @inject DnzWindowManagerService WindowManager
 @inject DinaZenInterceptorService Interceptor
+@inject NavigationManager NavigationManager
 
-@if (_isLoading) {
+
+
+@if (_isLoading && _dataList == null) {
 	<Loader />
 } else if (_showResponse && _report?.VariableList?.Variables != null) {
 	<ResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
@@ -13,7 +17,7 @@
 		@if (ShowTitle) {
 			<div class="dnz-report-header">
 				@if (_dataList.Section.IsNotNull()) {
-					<img onerror="this.src='https://cdn.dinaup.com/up/202505/bullet.svg'" src="@($"https://cdn.dinaup.com/public/{_dataList.Section.IconoID.STR()}.png")" width="20" height="20" style="border-radius:4px" />
+					<img onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src="@($"https://dinaupcdn.com/public/{_dataList.Section.IconoID.STR()}.png")" width="33" height="33" style="border-radius:4px" />
 				}
 				<span>@Title.IfIsEmpty(_dataList.Title)</span>
 
@@ -21,40 +25,51 @@
 					@if (ToolBarTemplate != null) {
 						@ToolBarTemplate
 					}
-					@if (ShowAdd && _dataList?.Section != null) {
-						<RadzenButton Variant="Variant.Text" Icon="add" Size="ButtonSize.Small"
-									  Click="@HandleAddClick" />
-					}
-					@if (ShowSearch) {
-						<RadzenTextBox Placeholder="Buscar..." Style="max-width:300px"
-									   Change="@UpdateSearch" />
-					}
+
+					<RadzenButton Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Text" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
+					<RadzenTextBox Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
+					<RadzenButton Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV" />
 					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
 				</div>
 			</div>
 		}
 
 		<div class="dnz-report-body">
-			<RadzenDataGrid Data="@_rows" TItem="DinaupDynamicRowDTO"
+			<RadzenDataGrid @ref="_gridRef" Data="@_rows" TItem="DinaupDynamicRowDTO"
 							AllowSorting="true" AllowFiltering="@Filtrable"
+							AllowMultiColumnSorting="true" ShowMultiColumnSortingIndex="true"
+							AllowColumnPicking="@ShowTitle"
+							ColumnsShowingText="Columnas Visibles"
+							AllColumnsText="Todas"
+							AllowColumnReorder="true"
 							Count="@_totalResults"
-							PageSize="@Limite" AllowPaging="true"
+							PageSize="@Limit" AllowPaging="true"
+							PageSizeOptions="@_pageSizeOptions"
+							PageSizeText="filas"
 							PagerAlwaysVisible="false"
 							Density="Density.Compact"
+							IsLoading="@_isLoading"
 							LoadData="@HandleLoadDataEvent"
 							FilterMode="FilterMode.Advanced"
 							FilterPopupRenderMode="PopupRenderMode.OnDemand"
 							LogicalFilterOperator="LogicalFilterOperator.And"
 							RowSelect="@HandleRowSelect"
 							AllowColumnResize="true"
-							ShowPagingSummary="true" KeyProperty="ID">
+							ShowPagingSummary="true" KeyProperty="ID"
+						SettingsChanged=@SaveSettingsAsync  LoadSettings="@OnLoadSettings">
+				<EmptyTemplate>
+					<div class="dnz-report-empty">
+						<RadzenIcon Icon="search_off" />
+						<span>Sin resultados</span>
+					</div>
+				</EmptyTemplate>
 				<Columns>
 
 					@foreach (var col in _dataList.Columns.Where(c => !c.isColumnHidden)) {
 						switch (col.Format) {
 							case FieldFormatE.DEC when col.Role == RoleFieldE.Moneda:
 
-								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label" Property="@PropExpr(col)" Width="@ColWidth(col)" CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label" Property="@PropExpr(col)" CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
 										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
@@ -70,7 +85,7 @@
 							case FieldFormatE.DEC:
 
 								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  Property="@PropExpr(col)"
 													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
 										<FilterU Column=@col DataColumn=@data />
@@ -91,7 +106,7 @@
 							case FieldFormatE.INT:
 
 								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  Property="@PropExpr(col)"
 													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
 										<FilterU Column=@col DataColumn=@data />
@@ -114,7 +129,7 @@
 							case FieldFormatE.TIME:
 
 				<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-									  Property="@PropExpr(col)" Width="@ColWidth(col)"
+									  Property="@PropExpr(col)"
 									  CssClass="text-left text-nowrap">
 					<FilterTemplate Context="data">
 						<FilterU Column=@col DataColumn=@data />
@@ -139,14 +154,14 @@
 							case FieldFormatE.BOOL:
 
 								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)" Width="@ColWidth(col)"
+													  Property="@PropExpr(col)"
 													  CssClass="text-center">
 									<FilterTemplate Context="data">
 										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
 									<Template Context="row">
 										@if (row.GetBool(col.Keyword)) {
-											<RadzenBadge Text="Sí" BadgeStyle="BadgeStyle.Success" Shade="Shade.Light" />
+											<RadzenBadge Text="Si" BadgeStyle="BadgeStyle.Success" Shade="Shade.Light" />
 										} else {
 											<RadzenBadge Text="No" BadgeStyle="BadgeStyle.Danger" Shade="Shade.Light" />
 										}
@@ -157,7 +172,7 @@
 							default:
 
 				<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-									  Property="@PropExpr(col)" Width="@ColWidth(col)"
+									  Property="@PropExpr(col)"
 									  CssClass="text-left text-truncate">
 					<FilterTemplate Context="data">
 						<FilterU Column=@col DataColumn=@data />
@@ -192,7 +207,7 @@
 
 @code {
 
-	// ── Parámetros ──
+	// ── Parametros ──
 	[Parameter] public bool AdminMode { get; set; } = false;
 
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
@@ -200,7 +215,7 @@
 	[Parameter] public Dictionary<string, string> VariablesValues { get; set; }
 	[Parameter] public string QuerySearch { get; set; } = "";
 	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
-	[Parameter] public int Limite { get; set; } = 100;
+	[Parameter] public int Limit { get; set; } = 50;
 	[Parameter] public Dictionary<string, bool> Orden { get; set; }
 	[Parameter] public bool ShowTitle { get; set; } = true;
 	[Parameter] public string Title { get; set; } = "";
@@ -213,6 +228,7 @@
 
 	// ── Estado ──
 
+	private RadzenDataGrid<DinaupDynamicRowDTO> _gridRef;
 	private DinaupReportDTO _report;
 	private DinaupReportDataDTO _dataList;
 	private List<DinaupDynamicRowDTO> _rows = new();
@@ -220,11 +236,40 @@
 	private bool _isLoading = true;
 	private bool _showResponse;
 	private string _errorMessage = "";
-	private bool _isDebouncing;
+	private Debouncer _searchDebouncer;
 	private string _lastQuerySearch = "";
 	private LoadDataReportC _lastFilter;
+	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500 };
+	private bool _pendingReloadSettings;
+	// ── Settings (persistencia columnas visibles) ──
 
-	// ── Helpers de columna ──
+	private string SettingsKey => $"dnz-report-{new Uri(NavigationManager.Uri).AbsolutePath}-{ReportId}";
+
+	private DataGridSettings _settings;
+
+
+	private async Task LoadSettingsAsync() {
+		try {
+			var json = await JS.InvokeAsync<string>("localStorage.getItem", SettingsKey);
+			if (json.IsNotEmpty())
+				_settings = System.Text.Json.JsonSerializer.Deserialize<DataGridSettings>(json);
+		} catch { }
+	}
+
+	private async Task SaveSettingsAsync(DataGridSettings x) {
+		try {
+			_settings = x;
+			var json = System.Text.Json.JsonSerializer.Serialize(x);
+			await JS.InvokeVoidAsync("localStorage.setItem", SettingsKey, json);
+		} catch { }
+ 
+	}
+
+	private void OnLoadSettings(DataGridLoadSettingsEventArgs args) {
+		args.Settings = _settings;
+
+	}
+
 
 	private string PropExpr(DinaupFieldDTO col) {
 		var t = Nullable.GetUnderlyingType(col.NetType) ?? col.NetType;
@@ -233,18 +278,16 @@
 		return $@"Convert(Convert(it[""{col.Keyword}""], {typeName}{n}), Object)";
 	}
 
-	private string ColWidth(DinaupFieldDTO col) {
-		var d = _dataList?.Maximumcharacterspercolumn;
-		if (d != null && d.TryGetValue(col.Label, out var c))
-			return c < 6 ? "60px" : c < 10 ? "100px" : c < 20 ? "150px" : "200px";
-		return null;
-	}
-
-	// ── Ciclo de vida ──
+ 
 
 	protected override async Task OnInitializedAsync() {
 		_lastQuerySearch = QuerySearch ?? "";
 		await LoadDataAsync();
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender) {
+		if (firstRender) {
+		}
 	}
 
 	protected override async Task OnParametersSetAsync() {
@@ -260,14 +303,11 @@
 		_ = UpdateAsync();
 	}
 
-	public async void UpdateSearch(string query) {
+	public void UpdateSearch(string query) {
 		if (QuerySearch == query) return;
 		QuerySearch = query;
-		if (_isDebouncing) return;
-		_isDebouncing = true;
-		await Task.Delay(800);
-		_isDebouncing = false;
-		await LoadDataAsync();
+		_searchDebouncer ??= new Debouncer(async () => await InvokeAsync(async () => { await LoadDataAsync(); StateHasChanged(); }), 800);
+		_searchDebouncer.Debounce();
 	}
 
 	public async Task UpdateAsync() => await LoadDataAsync(_lastFilter);
@@ -290,6 +330,7 @@
 		};
 
 		await LoadDataAsync(ld);
+
 		await InvokeAsync(StateHasChanged);
 	}
 
@@ -322,12 +363,14 @@
 	// ── Carga de datos ──
 
 	private async Task LoadDataAsync(LoadDataReportC filter = null) {
-		if (Limite == 0) Limite = 100;
-		filter ??= new LoadDataReportC { Skip = 0, Top = Limite };
+		if (Limit == 0) Limit = 100;
+		filter ??= new LoadDataReportC { Skip = 0, Top = Limit };
 		_lastFilter = filter;
+		_isLoading = true;
+		await LoadSettingsAsync();
 
 		try {
-			var p = new ReportRequestParameters(ReportId, Limite) {
+			var p = new ReportRequestParameters(ReportId, Limit) {
 				Variables = VariablesValues,
 				QuerySearch = QuerySearch,
 				Order = Orden,
@@ -345,12 +388,83 @@
 				_totalResults = _dataList?.TotalResults ?? _rows.Count;
 				if (OnDataChanged.HasDelegate)
 					try { await OnDataChanged.InvokeAsync(); } catch { }
+
+
 			}
 		} catch (Exception ex) { _errorMessage = ex.Message; } finally {
 			_isLoading = false;
 			await InvokeAsync(StateHasChanged);
 		}
+
 	}
+
+	// ── Export ──
+
+	private async Task HandleExportClick() {
+		try {
+			var exportFilter = new LoadDataReportC { Skip = 0, Top = _totalResults > 0 ? _totalResults : 10000 };
+			if (_lastFilter != null) {
+				exportFilter.Filter = _lastFilter.Filter;
+				exportFilter.Filters = _lastFilter.Filters;
+				exportFilter.Sorts = _lastFilter.Sorts;
+				exportFilter.OrderBy = _lastFilter.OrderBy;
+			}
+
+			var p = new ReportRequestParameters(ReportId, exportFilter.Top ?? 10000) {
+				Variables = VariablesValues,
+				QuerySearch = QuerySearch,
+				Order = Orden,
+				Expresion = AdvancedFilter,
+				AdminMode = AdminMode
+			};
+			p.ApplyLoadingConfiguration(exportFilter);
+
+			var response = await Client.Report_GetAsync(p);
+			if (response?.DataList == null) return;
+
+			var allRows = response.DataList.GetDynamicsRowsOBJ()?.ToList() ?? new();
+			var columns = response.DataList.Columns.Where(c => !c.isColumnHidden).ToList();
+			await ExportToCsvAsync(allRows, columns);
+		} catch { }
+	}
+
+	private async Task ExportToCsvAsync(List<DinaupDynamicRowDTO> rows, List<DinaupFieldDTO> columns) {
+		var sb = new System.Text.StringBuilder();
+
+		// Header
+		sb.AppendLine(string.Join(";", columns.Select(c => EscapeCsv(c.Label))));
+
+		// Rows
+		foreach (var row in rows) {
+			var values = columns.Select(col => {
+				return col.Format switch {
+					FieldFormatE.DEC => row.GetDec(col.Keyword).ToString(System.Globalization.CultureInfo.InvariantCulture),
+					FieldFormatE.INT => row.GetInt(col.Keyword).ToString(),
+					FieldFormatE.BOOL => row.GetBool(col.Keyword) ? "Si" : "No",
+					FieldFormatE.DateAndTime => row.GetDateTime(col.Keyword) is DateTime dt && dt != default ? dt.ToString("yyyy-MM-dd HH:mm:ss") : "",
+					FieldFormatE.DATE => row.GetDateTime(col.Keyword) is DateTime d && d != default ? d.ToString("yyyy-MM-dd") : "",
+					FieldFormatE.TIME => row.GetDateTime(col.Keyword) is DateTime t2 && t2 != default ? t2.ToString("HH:mm") : "",
+					_ => row.GetLegible(col.Keyword) ?? ""
+				};
+			});
+			sb.AppendLine(string.Join(";", values.Select(v => EscapeCsv(v))));
+		}
+
+		var fileName = $"{Title.IfIsEmpty(_dataList?.Title).IfIsEmpty("export")}_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+		var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+		var base64 = Convert.ToBase64String(bytes);
+
+		await JS.InvokeVoidAsync("eval", $"{{var a=document.createElement('a');a.href='data:text/csv;base64,{base64}';a.download='{fileName.Replace("'", "")}';document.body.appendChild(a);a.click();a.remove();}}");
+	}
+
+	private static string EscapeCsv(string value) {
+		if (string.IsNullOrEmpty(value)) return "";
+		if (value.Contains('"') || value.Contains(';') || value.Contains('\n'))
+			return $"\"{value.Replace("\"", "\"\"")}\"";
+		return value;
+	}
+
+	// ── Acciones de fila ──
 
 	private async Task HandleAddClick() {
 		var sectionId = _dataList?.Section?.ID.STR();
@@ -373,7 +487,7 @@
 			return;
 		}
 
-		if (string.IsNullOrEmpty(row.SectionId)) return; // informes agrupados no tienen sección
+		if (string.IsNullOrEmpty(row.SectionId)) return; // informes agrupados no tienen seccion
 
 		if (await Interceptor.TryOpenRecordAsync(new OpenRecordRequest {
 			SectionId = row.SectionId,
@@ -389,7 +503,7 @@
 			await DinaupFormView.OpenAsync(DialogService, Client, row.SectionId, row.ID);
 	}
 
-	// ── Helpers estáticos para abrir ──
+	// ── Helpers estaticos para abrir ──
 
 	public static async Task OpenAsync(
 		DialogService ds, DinaupClientC client, string reportId,

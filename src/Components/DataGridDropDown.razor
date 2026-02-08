@@ -10,7 +10,7 @@
 	return;
 }
 
-<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" class=@(" dropdownup dropdown-menu-component" + (IsCompact ? "-min" : "") + ((IsRequired && Value.IsNull()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " ") Style=@Style>
+<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" class=@(" dropdownup dropdown-menu-component" + ((IsRequired && Value.IsNull()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " ") Style=@Style>
 	<Start>
 		@if (IconTemplate != null && Value.IsNotNull())
 		{
@@ -107,7 +107,6 @@
 	[Parameter] public string Label { get; set; }
 	[Parameter] public string Style { get; set; }
 	[Parameter] public bool Visible { get; set; } = true;
-	[Parameter] public bool IsCompact { get; set; }
 
 	// ── Behavior ──
 

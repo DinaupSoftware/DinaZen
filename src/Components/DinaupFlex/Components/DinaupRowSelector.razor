@@ -20,7 +20,7 @@
 
 
 <ErrorBoundary>
-	<RadzenFormField Text=@Label Variant="Variant.Flat" class=@("dropdown-menu-component" + (IsCompact ? "-min" : "") + ((IsRequired && SelectedRow.IsEmpty()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " " + Class) Style=@Style>
+	<RadzenFormField Text=@Label Variant="Variant.Flat" class=@("dropdown-menu-component" + ((IsRequired && SelectedRow.IsEmpty()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " " + Class) Style=@Style>
 		<Start>
 			@if (Icon.IsNotEmpty()) {
 				<RadzenIcon Icon=@Icon />
@@ -73,7 +73,7 @@
 <Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
 	<ErrorBoundary>
 		<RadzenTextBox @ref=textBox id=@searchInputId Placeholder="Type to search..." Style="width:100%;" @oninput=@OnInput />
-		<DinaupReportView ShowAdd=false ShowSearch=false ShowTitle=false  Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limite="20" />
+		<DinaupReportView ShowAdd=false ShowSearch=false ShowTitle=false  Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
 	</ErrorBoundary>
 </Popup>
 
@@ -101,7 +101,6 @@
 	}
 
 
-	[Parameter] public bool IsCompact { get; set; }
 	[Parameter] public string Class { get; set; } = "";
 
 

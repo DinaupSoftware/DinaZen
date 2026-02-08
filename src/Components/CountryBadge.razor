@@ -21,7 +21,7 @@
 
 	/// <summary>Base URL for flag images. Must contain {0} placeholder for country code.</summary>
 	[Parameter]
-	public string FlagUrlTemplate { get; set; } = "https://cdn.dinaup.com/public/flags/{0}.svg";
+	public string FlagUrlTemplate { get; set; } = "https://dinaupcdn.com/public/flags/{0}.svg";
 
 	private string FlagUrl => string.Format(FlagUrlTemplate, CountryCode.ToLowerInvariant());
 }
