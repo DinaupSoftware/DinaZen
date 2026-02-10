@@ -1,0 +1,54 @@
+@*
+    WeeklyScheduleGridRrhh - Grid visual de horario semanal agrupado por dia con franjas horarias.
+    Recibe datos ya procesados (sin dependencias de servicios).
+
+    Origen: play.dinaup.com HumanResources/Components/HorarioCard.razor
+*@
+
+@using DinaZen.Components.Rrhh.Models
+@using System.Globalization
+
+@if (Items != null && Items.Any())
+{
+    <div class="d-flex gap-2">
+        @foreach (var dayGroup in Items.GroupBy(h => h.Day).OrderBy(g => GetSortOrder(g.Key)))
+        {
+            <RadzenCard class="d-flex flex-column mt-3" Variant="Variant.Outlined">
+                <b class="w-100">@GetDayName(dayGroup.Key)</b>
+                <div class="d-flex flex-column align-items-center" style="width:110px">
+                    @foreach (var slot in dayGroup.OrderBy(e => e.From))
+                    {
+                        <span>@slot.From.ToString("HH:mm") - @slot.To.ToString("HH:mm")</span>
+                    }
+                </div>
+            </RadzenCard>
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter, EditorRequired]
+    public IEnumerable<ScheduleItemRrhh> Items { get; set; }
+
+    [Parameter]
+    public CultureInfo Culture { get; set; }
+
+    [Parameter]
+    public DayOfWeek FirstDayOfWeek { get; set; } = DayOfWeek.Monday;
+
+    private string GetDayName(DayOfWeek day)
+    {
+        var culture = Culture ?? RegionService?.Culture ?? CultureInfo.CurrentCulture;
+        var name = culture.DateTimeFormat.GetDayName(day);
+        return char.ToUpper(name[0]) + name.Substring(1);
+    }
+
+    private int GetSortOrder(DayOfWeek day)
+    {
+        int offset = (int)day - (int)FirstDayOfWeek;
+        if (offset < 0) offset += 7;
+        return offset;
+    }
+
+}

@@ -1,0 +1,92 @@
+@*
+    TimelineBarRrhh - Barra horizontal posicionada en un eje temporal de 24h.
+    Calcula left% y width% a partir de TimeOnly Entrada/Salida.
+    Soporta "hora fantasma" (si no hay salida y es hoy, muestra hasta hora actual).
+
+    Origen: play.dinaup.com HumanResources/Components/TLEmpleado/TLBarU.razor
+*@
+
+<div title="@title"
+     @onclick="OnClick"
+     class="@($"{Class} timeline-bar-rrhh d-flex justify-content-center align-content-center align-items-center")"
+     style="left:@($"{leftPercentage:F2}%"); width:@($"{widthPercentage:F2}%")">
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public DateOnly? Fecha { get; set; }
+
+    [Parameter, EditorRequired]
+    public TimeOnly? Entrada { get; set; }
+
+    [Parameter, EditorRequired]
+    public TimeOnly? Salida { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public bool ShowPhantomTime { get; set; } = true;
+
+    private bool isPhantomEnd;
+    private string title = "";
+    private decimal leftPercentage;
+    private decimal widthPercentage;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (Entrada == null) return;
+
+        var horaActual = RegionService.DateNowLocal().ToTimeOnly();
+        var esHoy = Fecha == RegionService.DateOnlyNow();
+        bool sinSalida = Salida == null || Salida == TimeOnly.MinValue;
+
+        isPhantomEnd = sinSalida && esHoy && ShowPhantomTime;
+
+        TimeOnly salidaEfectiva;
+
+        if (isPhantomEnd)
+        {
+            salidaEfectiva = horaActual > Entrada.Value ? horaActual : new TimeOnly(23, 59, 59);
+        }
+        else if (sinSalida)
+        {
+            salidaEfectiva = new TimeOnly(23, 59, 59);
+        }
+        else
+        {
+            salidaEfectiva = Salida.Value;
+        }
+
+        decimal minutosInicio = Entrada.Value.Hour * 60 + Entrada.Value.Minute;
+        decimal minutosFin = salidaEfectiva.Hour * 60 + salidaEfectiva.Minute;
+        decimal duracion = Math.Max(isPhantomEnd ? 10m : 30m, minutosFin - minutosInicio);
+
+        leftPercentage = (minutosInicio / 1440.0m) * 100m;
+        widthPercentage = (duracion / 1440.0m) * 100m;
+
+        try
+        {
+            string salidaStr = isPhantomEnd ? "Ahora" : salidaEfectiva.ToString("HH:mm");
+            title = $"{Entrada.Value:HH:mm} - {salidaStr}";
+        }
+        catch
+        {
+            title = "";
+        }
+    }
+
+}

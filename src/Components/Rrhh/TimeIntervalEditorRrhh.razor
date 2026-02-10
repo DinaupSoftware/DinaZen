@@ -1,0 +1,166 @@
+@*
+    TimeIntervalEditorRrhh - Editor de multiples intervalos de tiempo con add/remove/sort.
+    Muestra TimePickers para inicio/fin, calcula totales por categoria.
+
+    Origen: play.dinaup.com HumanResources/Dialog/Componentes/MultiIntervalEditorEsperadasU.razor
+*@
+
+@using DinaZen.Components.Rrhh.Models
+
+<div>
+    @foreach (var item in Intervals.Select((x, index) => new { x, index }))
+    {
+        <RadzenCard class="d-flex gap-2 align-items-center align-content-center p-1" Variant="Variant.Outlined">
+            <div class="d-flex gap-2 align-items-center align-content-center flex-grow-1">
+                <RadzenDatePicker Style="width:99px" @bind-Value="item.x.Inicio" ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Change="@(args => OnIntervalChangedAsync())" />
+                <RadzenDatePicker Style="width:99px" @bind-Value="item.x.Fin" ShowTime="true" TimeOnly="true" DateFormat="HH:mm" Change="@(args => OnIntervalChangedAsync())" />
+                <div class="vr mx-2"></div>
+                <div style="width:80px">
+                    <TimeSpanDisplayCompact Value="@item.x.Duration" />
+                </div>
+
+                @if (IntervalTypeTemplate != null)
+                {
+                    <div class="vr mx-2"></div>
+                    @IntervalTypeTemplate(item.x)
+                }
+            </div>
+
+            <div class="d-flex gap-2 align-items-center align-content-center">
+                @if (AllowRemove)
+                {
+                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Click="@(() => RemoveIntervalAsync(item.index))" />
+                }
+                @if (AllowAdd)
+                {
+                    <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Success" Variant="Variant.Text" Click="@(() => AddIntervalAsync(item.index))" />
+                }
+            </div>
+        </RadzenCard>
+    }
+
+    <hr>
+
+    <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-start align-items-center mt-3">
+            @if (AllowAdd)
+            {
+                <RadzenButton Text="Agregar" Icon="add" Click="@(() => AddIntervalAsync(-1))" Variant="Variant.Text" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" />
+            }
+            @if (AllowSort)
+            {
+                <RadzenButton Text="Ordenar" Icon="sort" Click="@SortIntervalsAsync" Variant="Variant.Text" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" />
+            }
+            @if (ExtraButtons != null)
+            {
+                @ExtraButtons
+            }
+        </div>
+
+        <div class="d-flex justify-content-end align-items-center gap-5">
+            @foreach (var categoryTotal in CategoryTotals)
+            {
+                <SpanKV Key="@categoryTotal.Key">
+                    <TimeSpanDisplay Value="@categoryTotal.Value" />
+                </SpanKV>
+            }
+
+            @if (CategoryTotals.Count == 0)
+            {
+                <SpanKV Key="Horas">
+                    <TimeSpanDisplay Value="@totalHoras" />
+                </SpanKV>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public List<TimeIntervalRrhh> Intervals { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<List<TimeIntervalRrhh>> IntervalsChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment<TimeIntervalRrhh> IntervalTypeTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment ExtraButtons { get; set; }
+
+    [Parameter]
+    public bool AllowSort { get; set; } = true;
+
+    [Parameter]
+    public bool AllowAdd { get; set; } = true;
+
+    [Parameter]
+    public bool AllowRemove { get; set; } = true;
+
+    [Parameter]
+    public Func<TimeIntervalRrhh, string> CategorySelector { get; set; }
+
+    private TimeSpan totalHoras;
+    private Dictionary<string, TimeSpan> CategoryTotals { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        CalculateTotals();
+    }
+
+    private void CalculateTotals()
+    {
+        totalHoras = Intervals
+            .Select(i => i.Duration)
+            .Aggregate(TimeSpan.Zero, (acc, ts) => acc.Add(ts));
+
+        if (CategorySelector != null)
+        {
+            CategoryTotals = Intervals
+                .GroupBy(i => CategorySelector(i))
+                .Where(g => !string.IsNullOrEmpty(g.Key))
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(i => i.Duration).Aggregate(TimeSpan.Zero, (acc, ts) => acc.Add(ts))
+                );
+        }
+        else
+        {
+            CategoryTotals = new();
+        }
+    }
+
+    private async Task AddIntervalAsync(int index)
+    {
+        var nuevo = new TimeIntervalRrhh(DateTime.Today, DateTime.Today);
+        if (index == -1)
+            Intervals.Add(nuevo);
+        else
+            Intervals.Insert(index + 1, nuevo);
+
+        await OnIntervalChangedAsync();
+    }
+
+    private async Task RemoveIntervalAsync(int index)
+    {
+        if (index >= 0 && index < Intervals.Count)
+        {
+            Intervals.RemoveAt(index);
+            await OnIntervalChangedAsync();
+        }
+    }
+
+    private async Task SortIntervalsAsync()
+    {
+        Intervals.Sort((a, b) => a.Inicio.CompareTo(b.Inicio));
+        await OnIntervalChangedAsync();
+    }
+
+    private async Task OnIntervalChangedAsync()
+    {
+        CalculateTotals();
+        await IntervalsChanged.InvokeAsync(Intervals);
+    }
+
+}

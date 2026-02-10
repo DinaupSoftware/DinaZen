@@ -1,13 +1,25 @@
 @namespace DinaZen.Components
 @implements IAsyncDisposable
 
-<span id="@_selector" style="display:inline-flex">
-	<RadzenButton Icon="@ButtonIcon"
-				  Text="@(_isUploading ? "Subiendo..." : _isRegistering ? "Registrando..." : ButtonText)"
-				  ButtonStyle="@ButtonStyle" Size="@ButtonSize"
-				  Variant="@ButtonVariant"
-				  Disabled="@(Disabled || _isUploading || _isRegistering)"
-				  IsBusy="@(_isUploading || _isRegistering)" />
+<span id="@_selector" style="display:inline-flex; align-items:center; gap:6px">
+	@if (!UseDashboard && _isUploading)
+	{
+		<RadzenProgressBarCircular Value="@_uploadProgress"  Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false"
+								   ProgressBarStyle="ProgressBarStyle.Primary" Mode="@(_uploadProgress > 0 ? ProgressBarMode.Determinate : ProgressBarMode.Indeterminate)" />
+		<span style="font-size:12px; white-space:nowrap">Subiendo @(_uploadProgress)%</span>
+	}
+	else if (!UseDashboard && _isRegistering)
+	{
+		<RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" ProgressBarStyle="ProgressBarStyle.Success" />
+		<span style="font-size:12px">Confirmando...</span>
+	}
+	else
+	{
+		<RadzenButton Icon="@ButtonIcon" Text="@ButtonText"
+					  ButtonStyle="@ButtonStyle" Size="@ButtonSize"
+					  Variant="@ButtonVariant"
+					  Disabled="@Disabled" />
+	}
 </span>
 
 @code {
@@ -15,6 +27,7 @@
 	[Parameter] public DinaupClientC Client { get; set; }
 	[Parameter] public string PresignEndpoint { get; set; } = "/file/upload/sign";
 	[Parameter] public EventCallback<List<DinaupFileDTO>> OnFilesUploaded { get; set; }
+	[Parameter] public EventCallback<DnzPresignUploadResult> OnEachFileUploaded { get; set; }
 	[Parameter] public string[] AcceptExtensions { get; set; } = [];
 	[Parameter] public long MaxSizeBytes { get; set; } = 150 * 1024 * 1024;
 	[Parameter] public int MaxFiles { get; set; } = 1000;
@@ -24,6 +37,8 @@
 	[Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Secondary;
 	[Parameter] public ButtonSize ButtonSize { get; set; } = ButtonSize.Small;
 	[Parameter] public Variant ButtonVariant { get; set; } = Variant.Outlined;
+	/// <summary>When true, opens the Uppy Dashboard modal (drag & drop, progress UI) instead of the native file picker.</summary>
+	[Parameter] public bool UseDashboard { get; set; }
 	[Parameter] public string Note { get; set; }
 	[Parameter] public EventCallback<string> OnError { get; set; }
 
@@ -32,6 +47,7 @@
 	private bool _initialized;
 	private bool _isUploading;
 	private bool _isRegistering;
+	private int _uploadProgress;
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -50,7 +66,8 @@
 			? AcceptExtensions.Select(e => e.StartsWith(".") ? e : "." + e).ToArray()
 			: Array.Empty<string>();
 
-		await JS.InvokeVoidAsync("window.dnzUppy_initButton", "#" + _selector, _dotNetRef, new {
+		var jsFunc = UseDashboard ? "window.dnzUppy_initDashboard" : "window.dnzUppy_initButton";
+		await JS.InvokeVoidAsync(jsFunc, "#" + _selector, _dotNetRef, new {
 			signEndpoint = PresignEndpoint,
 			allowedExtensions = extensions,
 			maxFileSize = MaxSizeBytes,
@@ -64,6 +81,15 @@
 	public void JsUploadStarted()
 	{
 		_isUploading = true;
+		_uploadProgress = 0;
+		InvokeAsync(StateHasChanged);
+	}
+
+	[JSInvokable]
+	public void JsUploadProgress(int progress)
+	{
+		_uploadProgress = progress;
+		_isUploading = true;
 		InvokeAsync(StateHasChanged);
 	}
 
@@ -71,19 +97,29 @@
 	public void JsUploadCancelled()
 	{
 		_isUploading = false;
+		_uploadProgress = 0;
 		InvokeAsync(StateHasChanged);
 	}
 
 	[JSInvokable]
-	public void JsFileUploaded(DnzPresignUploadResult file)
+	public async Task JsFileUploaded(DnzPresignUploadResult file)
 	{
-		// Individual file callback — batch handled in JsAllUploadsComplete
+		if (OnEachFileUploaded.HasDelegate)
+			await OnEachFileUploaded.InvokeAsync(file);
 	}
 
 	[JSInvokable]
 	public async Task JsAllUploadsComplete(List<DnzPresignUploadResult> files)
 	{
 		_isUploading = false;
+		_uploadProgress = 0;
+
+		// Per-file mode: caller handles registration in OnEachFileUploaded, skip batch registration
+		if (OnEachFileUploaded.HasDelegate)
+		{
+			await InvokeAsync(StateHasChanged);
+			return;
+		}
 
 		if (files.IsEmpty() || Client == null)
 		{
@@ -123,6 +159,7 @@
 	public async Task JsUploadError(string fileName, string error)
 	{
 		_isUploading = false;
+		_uploadProgress = 0;
 		await InvokeAsync(StateHasChanged);
 		await OnError.InvokeAsync($"Error subiendo {fileName}: {error}");
 	}

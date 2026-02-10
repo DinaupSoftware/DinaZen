@@ -22,13 +22,9 @@
 				<p class="card-title-subtitle">@Subtitle</p>
 			}
 		</div>
-		@if (Beta)
+		@if (BadgeType.HasValue)
 		{
-			<span class="card-title-badge card-title-badge-beta">Beta</span>
-		}
-		@if (New)
-		{
-			<span class="card-title-badge card-title-badge-new">Nuevo</span>
+			<SpecialBadges Type="BadgeType.Value"/>
 		}
 	</div>
 
@@ -75,8 +71,7 @@
 	[Parameter] public string Title { get; set; }
 	[Parameter] public string Subtitle { get; set; }
 	[Parameter] public string Icon { get; set; }
-	[Parameter] public bool Beta { get; set; }
-	[Parameter] public bool New { get; set; }
+	[Parameter] public SpecialBadges.BadgeType? BadgeType { get; set; }
 	[Parameter] public bool Compact { get; set; }
 	[Parameter] public string HelpLink { get; set; }
 	[Parameter] public RenderFragment HelpContent { get; set; }

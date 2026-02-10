@@ -1,0 +1,247 @@
+@*
+    ComparisonCardRrhh - Card de comparacion "Esperado vs Realizado" con indicador de diferencia.
+    Muestra 3 columnas: Esperado | Diferencia | Realizado con badges de estado y alertas.
+
+    Origen: play.dinaup.com HumanResources/Dialog/Componentes/ResumenUnionTurnos/ResumenUnionTurnosItemU.razor
+*@
+
+<RadzenCard Class="p-2" Style="@GetBorderStyle()">
+    <!-- Header -->
+    <ErrorBoundary>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center gap-2">
+                @GetStatusIcon()
+                <strong>@Title</strong>
+            </div>
+            <div>
+                @if (!string.IsNullOrEmpty(CategoryBadge))
+                {
+                    <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="@CategoryBadge" />
+                }
+                @GetStatusBadge()
+            </div>
+        </div>
+    </ErrorBoundary>
+
+    <!-- Body -->
+    <RadzenRow Class="g-2 align-items-center">
+        <!-- Expected -->
+        <RadzenColumn SizeMd="5" SizeSm="12">
+            <ErrorBoundary>
+                <div class="text-center">
+                    <div class="text-muted d-flex justify-content-center align-items-center gap-1">
+                        <RadzenIcon Icon="business_center" />
+                        <strong>@ExpectedLabel</strong>
+                    </div>
+
+                    @if (ExpectedStart != null)
+                    {
+                        <div class="fw-semibold d-flex align-items-center align-content-center justify-content-center">
+                            <span>@ExpectedStart.Value.ToString("HH:mm")</span>
+                            <RadzenIcon Icon="arrow_forward" Class="mx-1" Style="opacity:0.7; font-size:12px" />
+                            <span>@ExpectedEnd.Value.ToString("HH:mm")</span>
+                        </div>
+                        <div class="text-muted small d-flex justify-content-center align-items-center gap-1">
+                            <RadzenIcon Icon="schedule" />
+                            <SpanMinutes Value="@((decimal)GetExpectedDuration().TotalMinutes)" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted fst-italic py-2">@ExpectedEmptyText</div>
+                    }
+                </div>
+            </ErrorBoundary>
+        </RadzenColumn>
+
+        <!-- Difference indicator -->
+        <RadzenColumn SizeMd="2" SizeSm="12" Class="text-center">
+            <ErrorBoundary>
+                @if (ExpectedStart != null && ActualStart != null)
+                {
+                    var diff = GetDifferenceMinutes();
+                    <div class="d-flex flex-column align-items-center">
+                        @if (diff == 0)
+                        {
+                            <RadzenIcon Icon="done_all" Class="text-success" Style="font-size:24px" />
+                            <div class="small fw-semibold">@OnTimeText</div>
+                        }
+                        else if (diff < 0)
+                        {
+                            <RadzenIcon Icon="north" Class="text-primary" Style="font-size:24px" />
+                            <div class="small text-primary">@Math.Abs(diff) min @EarlyText</div>
+                        }
+                        else
+                        {
+                            <RadzenIcon Icon="south" Class="text-warning" Style="font-size:24px" />
+                            <div class="small text-warning">@diff min @LateText</div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <RadzenIcon Icon="remove" Style="color:#ccc; font-size:24px" />
+                }
+            </ErrorBoundary>
+        </RadzenColumn>
+
+        <!-- Actual -->
+        <RadzenColumn SizeMd="5" SizeSm="12">
+            <ErrorBoundary>
+                <div class="text-center">
+                    <div class="text-muted d-flex justify-content-center align-items-center gap-1">
+                        <RadzenIcon Icon="person_check" />
+                        <strong>@ActualLabel</strong>
+                    </div>
+
+                    @if (ActualStart != null)
+                    {
+                        <div class="fw-semibold d-flex align-items-center align-content-center justify-content-center">
+                            <span>@ActualStart.Value.ToString("HH:mm")</span>
+                            <RadzenIcon Icon="arrow_forward" Class="mx-1" Style="opacity:0.7; font-size:12px" />
+                            <span>@ActualEnd.Value.ToString("HH:mm")</span>
+                        </div>
+                        <div class="text-muted small d-flex justify-content-center align-items-center gap-1">
+                            <RadzenIcon Icon="schedule" />
+                            <SpanMinutes Value="@((decimal)GetActualDuration().TotalMinutes)" />
+                        </div>
+
+                        @if (ShowAbsenceBadge)
+                        {
+                            <div class="mt-1">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@AbsenceText" />
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted fst-italic py-2">@ActualEmptyText</div>
+                    }
+                </div>
+            </ErrorBoundary>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <!-- Contextual alert -->
+    <ErrorBoundary>
+        @{
+            var alert = GetAlert();
+        }
+        @if (alert != null)
+        {
+            <RadzenAlert AlertStyle="@alert.Value.Style" Variant="Variant.Outlined" Size="AlertSize.Small" Class="mt-2 mb-0" AllowClose="false">
+                @alert.Value.Message
+            </RadzenAlert>
+        }
+    </ErrorBoundary>
+</RadzenCard>
+
+@code {
+
+    [Parameter] public string Title { get; set; } = "Turno";
+    [Parameter] public string CategoryBadge { get; set; }
+
+    [Parameter] public TimeOnly? ExpectedStart { get; set; }
+    [Parameter] public TimeOnly? ExpectedEnd { get; set; }
+    [Parameter] public TimeOnly? ActualStart { get; set; }
+    [Parameter] public TimeOnly? ActualEnd { get; set; }
+
+    [Parameter] public string ExpectedLabel { get; set; } = "Esperado";
+    [Parameter] public string ActualLabel { get; set; } = "Realizado";
+    [Parameter] public string ExpectedEmptyText { get; set; } = "Sin turno esperado";
+    [Parameter] public string ActualEmptyText { get; set; } = "No trabajado";
+    [Parameter] public string OnTimeText { get; set; } = "Puntual";
+    [Parameter] public string EarlyText { get; set; } = "antes";
+    [Parameter] public string LateText { get; set; } = "tarde";
+    [Parameter] public string AbsenceText { get; set; } = "Ausencia";
+
+    [Parameter] public bool ShowAbsenceBadge { get; set; }
+
+    [Parameter] public string AlertExpectedNoActual { get; set; } = "Turno esperado sin registro de trabajo";
+    [Parameter] public string AlertActualNoExpected { get; set; } = "Trabajo realizado fuera de horario esperado";
+
+    private enum ComparisonStatus { Match, Absent, OutOfSchedule, Unknown }
+
+    private ComparisonStatus GetStatus()
+    {
+        if (ExpectedStart != null && ActualStart != null) return ComparisonStatus.Match;
+        if (ExpectedStart != null && ActualStart == null) return ComparisonStatus.Absent;
+        if (ExpectedStart == null && ActualStart != null) return ComparisonStatus.OutOfSchedule;
+        return ComparisonStatus.Unknown;
+    }
+
+    private string GetBorderStyle() => GetStatus() switch
+    {
+        ComparisonStatus.Match => "border-left:4px solid #4caf50;",
+        ComparisonStatus.Absent => "border-left:4px solid #f44336;",
+        ComparisonStatus.OutOfSchedule => "border-left:4px solid #ff9800;",
+        _ => "border-left:4px solid #e0e0e0;"
+    };
+
+    private RenderFragment GetStatusIcon() => builder =>
+    {
+        var (icon, css) = GetStatus() switch
+        {
+            ComparisonStatus.Match => ("check_circle", "text-success"),
+            ComparisonStatus.Absent => ("cancel", "text-danger"),
+            ComparisonStatus.OutOfSchedule => ("add_circle_outline", "text-warning"),
+            _ => ("schedule", "text-secondary")
+        };
+        builder.OpenComponent<RadzenIcon>(0);
+        builder.AddAttribute(1, "Icon", icon);
+        builder.AddAttribute(2, "Class", css);
+        builder.CloseComponent();
+    };
+
+    private RenderFragment GetStatusBadge()
+    {
+        return GetStatus() switch
+        {
+            ComparisonStatus.Match => GetMatchBadge(),
+            ComparisonStatus.Absent => @<RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@AbsenceText" />,
+            ComparisonStatus.OutOfSchedule => @<RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="Fuera de horario" />,
+            _ => @<RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="Desconocido" />
+        };
+    }
+
+    private RenderFragment GetMatchBadge()
+    {
+        var diff = GetDifferenceMinutes();
+        if (Math.Abs(diff) <= 5)
+            return @<RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@OnTimeText" />;
+        if (diff < 0)
+            return @<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="Anticipado" />;
+        return @<RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="Retrasado" />;
+    }
+
+    private int GetDifferenceMinutes()
+    {
+        if (ExpectedStart == null || ActualStart == null) return 0;
+        var diff = ActualStart.Value.ToTimeSpan() - ExpectedStart.Value.ToTimeSpan();
+        return (int)diff.TotalMinutes;
+    }
+
+    private TimeSpan GetExpectedDuration()
+    {
+        if (ExpectedStart == null || ExpectedEnd == null) return TimeSpan.Zero;
+        var diff = ExpectedEnd.Value.ToTimeSpan() - ExpectedStart.Value.ToTimeSpan();
+        return diff < TimeSpan.Zero ? diff + TimeSpan.FromDays(1) : diff;
+    }
+
+    private TimeSpan GetActualDuration()
+    {
+        if (ActualStart == null || ActualEnd == null) return TimeSpan.Zero;
+        var diff = ActualEnd.Value.ToTimeSpan() - ActualStart.Value.ToTimeSpan();
+        return diff < TimeSpan.Zero ? diff + TimeSpan.FromDays(1) : diff;
+    }
+
+    private (AlertStyle Style, string Message)? GetAlert()
+    {
+        if (ExpectedStart != null && ActualStart == null)
+            return (AlertStyle.Danger, $"⚠️ {AlertExpectedNoActual}");
+        if (ExpectedStart == null && ActualStart != null)
+            return (AlertStyle.Warning, $"📌 {AlertActualNoExpected}");
+        return null;
+    }
+
+}

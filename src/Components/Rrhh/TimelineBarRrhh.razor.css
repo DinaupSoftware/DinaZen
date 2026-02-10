@@ -1,0 +1,18 @@
+.timeline-bar-rrhh {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: opacity 0.15s ease;
+    z-index: 1;
+}
+
+.timeline-bar-rrhh:hover {
+    opacity: 0.85;
+    z-index: 2;
+}

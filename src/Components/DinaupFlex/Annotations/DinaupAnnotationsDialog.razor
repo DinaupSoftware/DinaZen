@@ -78,10 +78,7 @@
 										}
 										else
 										{
-											<div class="d-flex align-items-center gap-1">
-												<RadzenIcon Icon="attachment" Style="font-size:14px" />
-												<a href="@file.url_original" target="_blank" style="font-size:12px">@(file.Name.IsNotEmpty() ? file.Name : "Archivo adjunto")</a>
-											</div>
+											<FileName FileNameDisplay="@(file.Name.IsNotEmpty() ? file.Name : "Archivo adjunto")" DownloadURL="@file.url_original" IsCompact="false" />
 										}
 									</div>
 								}

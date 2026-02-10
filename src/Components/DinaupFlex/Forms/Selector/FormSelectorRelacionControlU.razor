@@ -23,7 +23,7 @@
 				</div>
 
 
-				<div style="width: 100%; flex:1; display: flex; justify-content: center; align-items: center;">
+				<div style="width: 100%; flex:1; display: flex; justify-content: center; align-items: center;margin:0px;padding:0px">
 					<DnzFileUploaderButton Client="@Client"
 										   ButtonText="Subir archivo"
 										   ButtonIcon="upload_file"
@@ -35,21 +35,19 @@
 			} else {
 
 				<div class="d-flex flex-column ">
-					<RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">@DataControl.Label</RadzenText>
-
-					<div class="d-flex gap-1  align-content-start align-items-start flex-1">
-
-						<RadzenButton Visible=@(fileDTO.IsNotNull()) Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Click=@EliminarRelacion></RadzenButton>
-						<DnzFileUploaderButton Client="@Client"
-											   ButtonText="Cambiar"
-											   ButtonIcon="swap_horiz"
-											   ButtonStyle="ButtonStyle.Light"
-											   ButtonSize="ButtonSize.ExtraSmall"
-											   MaxFiles="1"
-											   OnFilesUploaded="@OnFilesComplete" />
+					<div class="d-flex align-items-center justify-content-between">
+						<RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" style="margin:0">@DataControl.Label</RadzenText>
+						<div class="d-flex align-items-center gap-1">
+							<DnzFileUploaderButton Client="@Client"
+												   ButtonText=""
+												   ButtonIcon="upload"
+												   ButtonStyle="ButtonStyle.Secondary"
+												   ButtonSize="ButtonSize.ExtraSmall"
+												   MaxFiles="1"
+												   OnFilesUploaded="@OnFilesComplete" />
+							<RadzenButton Visible=@(fileDTO.IsNotNull()) Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Click=@EliminarRelacion />
+						</div>
 					</div>
-
-
 				</div>
 
 

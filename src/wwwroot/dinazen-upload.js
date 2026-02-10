@@ -3,6 +3,13 @@
  * Wraps Uppy + AwsS3 plugin for Blazor interop.
  */
 
+/** Compute SHA-1 hex digest of a File/Blob using WebCrypto. */
+async function _dnzSha1File(file) {
+    const buf = await file.arrayBuffer();
+    const hash = await crypto.subtle.digest('SHA-1', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 /** @type {Map<string, {uppy: any, fileInput: HTMLInputElement}>} */
 const _instances = new Map();
 
@@ -81,13 +88,47 @@ window.dnzUppy_initButton = function (selector, dotNetRef, options) {
         }
     });
 
+    // Compute SHA-1 when file is added (before upload starts)
+    uppy.on('file-added', async (file) => {
+        try {
+            file.meta.sha1 = await _dnzSha1File(file.data);
+        } catch (e) {
+            console.error('DinaZen Upload: SHA-1 error', e);
+            file.meta.sha1 = '';
+        }
+    });
+
+    // Per-file progress → compute overall % and notify C#
+    let totalSize = 0;
+    const fileProgress = {};
+
+    uppy.on('upload-start', (files) => {
+        totalSize = 0;
+        for (const f of files) {
+            totalSize += f.size || 0;
+            fileProgress[f.id] = 0;
+        }
+    });
+
+    uppy.on('upload-progress', (file, progress) => {
+        if (!file) return;
+        fileProgress[file.id] = progress.bytesUploaded || 0;
+        let uploaded = 0;
+        for (const id in fileProgress) uploaded += fileProgress[id];
+        const pct = totalSize > 0 ? Math.round(uploaded / totalSize * 100) : 0;
+        try {
+            dotNetRef.invokeMethodAsync('JsUploadProgress', pct);
+        } catch (_) { }
+    });
+
     // Notify C# on each file upload success
     uppy.on('upload-success', async (file) => {
         if (!file?.meta?.getUrl) return;
         try {
             await dotNetRef.invokeMethodAsync('JsFileUploaded', {
                 fileName: file.meta.serverFileName || file.name,
-                url: file.meta.getUrl
+                url: file.meta.getUrl,
+                sha1: file.meta.sha1 || ''
             });
         } catch (e) {
             console.error('DinaZen Upload: error calling JsFileUploaded', e);
@@ -98,7 +139,8 @@ window.dnzUppy_initButton = function (selector, dotNetRef, options) {
     uppy.on('complete', async (result) => {
         const successful = (result.successful || []).map(f => ({
             fileName: f.meta.serverFileName || f.name,
-            url: f.meta.getUrl || ''
+            url: f.meta.getUrl || '',
+            sha1: f.meta.sha1 || ''
         }));
         try {
             await dotNetRef.invokeMethodAsync('JsAllUploadsComplete', successful);
@@ -164,7 +206,142 @@ window.dnzUppy_initButton = function (selector, dotNetRef, options) {
 };
 
 /**
- * Destroy a headless button-mode Uppy instance.
+ * Initialize an Uppy instance with the Dashboard modal UI.
+ * The trigger element opens the modal on click. Dashboard handles drag & drop, progress, etc.
+ */
+window.dnzUppy_initDashboard = function (selector, dotNetRef, options) {
+    const triggerEl = document.querySelector(selector);
+    if (!triggerEl) {
+        console.error(`DinaZen Upload: element "${selector}" not found`);
+        return null;
+    }
+
+    const opts = options || {};
+    const signEndpoint = opts.signEndpoint || '/file/upload/sign';
+    const maxFileSize = opts.maxFileSize || (100 * 1024 * 1024);
+    const maxFiles = opts.maxFiles || 1000;
+    const allowedExts = (opts.allowedExtensions && opts.allowedExtensions.length > 0)
+        ? opts.allowedExtensions.map(ext => ext.startsWith('.') ? ext.toLowerCase() : '.' + ext.toLowerCase())
+        : null;
+
+    const uppy = new Uppy.Uppy({
+        autoProceed: true,
+        restrictions: {
+            maxFileSize: maxFileSize,
+            maxNumberOfFiles: maxFiles,
+            allowedFileTypes: allowedExts
+        }
+    });
+
+    uppy.use(Uppy.Dashboard, {
+        inline: false,
+        target: document.body,
+        trigger: selector,
+        showProgressDetails: true,
+        proudlyDisplayPoweredByUppy: false,
+        closeModalOnClickOutside: true,
+        closeAfterFinish: false,
+        showAddMoreFilesBtn: true,
+        showCancelButton: true,
+        locale: {
+            strings: {
+                dropPasteFiles: 'Suelta archivos aquí o %{browse}',
+                browse: 'haz clic para seleccionarlos',
+                cancel: 'Cancelar',
+                done: 'Hecho',
+                addMoreFiles: 'Añadir más',
+                uploading: 'Subiendo…',
+                complete: 'Completado',
+                uploadFailed: 'La subida falló',
+                retry: 'Reintentar',
+                removeFile: 'Eliminar',
+                filesUploadedOfTotal: {
+                    0: '%{complete} de %{smart_count} archivo subido',
+                    1: '%{complete} de %{smart_count} archivos subidos'
+                },
+                dataUploadedOfTotal: '%{complete} de %{total}',
+                xTimeLeft: '%{time} restantes',
+                exceedsSize: 'El archivo supera el tamaño máximo permitido'
+            }
+        }
+    });
+
+    uppy.use(Uppy.AwsS3, {
+        limit: 1,
+        shouldUseMultipart: false,
+        async getUploadParameters(file) {
+            const res = await fetch(signEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fileName: file.name,
+                    fileType: file.type || 'application/octet-stream',
+                    size: file.size
+                })
+            });
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error('Error en sign endpoint: ' + errText);
+            }
+            const data = await res.json();
+            file.meta.getUrl = data.getUrl;
+            file.meta.serverFileName = data.fileName;
+            return {
+                method: 'PUT',
+                url: data.putUrl,
+                headers: { 'Content-Type': file.type || 'application/octet-stream' }
+            };
+        }
+    });
+
+    uppy.on('file-added', async (file) => {
+        try {
+            file.meta.sha1 = await _dnzSha1File(file.data);
+        } catch (e) {
+            console.error('DinaZen Upload: SHA-1 error', e);
+            file.meta.sha1 = '';
+        }
+    });
+
+    uppy.on('upload-success', async (file) => {
+        if (!file?.meta?.getUrl) return;
+        try {
+            await dotNetRef.invokeMethodAsync('JsFileUploaded', {
+                fileName: file.meta.serverFileName || file.name,
+                url: file.meta.getUrl,
+                sha1: file.meta.sha1 || ''
+            });
+        } catch (e) {
+            console.error('DinaZen Upload: error calling JsFileUploaded', e);
+        }
+    });
+
+    uppy.on('complete', async (result) => {
+        const successful = (result.successful || []).map(f => ({
+            fileName: f.meta.serverFileName || f.name,
+            url: f.meta.getUrl || '',
+            sha1: f.meta.sha1 || ''
+        }));
+        try {
+            await dotNetRef.invokeMethodAsync('JsAllUploadsComplete', successful);
+        } catch (e) {
+            console.error('DinaZen Upload: error calling JsAllUploadsComplete', e);
+        }
+    });
+
+    uppy.on('upload-error', (file, error) => {
+        console.error('DinaZen Upload error:', file?.name, error);
+        try {
+            dotNetRef.invokeMethodAsync('JsUploadError', file?.name || 'unknown', error?.message || 'Error desconocido');
+        } catch (_) { }
+    });
+
+    _instances.set(selector, { uppy, fileInput: null });
+    return selector;
+};
+
+/**
+ * Destroy an Uppy instance (works for both button and dashboard mode).
  * @param {string} selector
  */
 window.dnzUppy_destroyButton = function (selector) {
