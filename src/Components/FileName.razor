@@ -1,41 +1,65 @@
 ﻿@using System.IO
 @using Microsoft.AspNetCore.Components
-<RadzenBadge BadgeStyle="BadgeStyle.Light" Style="width:fit-content;margin:10px">
-	<div class="d-flex gap-2  align-content-center align-items-center px-3 py-2 " Style="width:fit-content">
-		<img src="@IconUrl" alt="@FileNameDisplay" width="24" height="24" />
-		<div class="d-flex flex-column justify-content-start align-content-start align-items-start ">
-			<b>@FileNameDisplay </b>
-			@if (FileSize.HasValue)
-			{
-				<span>
-					<small>Tamaño: @FormatFileSize(FileSize.Value)</small>
-				</span>
-			}
-		</div>
-
-
+@if (IsCompact)
+{
+	<div class="dnz-filename-compact">
+		<img src="@IconUrl" alt="@FileNameDisplay" width="16" height="16" />
+		<span class="dnz-filename-compact-name" title="@FileNameDisplay">@FileNameDisplay</span>
+		@if (FileSize.HasValue)
+		{
+			<span class="dnz-filename-compact-size">@FormatFileSize(FileSize.Value)</span>
+		}
 		@if (DownloadURL.IsNotEmpty())
 		{
-
-			<div style="margin-left: 13px;">
-				<a href=@DownloadURL target="_blank"><RadzenButton Icon="downloading" /> </a>
-			</div>
-		} else if (OnClick.HasDelegate){
-
-
-			<div style="margin-left: 13px;">
-				<RadzenButton Icon=@OnClick_Icon Click=@OnClick />
-			</div>
-
+			<a href="@DownloadURL" target="_blank" class="dnz-filename-compact-action">
+				<RadzenIcon Icon="downloading" Style="font-size:14px;" />
+			</a>
+		}
+		else if (OnClick.HasDelegate)
+		{
+			<button class="dnz-filename-compact-action" @onclick="OnClick">
+				<RadzenIcon Icon="@OnClick_Icon" Style="font-size:14px;" />
+			</button>
 		}
 	</div>
-</RadzenBadge>
+}
+else
+{
+	<RadzenBadge BadgeStyle="BadgeStyle.Light" Style="width:fit-content;margin:10px">
+		<div class="d-flex gap-2  align-content-center align-items-center px-3 py-2 " Style="width:fit-content">
+			<img src="@IconUrl" alt="@FileNameDisplay" width="24" height="24" />
+			<div class="d-flex flex-column justify-content-start align-content-start align-items-start ">
+				<b>@FileNameDisplay </b>
+				@if (FileSize.HasValue)
+				{
+					<span>
+						<small>Tamaño: @FormatFileSize(FileSize.Value)</small>
+					</span>
+				}
+			</div>
+
+			@if (DownloadURL.IsNotEmpty())
+			{
+				<div style="margin-left: 13px;">
+					<a href=@DownloadURL target="_blank"><RadzenButton Icon="downloading" /> </a>
+				</div>
+			} else if (OnClick.HasDelegate){
+				<div style="margin-left: 13px;">
+					<RadzenButton Icon=@OnClick_Icon Click=@OnClick />
+				</div>
+			}
+		</div>
+	</RadzenBadge>
+}
 
 
 @code {
 	
 
-	[Parameter] 
+	[Parameter]
+	public bool IsCompact { get; set; }
+
+	[Parameter]
 	public EventCallback OnClick { get; set; }
 	[Parameter] 
 	public string OnClick_Icon { get; set; } = "arrow_right";

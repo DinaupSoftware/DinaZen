@@ -1,97 +1,138 @@
 @namespace DinaZen.Components
-@using Microsoft.AspNetCore.Components.Forms
+@implements IAsyncDisposable
 
-<span style="position:relative; display:inline-flex">
-	<RadzenButton Icon="@ButtonIcon" Text="@ButtonText"
+<span id="@_selector" style="display:inline-flex">
+	<RadzenButton Icon="@ButtonIcon"
+				  Text="@(_isUploading ? "Subiendo..." : _isRegistering ? "Registrando..." : ButtonText)"
 				  ButtonStyle="@ButtonStyle" Size="@ButtonSize"
 				  Variant="@ButtonVariant"
-				  Disabled="@(Disabled || _isUploading)"
-				  IsBusy="@_isUploading"
-				  Click="@TriggerFileInput" />
-	<InputFile @ref="_inputFileRef"
-			   OnChange="@OnFileSelected"
-			   accept="@AcceptString"
-			   class="dnz-file-btn-input"
-			   id="@_inputId"
-			   disabled="@Disabled" />
+				  Disabled="@(Disabled || _isUploading || _isRegistering)"
+				  IsBusy="@(_isUploading || _isRegistering)" />
 </span>
 
 @code {
 
 	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public string PresignEndpoint { get; set; } = "/file/upload/sign";
+	[Parameter] public EventCallback<List<DinaupFileDTO>> OnFilesUploaded { get; set; }
 	[Parameter] public string[] AcceptExtensions { get; set; } = [];
-	[Parameter] public long MaxSizeBytes { get; set; } = 80 * 1024 * 1024;
+	[Parameter] public long MaxSizeBytes { get; set; } = 150 * 1024 * 1024;
+	[Parameter] public int MaxFiles { get; set; } = 1000;
 	[Parameter] public bool Disabled { get; set; }
 	[Parameter] public string ButtonText { get; set; }
 	[Parameter] public string ButtonIcon { get; set; } = "attach_file";
-	[Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Light;
+	[Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Secondary;
 	[Parameter] public ButtonSize ButtonSize { get; set; } = ButtonSize.Small;
 	[Parameter] public Variant ButtonVariant { get; set; } = Variant.Outlined;
-	[Parameter] public EventCallback<DinaupFileDTO> OnFileUploaded { get; set; }
+	[Parameter] public string Note { get; set; }
 	[Parameter] public EventCallback<string> OnError { get; set; }
 
-	private InputFile _inputFileRef;
+	private readonly string _selector = "dnz-fbtn-" + Guid.NewGuid().ToString("N")[..8];
+	private DotNetObjectReference<DnzFileUploaderButton> _dotNetRef;
+	private bool _initialized;
 	private bool _isUploading;
-	private readonly string _inputId = "dnz-fbtn-" + Guid.NewGuid().ToString("N")[..8];
+	private bool _isRegistering;
 
-	private string AcceptString => AcceptExtensions.Length > 0
-		? string.Join(",", AcceptExtensions.Select(e => e.StartsWith(".") ? e : "." + e))
-		: null;
-
-	private async Task TriggerFileInput()
+	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		await JS.InvokeVoidAsync("eval", $"document.getElementById('{_inputId}').click()");
+		if (firstRender && !Disabled)
+		{
+			await InitUppy();
+		}
 	}
 
-	private async Task OnFileSelected(InputFileChangeEventArgs e)
+	private async Task InitUppy()
 	{
-		if (Client == null)
+		if (_initialized) return;
+		_dotNetRef ??= DotNetObjectReference.Create(this);
+
+		var extensions = AcceptExtensions.Length > 0
+			? AcceptExtensions.Select(e => e.StartsWith(".") ? e : "." + e).ToArray()
+			: Array.Empty<string>();
+
+		await JS.InvokeVoidAsync("window.dnzUppy_initButton", "#" + _selector, _dotNetRef, new {
+			signEndpoint = PresignEndpoint,
+			allowedExtensions = extensions,
+			maxFileSize = MaxSizeBytes,
+			maxFiles = MaxFiles
+		});
+
+		_initialized = true;
+	}
+
+	[JSInvokable]
+	public void JsUploadStarted()
+	{
+		_isUploading = true;
+		InvokeAsync(StateHasChanged);
+	}
+
+	[JSInvokable]
+	public void JsUploadCancelled()
+	{
+		_isUploading = false;
+		InvokeAsync(StateHasChanged);
+	}
+
+	[JSInvokable]
+	public void JsFileUploaded(DnzPresignUploadResult file)
+	{
+		// Individual file callback — batch handled in JsAllUploadsComplete
+	}
+
+	[JSInvokable]
+	public async Task JsAllUploadsComplete(List<DnzPresignUploadResult> files)
+	{
+		_isUploading = false;
+
+		if (files.IsEmpty() || Client == null)
 		{
-			await OnError.InvokeAsync("No se proporcionó Client");
+			await InvokeAsync(StateHasChanged);
 			return;
 		}
 
-		var file = e.File;
-		_isUploading = true;
-		StateHasChanged();
+		_isRegistering = true;
+		await InvokeAsync(StateHasChanged);
 
-		try
+		List<DinaupFileDTO> registered = new();
+
+		foreach (var file in files)
 		{
-			if (file.Size > MaxSizeBytes)
+			if (file.Url.IsEmpty()) continue;
+			try
 			{
-				await OnError.InvokeAsync($"{file.Name} supera el límite de {MaxSizeBytes / 1024 / 1024}MB");
-				return;
+				var response = await Client.File_UploadURLAsync(file.Url, file.FileName);
+				if (response?.FileData != null)
+					registered.Add(response.FileData);
 			}
-
-			if (AcceptExtensions.Length > 0)
+			catch (Exception ex)
 			{
-				var ext = System.IO.Path.GetExtension(file.Name).TrimStart('.').ToLowerInvariant();
-				var allowed = AcceptExtensions.Select(x => x.TrimStart('.').ToLowerInvariant());
-				if (!allowed.Contains(ext))
-				{
-					await OnError.InvokeAsync($"{file.Name}: extensión .{ext} no permitida");
-					return;
-				}
+				await OnError.InvokeAsync($"Error registrando {file.FileName}: {ex.Message}");
 			}
-
-			using var stream = file.OpenReadStream(maxAllowedSize: MaxSizeBytes);
-			using var ms = new System.IO.MemoryStream();
-			await stream.CopyToAsync(ms);
-			var bytes = ms.ToArray();
-
-			var response = await Client.File_UploadBytesAsync(bytes, file.Name);
-
-			if (response?.FileData != null)
-				await OnFileUploaded.InvokeAsync(response.FileData);
 		}
-		catch (Exception ex)
+
+		_isRegistering = false;
+
+		if (registered.IsNotEmpty())
+			await OnFilesUploaded.InvokeAsync(registered);
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	[JSInvokable]
+	public async Task JsUploadError(string fileName, string error)
+	{
+		_isUploading = false;
+		await InvokeAsync(StateHasChanged);
+		await OnError.InvokeAsync($"Error subiendo {fileName}: {error}");
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_initialized)
 		{
-			await OnError.InvokeAsync($"Error subiendo {file.Name}: {ex.Message}");
+			try { await JS.InvokeVoidAsync("window.dnzUppy_destroyButton", "#" + _selector); } catch { }
 		}
-		finally
-		{
-			_isUploading = false;
-			StateHasChanged();
-		}
+		_dotNetRef?.Dispose();
 	}
 }

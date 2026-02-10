@@ -1,0 +1,47 @@
+.dnz-filename-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    background: var(--dnz-surface-raised, #f8f9fa);
+    border: 1px solid var(--dnz-header-border, #e0e0e0);
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1;
+    max-width: 100%;
+    width: fit-content;
+}
+
+.dnz-filename-compact-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+    color: var(--dnz-input-color, #333);
+}
+
+.dnz-filename-compact-size {
+    color: var(--rz-text-secondary-color, #888);
+    flex-shrink: 0;
+    font-size: 11px;
+}
+
+.dnz-filename-compact-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: var(--rz-primary, #1976d2);
+    flex-shrink: 0;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.dnz-filename-compact-action:hover {
+    opacity: 0.7;
+}
