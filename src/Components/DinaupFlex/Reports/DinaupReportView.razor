@@ -22,9 +22,7 @@
 				<span>@Title.IfIsEmpty(_dataList.Title)</span>
 
 				<div class="d-flex align-items-center gap-2 ms-auto">
-					@if (ToolBarTemplate != null) {
-						@ToolBarTemplate
-					}
+
 
 					<RadzenButton Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Text" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
 					<RadzenTextBox Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
@@ -54,9 +52,10 @@
 							FilterPopupRenderMode="PopupRenderMode.OnDemand"
 							LogicalFilterOperator="LogicalFilterOperator.And"
 							RowSelect="@HandleRowSelect"
-							AllowColumnResize="true"
+							AllowColumnResize="true" HeaderTemplate=@ToolBarTemplate
 							ShowPagingSummary="true" KeyProperty="ID"
-						SettingsChanged=@SaveSettingsAsync  LoadSettings="@OnLoadSettings">
+							SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
+
 				<EmptyTemplate>
 					<div class="dnz-report-empty">
 						<RadzenIcon Icon="search_off" />
@@ -84,9 +83,7 @@
 
 							case FieldFormatE.DEC:
 
-								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)"
-													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label" Property="@PropExpr(col)" CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
 										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
@@ -105,9 +102,7 @@
 
 							case FieldFormatE.INT:
 
-								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label"
-													  Property="@PropExpr(col)"
-													  CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
+								<RadzenDataGridColumn TItem="DinaupDynamicRowDTO" Title="@col.Label" Property="@PropExpr(col)" CssClass="text-right text-nowrap" FooterCssClass="text-right text-nowrap">
 									<FilterTemplate Context="data">
 										<FilterU Column=@col DataColumn=@data />
 									</FilterTemplate>
@@ -240,7 +235,6 @@
 	private string _lastQuerySearch = "";
 	private LoadDataReportC _lastFilter;
 	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500 };
-	private bool _pendingReloadSettings;
 	// ── Settings (persistencia columnas visibles) ──
 
 	private string SettingsKey => $"dnz-report-{new Uri(NavigationManager.Uri).AbsolutePath}-{ReportId}";
@@ -262,7 +256,7 @@
 			var json = System.Text.Json.JsonSerializer.Serialize(x);
 			await JS.InvokeVoidAsync("localStorage.setItem", SettingsKey, json);
 		} catch { }
- 
+
 	}
 
 	private void OnLoadSettings(DataGridLoadSettingsEventArgs args) {
@@ -278,7 +272,7 @@
 		return $@"Convert(Convert(it[""{col.Keyword}""], {typeName}{n}), Object)";
 	}
 
- 
+
 
 	protected override async Task OnInitializedAsync() {
 		_lastQuerySearch = QuerySearch ?? "";
