@@ -1,7 +1,7 @@
 @namespace DinaZen.Components.WindowManager
 @implements IAsyncDisposable
 @inject IJSRuntime JS
-@inject DnzWindowManagerService _wm
+@inject WindowManagerService _wm
 
 <div id="@_elementId"
 	 class="dnz-window @(State.IsActive ? "dnz-win-focused" : "") @(State.IsMinimized ? "dnz-win-minimized" : "") @(State.IsMaximized ? "dnz-win-maximized" : "")"
@@ -66,7 +66,7 @@
 </div>
 
 @code {
-	[Parameter, EditorRequired] public DnzWindowState State { get; set; }
+	[Parameter, EditorRequired] public WindowState State { get; set; }
 	[Parameter] public EventCallback<string> OnCloseRequest { get; set; }
 	[Parameter] public EventCallback<string> OnMinimizeRequest { get; set; }
 	[Parameter] public EventCallback<string> OnMaximizeRequest { get; set; }
@@ -80,12 +80,12 @@
 		string.Create(System.Globalization.CultureInfo.InvariantCulture,
 			$"left:{State.X}px;top:{State.Y}px;width:{State.Width}px;height:{State.Height}px;z-index:{State.ZIndex}");
 	private IJSObjectReference _jsModule;
-	private DotNetObjectReference<DnzWindow> _dotNetRef;
+	private DotNetObjectReference<Window> _dotNetRef;
 	private bool _jsInitialized;
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender || (!_jsInitialized && !State.IsMinimized))
+		if (firstRender || (_jsInitialized == false && State.IsMinimized == false))
 		{
 			await InitJsAsync();
 		}

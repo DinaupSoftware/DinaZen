@@ -6,19 +6,19 @@
 			<div class="d-flex align-items-center gap-2">
 				<RadzenIcon Icon="history" Style="color:var(--rz-primary); font-size:20px" />
 				<span style="font-weight:600">Historial de cambios</span>
-				@if (!cargando && HistoryList.IsNotEmpty())
+				@if (cargando == false && HistoryList.IsNotEmpty())
 				{
 					<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{HistoryList.Count}")" Style="font-size:11px" />
 				}
 			</div>
 			<div class="d-flex align-items-center gap-1">
-				@if (!cargando && HistoryList.IsNotEmpty())
+				@if (cargando == false && HistoryList.IsNotEmpty())
 				{
 					<RadzenButton Icon="@(isCompact ? "unfold_more" : "unfold_less")"
 								  ButtonStyle="ButtonStyle.Light"
 								  Variant="Variant.Text"
 								  Size="ButtonSize.Small"
-								  Click="@(() => { isCompact = !isCompact; })"
+								  Click="@(() => { isCompact = (isCompact == false); })"
 								  MouseEnter="@(args => TooltipService.Open(args, isCompact ? "Vista expandida" : "Vista compacta", null))"
 								  MouseLeave="@(args => TooltipService.Close())" />
 				}
@@ -76,7 +76,7 @@
 								<SpanDateTime Value="@item.EditedOn" Caption="true" FontSize="11px" />
 							</div>
 
-							@if (!isCompact)
+							@if (isCompact == false)
 							{
 								<div class="dnz-history-diff">
 									@if (oldVal.IsNotEmpty())

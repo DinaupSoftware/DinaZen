@@ -2,13 +2,13 @@
 @implements IAsyncDisposable
 
 <span id="@_selector" style="display:inline-flex; align-items:center; gap:6px">
-	@if (!UseDashboard && _isUploading)
+	@if (UseDashboard == false && _isUploading)
 	{
 		<RadzenProgressBarCircular Value="@_uploadProgress"  Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false"
 								   ProgressBarStyle="ProgressBarStyle.Primary" Mode="@(_uploadProgress > 0 ? ProgressBarMode.Determinate : ProgressBarMode.Indeterminate)" />
 		<span style="font-size:12px; white-space:nowrap">Subiendo @(_uploadProgress)%</span>
 	}
-	else if (!UseDashboard && _isRegistering)
+	else if (UseDashboard == false && _isRegistering)
 	{
 		<RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" ProgressBarStyle="ProgressBarStyle.Success" />
 		<span style="font-size:12px">Confirmando...</span>
@@ -27,7 +27,7 @@
 	[Parameter] public DinaupClientC Client { get; set; }
 	[Parameter] public string PresignEndpoint { get; set; } = "/file/upload/sign";
 	[Parameter] public EventCallback<List<DinaupFileDTO>> OnFilesUploaded { get; set; }
-	[Parameter] public EventCallback<DnzPresignUploadResult> OnEachFileUploaded { get; set; }
+	[Parameter] public EventCallback<PresignUploadResult> OnEachFileUploaded { get; set; }
 	[Parameter] public string[] AcceptExtensions { get; set; } = [];
 	[Parameter] public long MaxSizeBytes { get; set; } = 150 * 1024 * 1024;
 	[Parameter] public int MaxFiles { get; set; } = 1000;
@@ -43,7 +43,7 @@
 	[Parameter] public EventCallback<string> OnError { get; set; }
 
 	private readonly string _selector = "dnz-fbtn-" + Guid.NewGuid().ToString("N")[..8];
-	private DotNetObjectReference<DnzFileUploaderButton> _dotNetRef;
+	private DotNetObjectReference<FileUploaderButton> _dotNetRef;
 	private bool _initialized;
 	private bool _isUploading;
 	private bool _isRegistering;
@@ -51,7 +51,7 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender && !Disabled)
+		if (firstRender && Disabled == false)
 		{
 			await InitUppy();
 		}
@@ -102,14 +102,14 @@
 	}
 
 	[JSInvokable]
-	public async Task JsFileUploaded(DnzPresignUploadResult file)
+	public async Task JsFileUploaded(PresignUploadResult file)
 	{
 		if (OnEachFileUploaded.HasDelegate)
 			await OnEachFileUploaded.InvokeAsync(file);
 	}
 
 	[JSInvokable]
-	public async Task JsAllUploadsComplete(List<DnzPresignUploadResult> files)
+	public async Task JsAllUploadsComplete(List<PresignUploadResult> files)
 	{
 		_isUploading = false;
 		_uploadProgress = 0;

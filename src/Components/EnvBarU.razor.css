@@ -1,0 +1,26 @@
+.env-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    letter-spacing: 0.2px;
+}
+
+.env-bar ::deep .rzi {
+    font-size: 16px;
+}
+
+.env-staging {
+    background: linear-gradient(90deg, #1a237e, #283593);
+}
+
+.env-dev {
+    background: linear-gradient(90deg, #e65100, #f57c00);
+}
+
+.env-error {
+    background: linear-gradient(90deg, #7a0000, #b71c1c);
+}

@@ -1,4 +1,4 @@
-@if (!string.IsNullOrEmpty(CountryCode))
+@if (string.IsNullOrEmpty(CountryCode) == false)
 {
 	<div class="d-flex align-items-center gap-2">
 		<img src="@FlagUrl"

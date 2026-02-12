@@ -1,0 +1,208 @@
+@inject TooltipService TooltipService
+
+<div class="dz-taglist-editor @Class" style="@Style">
+    @if (string.IsNullOrEmpty(Title) == false)
+    {
+        <div class="dz-taglist-toolbar">
+            <span class="dz-taglist-title">
+                @if (string.IsNullOrEmpty(Icon) == false)
+                {
+                    <RadzenIcon Icon="@Icon" Style="font-size: 16px;" />
+                }
+                @Title
+            </span>
+            @if (ReadOnly == false && items.Count > 0)
+            {
+                <RadzenButton Text="Clear" Icon="delete_sweep" Size="ButtonSize.ExtraSmall" Variant="Variant.Text"
+                              ButtonStyle="ButtonStyle.Base" Click="ClearAll"
+                              MouseEnter="@(args => TooltipService.Open(args, "Remove all"))" />
+            }
+        </div>
+    }
+
+    @if (ReadOnly == false)
+    {
+        <div class="dz-taglist-input-row">
+            <input type="text" class="dz-taglist-input" placeholder="@Placeholder"
+                   value="@inputText"
+                   @oninput="OnInputChanged"
+                   @onkeydown="OnKeyDown" />
+            <button class="dz-taglist-add" @onclick="AddCurrent"
+                    title="Add" disabled="@string.IsNullOrWhiteSpace(inputText)">
+                <RadzenIcon Icon="add" Style="font-size: 18px;" />
+            </button>
+        </div>
+        @if (string.IsNullOrEmpty(errorMessage) == false)
+        {
+            <div class="dz-taglist-error">
+                <RadzenIcon Icon="warning" Style="font-size: 13px;" />
+                @errorMessage
+            </div>
+        }
+    }
+
+    @if (items.Count == 0)
+    {
+        <div class="dz-taglist-empty">
+            <span>@EmptyText</span>
+        </div>
+    }
+    else
+    {
+        <div class="dz-taglist-tags">
+            @foreach (var item in items)
+            {
+                var current = item;
+                <div class="dz-taglist-tag">
+                    <span class="dz-taglist-tag-text">@current</span>
+                    @if (ReadOnly == false)
+                    {
+                        <button class="dz-taglist-tag-remove" @onclick="(() => RemoveItem(current))" title="Remove">
+                            <RadzenIcon Icon="close" Style="font-size: 13px;" />
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<string> Value { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> ValueChanged { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Placeholder { get; set; } = "Add item...";
+    [Parameter] public string EmptyText { get; set; } = "No items";
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+
+    /// <summary>
+    /// Optional validation function. Return null/empty if valid, or an error message if invalid.
+    /// </summary>
+    [Parameter] public Func<string, string >  Validator { get; set; }
+
+    /// <summary>
+    /// Optional transform applied to each value before adding (e.g. Trim, ToLower).
+    /// </summary>
+    [Parameter] public Func<string, string>  Transform { get; set; }
+
+    /// <summary>
+    /// If true, allows pasting multiple values separated by commas, semicolons, spaces, newlines, or tabs.
+    /// </summary>
+    [Parameter] public bool AllowMultiPaste { get; set; } = true;
+
+    private List<string> items = new();
+    private string inputText = "";
+    private string errorMessage = "";
+    private List<string> lastSyncedValue;
+
+    protected override void OnParametersSet()
+    {
+        var incoming = Value ?? new();
+        if (ListEquals(incoming, lastSyncedValue) == false)
+        {
+            items = new List<string>(incoming);
+            lastSyncedValue = new List<string>(incoming);
+        }
+    }
+
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        inputText = e.Value?.ToString() ?? "";
+        errorMessage = "";
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddCurrent();
+        }
+    }
+
+    private async Task AddCurrent()
+    {
+        if (ReadOnly) return;
+
+        var raw = inputText?.Trim() ?? "";
+        if (string.IsNullOrEmpty(raw)) return;
+
+        // Split if multi-paste
+        var values = AllowMultiPaste
+            ? raw.Split(new[] { ',', ';', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries)
+                  .Select(v => v.Trim())
+                  .Where(v => string.IsNullOrEmpty(v) == false)
+                  .ToList()
+            : new List<string> { raw };
+
+        var added = 0;
+        var lastError = "";
+
+        foreach (var val in values)
+        {
+            var transformed = Transform != null ? Transform(val) : val;
+            if (string.IsNullOrEmpty(transformed)) continue;
+
+            // Validate
+            if (Validator != null)
+            {
+                var error = Validator(transformed);
+                if (string.IsNullOrEmpty(error) == false)
+                {
+                    lastError = error;
+                    continue;
+                }
+            }
+
+            // Duplicate check
+            if (items.Contains(transformed))
+            {
+                lastError = $"'{transformed}' already exists";
+                continue;
+            }
+
+            items.Add(transformed);
+            added++;
+        }
+
+        if (added > 0)
+        {
+            inputText = "";
+            errorMessage = "";
+            await NotifyChanged();
+        }
+        else if (string.IsNullOrEmpty(lastError) == false)
+        {
+            errorMessage = lastError;
+        }
+    }
+
+    private async Task RemoveItem(string item)
+    {
+        if (ReadOnly) return;
+        items.Remove(item);
+        await NotifyChanged();
+    }
+
+    private async Task ClearAll()
+    {
+        if (ReadOnly) return;
+        items.Clear();
+        await NotifyChanged();
+    }
+
+    private async Task NotifyChanged()
+    {
+        lastSyncedValue = new List<string>(items);
+        await ValueChanged.InvokeAsync(new List<string>(items));
+    }
+
+    private static bool ListEquals(List<string>  a, List<string>  b)
+    {
+        if (a is null && b is null) return true;
+        if (a is null || b is null) return false;
+        return a.Count == b.Count && a.SequenceEqual(b);
+    }
+}

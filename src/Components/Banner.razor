@@ -2,14 +2,14 @@
 
 <div class="@GetBannerClass()">
 	<div class="banner-content">
-		@if (!string.IsNullOrEmpty(Icon))
+		@if (string.IsNullOrEmpty(Icon) == false)
 		{
 			<div class="banner-icon">
 				<RadzenIcon Icon="@Icon" />
 			</div>
 		}
 		<div class="banner-text">
-			@if (!string.IsNullOrEmpty(Title))
+			@if (string.IsNullOrEmpty(Title) == false)
 			{
 				<h3>@Title</h3>
 			}
@@ -18,7 +18,7 @@
 				@ChildContent
 			}
 		</div>
-		@if (!string.IsNullOrEmpty(ButtonText) && !string.IsNullOrEmpty(ButtonUrl))
+		@if (string.IsNullOrEmpty(ButtonText) == false && string.IsNullOrEmpty(ButtonUrl) == false)
 		{
 			<a href="@ButtonUrl" target="@(OpenInNewTab ? "_blank" : "_self")" class="banner-btn">
 				<span>@ButtonText</span>

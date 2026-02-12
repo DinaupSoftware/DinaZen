@@ -10,18 +10,36 @@
 
 @if (Items != null && Items.Any())
 {
-    <div class="d-flex gap-2">
+    <div class="weekly-schedule-grid">
         @foreach (var dayGroup in Items.GroupBy(h => h.Day).OrderBy(g => GetSortOrder(g.Key)))
         {
-            <RadzenCard class="d-flex flex-column mt-3" Variant="Variant.Outlined">
-                <b class="w-100">@GetDayName(dayGroup.Key)</b>
-                <div class="d-flex flex-column align-items-center" style="width:110px">
-                    @foreach (var slot in dayGroup.OrderBy(e => e.From))
+            var slots = dayGroup.OrderBy(e => e.From).ToList();
+            var totalMinutes = slots.Sum(s => (int)s.Duration.TotalMinutes);
+            var totalHours = totalMinutes / 60;
+            var remainMinutes = totalMinutes % 60;
+
+            <div class="schedule-day-card">
+                <div class="schedule-day-header">
+                    <span class="schedule-day-abbr">@GetDayAbbr(dayGroup.Key)</span>
+                    <span class="schedule-day-name">@GetDayName(dayGroup.Key)</span>
+                </div>
+                <div class="schedule-slots">
+                    @foreach (var slot in slots)
                     {
-                        <span>@slot.From.ToString("HH:mm") - @slot.To.ToString("HH:mm")</span>
+                        <div class="schedule-slot">
+                            <span class="schedule-time">@slot.From.ToString("HH:mm")</span>
+                            <span class="schedule-separator">
+                                <RadzenIcon Icon="arrow_forward" Style="font-size:10px; opacity:0.4" />
+                            </span>
+                            <span class="schedule-time">@slot.To.ToString("HH:mm")</span>
+                        </div>
                     }
                 </div>
-            </RadzenCard>
+                <div class="schedule-day-footer">
+                    <RadzenIcon Icon="schedule" Style="font-size:12px" />
+                    <span>@(totalHours)h@(remainMinutes > 0 ? $" {remainMinutes}m" : "")</span>
+                </div>
+            </div>
         }
     </div>
 }
@@ -37,11 +55,18 @@
     [Parameter]
     public DayOfWeek FirstDayOfWeek { get; set; } = DayOfWeek.Monday;
 
+    private CultureInfo GetCulture() => Culture ?? RegionService?.Culture ?? CultureInfo.CurrentCulture;
+
     private string GetDayName(DayOfWeek day)
     {
-        var culture = Culture ?? RegionService?.Culture ?? CultureInfo.CurrentCulture;
-        var name = culture.DateTimeFormat.GetDayName(day);
+        var name = GetCulture().DateTimeFormat.GetDayName(day);
         return char.ToUpper(name[0]) + name.Substring(1);
+    }
+
+    private string GetDayAbbr(DayOfWeek day)
+    {
+        var name = GetCulture().DateTimeFormat.GetAbbreviatedDayName(day);
+        return name.Length > 0 ? char.ToUpper(name[0]) + name.Substring(1, Math.Min(2, name.Length - 1)) : name;
     }
 
     private int GetSortOrder(DayOfWeek day)

@@ -1,7 +1,7 @@
 @if (Visible)
 {
 	<div class="@ContainerClass">
-		@if (!string.IsNullOrEmpty(Icon))
+		@if (string.IsNullOrEmpty(Icon) == false)
 		{
 			@if (Icon.StartsWith("/") || Icon.StartsWith("http"))
 			{

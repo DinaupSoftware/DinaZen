@@ -15,7 +15,7 @@ public static class DinaZenServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddHttpClient();
         services.AddScoped<ICultureService, CultureService>();
-        services.AddScoped<DnzWindowManagerService>();
+        services.AddScoped<WindowManagerService>();
         services.AddScoped<DinaZenInterceptorService>();
         return services;
     }

@@ -135,7 +135,7 @@
 		get => _selected;
 		set
 		{
-			if (!EqualityComparer<T>.Default.Equals(_selected, value))
+			if (EqualityComparer<T>.Default.Equals(_selected, value) == false)
 			{
 				_selected = value;
 

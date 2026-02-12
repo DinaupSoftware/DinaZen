@@ -1,13 +1,13 @@
 @namespace DinaZen.Components.WindowManager
 @implements IDisposable
-@inject DnzWindowManagerService WM
+@inject WindowManagerService WM
 
 @if (WM.Windows.Any())
 {
 	<div class="dnz-taskbar">
 		@foreach (var win in WM.Windows)
 		{
-			<DnzTaskbarItem @key="win.Id"
+			<TaskbarItem @key="win.Id"
 							State="win"
 							OnToggle="HandleToggle"
 							OnClose="HandleClose" />

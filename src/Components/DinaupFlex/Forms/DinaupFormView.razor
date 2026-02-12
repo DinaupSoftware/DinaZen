@@ -1,7 +1,7 @@
 @namespace DinaZen.Components.DinaupFlex.Forms
 @implements IDisposable
 @implements ILiveForm
-@inject DnzWindowManagerService WindowManagerRef
+@inject WindowManagerService WindowManagerRef
 @inject DinaZenInterceptorService Interceptor
 
 @if (_isLoading)
@@ -226,7 +226,7 @@ else if (_errorMessage.IsNotEmpty())
 	[Parameter] public EventCallback<DinaupAnnotationRequest> OnAnnotationOpen { get; set; }
 
 	/// <summary>
-	/// ID de la ventana DnzWindow que contiene este form (opcional).
+	/// ID de la ventana Window que contiene este form (opcional).
 	/// Si tiene valor, el form esta dentro de una ventana flotante.
 	/// </summary>
 	[Parameter] public string WindowId { get; set; }
@@ -793,11 +793,11 @@ else if (_errorMessage.IsNotEmpty())
 	// ── Static helper para abrir como ventana flotante ──
 
 	/// <summary>
-	/// Abre un DinaupFormView como ventana flotante (DnzWindowManager).
+	/// Abre un DinaupFormView como ventana flotante (WindowManager).
 	/// Retorna el windowId para referencia.
 	/// </summary>
 	public static string OpenAsWindow(
-		DnzWindowManagerService windowManager,
+		WindowManagerService windowManager,
 		DinaupClientC client,
 		string sectionId,
 		string datoId = "",
@@ -816,7 +816,7 @@ else if (_errorMessage.IsNotEmpty())
 			builder.CloseComponent();
 		};
 
-		var options = new DnzWindowOptions
+		var options = new WindowOptions
 		{
 			PresetId = windowId,
 			Title = title.IsNotEmpty() ? title : "Formulario",

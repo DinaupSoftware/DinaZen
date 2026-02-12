@@ -1,6 +1,6 @@
 namespace DinaZen.Components.WindowManager;
 
-public class DnzWindowOptions
+public class WindowOptions
 {
 	public string Title { get; set; } = "";
 	public string Subtitle { get; set; } = "";

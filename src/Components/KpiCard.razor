@@ -20,7 +20,7 @@
 						<span style="font-size:2.5rem;">@Value</span>
 					</div>
 				</div>
-				@if (!string.IsNullOrEmpty(Icon))
+				@if (string.IsNullOrEmpty(Icon) == false)
 				{
 					<RadzenIcon Icon="@Icon" Style="font-size:64px; opacity:0.3" />
 				}
@@ -32,7 +32,7 @@ else
 {
 	<RadzenCard Variant="@Variant" class="@Class" Style="@Style">
 		<div class="dz-kpi-content">
-			@if (!string.IsNullOrEmpty(Icon))
+			@if (string.IsNullOrEmpty(Icon) == false)
 			{
 				<RadzenIcon Icon="@Icon" Style="@($"font-size: 2rem;color: {Color};")" />
 				<RadzenText TextStyle="TextStyle.Subtitle1">@Title</RadzenText>
@@ -46,14 +46,14 @@ else
 				<RadzenText TextStyle="TextStyle.Subtitle1">@Title</RadzenText>
 			}
 
-			@if (!string.IsNullOrEmpty(Description))
+			@if (string.IsNullOrEmpty(Description) == false)
 			{
 				<RadzenText TextStyle="TextStyle.Caption" Style="color: gray;" class="w-100">
 					@Description
 				</RadzenText>
 			}
 
-			@if (!string.IsNullOrEmpty(ButtonText))
+			@if (string.IsNullOrEmpty(ButtonText) == false)
 			{
 				<RadzenButton Text="@ButtonText" Variant="Variant.Text" Click="@OnClick" Icon="@ButtonIcon" />
 			}

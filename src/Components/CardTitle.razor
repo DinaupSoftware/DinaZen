@@ -2,7 +2,7 @@
 
 <header class="card-title-header @(Compact ? "card-title-compact" : "")">
 	<div class="card-title-left">
-		@if (!string.IsNullOrEmpty(Icon))
+		@if (string.IsNullOrEmpty(Icon) == false)
 		{
 			<div class="card-title-icon @(IsImageIcon ? "card-title-icon-img" : "")">
 				@if (IsImageIcon)
@@ -17,7 +17,7 @@
 		}
 		<div class="card-title-text">
 			<h3 class="card-title-main">@Title</h3>
-			@if (!string.IsNullOrEmpty(Subtitle))
+			@if (string.IsNullOrEmpty(Subtitle) == false)
 			{
 				<p class="card-title-subtitle">@Subtitle</p>
 			}
@@ -33,7 +33,7 @@
 		{
 			@Actions
 		}
-		@if (HelpContent != null || !string.IsNullOrEmpty(HelpLink))
+		@if (HelpContent != null || string.IsNullOrEmpty(HelpLink) == false)
 		{
 			<button type="button" class="card-title-help-btn @(helpIsVisible ? "active" : "")" @onclick="ToggleHelp" title="@(helpIsVisible ? "Ocultar ayuda" : "Mostrar ayuda")">
 				<RadzenIcon Icon="@(helpIsVisible ? "close" : "help_outline")" />
@@ -42,7 +42,7 @@
 	</div>
 </header>
 
-@if (helpIsVisible && (HelpContent != null || !string.IsNullOrEmpty(HelpLink)))
+@if (helpIsVisible && (HelpContent != null || string.IsNullOrEmpty(HelpLink) == false))
 {
 	<div class="card-title-help-panel">
 		<div class="card-title-help-icon">
@@ -53,7 +53,7 @@
 			{
 				@HelpContent
 			}
-			else if (!string.IsNullOrEmpty(HelpLink))
+			else if (string.IsNullOrEmpty(HelpLink) == false)
 			{
 				<a href="@HelpLink" target="_blank" rel="noopener noreferrer" class="card-title-help-link">
 					<span>Ver documentacion</span>
@@ -79,12 +79,12 @@
 
 	private bool helpIsVisible;
 
-	private bool IsImageIcon => !string.IsNullOrEmpty(Icon) &&
+	private bool IsImageIcon => string.IsNullOrEmpty(Icon) == false &&
 		(Icon.StartsWith("/") || Icon.StartsWith("http://") || Icon.StartsWith("https://"));
 
 	private void ToggleHelp()
 	{
-		helpIsVisible = !helpIsVisible;
+		helpIsVisible = (helpIsVisible == false);
 	}
 }
 

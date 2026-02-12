@@ -9,13 +9,13 @@
             <span class="code-window-dot green"></span>
         </div>
 
-        @if (!string.IsNullOrEmpty(Title))
+        @if (string.IsNullOrEmpty(Title) == false)
         {
             <span class="code-window-title">@Title</span>
         }
 
         <div class="code-window-actions">
-            @if (!string.IsNullOrEmpty(Language))
+            @if (string.IsNullOrEmpty(Language) == false)
             {
                 <span class="code-window-lang">@LanguageDisplay</span>
             }
@@ -32,7 +32,7 @@
     </div>
 
     <div class="code-window-body">
-        @if (ShowLineNumbers && !string.IsNullOrEmpty(Code))
+        @if (ShowLineNumbers && string.IsNullOrEmpty(Code) == false)
         {
             <div class="code-window-lines" aria-hidden="true">
                 @for (int i = 1; i <= LineCount; i++)
@@ -146,7 +146,7 @@
         _ => Language?.ToLower() ?? ""
     };
 
-    private string LanguageClass => !string.IsNullOrEmpty(Language) ? $"language-{LanguageForHighlight}" : "";
+    private string LanguageClass => string.IsNullOrEmpty(Language) == false ? $"language-{LanguageForHighlight}" : "";
 
     private string LanguageDisplay => Language?.ToUpper() switch
     {
@@ -168,7 +168,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender || !highlighted)
+        if (firstRender || highlighted == false)
         {
             try
             {
@@ -198,7 +198,7 @@
     protected override void OnParametersSet()
     {
         // Reset highlight when code changes
-        if (!string.IsNullOrEmpty(Code))
+        if (string.IsNullOrEmpty(Code) == false)
         {
             highlighted = false;
         }

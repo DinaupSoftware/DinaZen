@@ -89,7 +89,7 @@
 
 	void Cerrar()
 	{
-		if (!isClosed)
+		if (isClosed == false)
 		{
 			isClosed = true;
 			DialogService.Close();

@@ -1,0 +1,77 @@
+@*
+    TimelineRrhh - 24-hour timeline container with hour axis and gridlines.
+    Place TimelineBarRrhh components inside ChildContent.
+*@
+
+<div class="timeline-rrhh">
+    @if (ShowAxis)
+    {
+        <div class="timeline-rrhh-axis">
+            @for (int i = 0; i < _axisHours.Count; i++)
+            {
+                var h = _axisHours[i];
+                var isFirst = i == 0;
+                var isLast = i == _axisHours.Count - 1;
+                var align = isFirst ? "left" : isLast ? "right" : "center";
+                <span class="timeline-rrhh-axis-label timeline-rrhh-axis-@align"
+                      style="left:@(HourToPercent(h))%">@h.ToString("00"):00</span>
+            }
+        </div>
+    }
+    <div class="timeline-rrhh-track" style="height:@(Height)px">
+        @if (ShowAxis)
+        {
+            @foreach (var h in _axisHours)
+            {
+                <span class="timeline-rrhh-gridline" style="left:@(HourToPercent(h))%"></span>
+            }
+        }
+        @ChildContent
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    /// <summary>Height of the track area in pixels.</summary>
+    [Parameter]
+    public int Height { get; set; } = 36;
+
+    [Parameter]
+    public int StartHour { get; set; } = 0;
+
+    [Parameter]
+    public int EndHour { get; set; } = 24;
+
+    [Parameter]
+    public int Step { get; set; } = 0;
+
+    /// <summary>Show hour axis labels and gridlines above the track.</summary>
+    [Parameter]
+    public bool ShowAxis { get; set; } = true;
+
+    private List<int> _axisHours = new();
+
+    protected override void OnParametersSet()
+    {
+        int start = Math.Clamp(StartHour, 0, 23);
+        int end = Math.Clamp(EndHour, start + 1, 24);
+        int span = end - start;
+        int step = Step > 0 ? Step : (span <= 8 ? 1 : span <= 14 ? 2 : 3);
+
+        _axisHours = new();
+        for (int h = start; h <= end; h += step)
+            _axisHours.Add(h);
+    }
+
+    private string HourToPercent(int hour)
+    {
+        int start = Math.Clamp(StartHour, 0, 23);
+        int end = Math.Clamp(EndHour, start + 1, 24);
+        if (end == start) return "0";
+        double pct = (double)(hour - start) / (end - start) * 100.0;
+        return pct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+    }
+}

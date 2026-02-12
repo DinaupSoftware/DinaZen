@@ -53,7 +53,7 @@
 
     protected override void OnParametersSet()
     {
-        if (!Value.HasValue)
+        if (Value.HasValue == false)
         {
             ResetState();
             return;

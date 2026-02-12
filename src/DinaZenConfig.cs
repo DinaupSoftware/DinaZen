@@ -35,6 +35,6 @@ public enum FormOpenMode
 	/// <summary>Modal de Radzen (DialogService).</summary>
 	Dialog,
 
-	/// <summary>Ventana flotante (DnzWindowManagerService).</summary>
+	/// <summary>Ventana flotante (WindowManagerService).</summary>
 	Window
 }

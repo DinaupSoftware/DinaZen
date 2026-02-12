@@ -2,7 +2,7 @@
 @using DinaZen.Components.DinaupFlex.Reports.Provider
 @using DinaZen.Components.DinaupFlex.ResponseQuestions
 @using DinaZen.Components.DinaupFlex.Reports.Filters
-@inject DnzWindowManagerService WindowManager
+@inject WindowManagerService WindowManager
 @inject DinaZenInterceptorService Interceptor
 @inject NavigationManager NavigationManager
 
@@ -522,7 +522,7 @@
 	}
 
 	public static string OpenAsWindow(
-		DnzWindowManagerService wm, DinaupClientC client, string reportId,
+		WindowManagerService wm, DinaupClientC client, string reportId,
 		Dictionary<string, string> vars = null, string title = "Informe", string icon = "analytics") {
 		RenderFragment content = b => {
 			b.OpenComponent<DinaupReportView>(0);
@@ -531,6 +531,6 @@
 			if (vars != null) b.AddAttribute(3, nameof(VariablesValues), vars);
 			b.CloseComponent();
 		};
-		return wm.Open(new DnzWindowOptions { Title = title, Icon = icon, InitialWidth = 1100, InitialHeight = 650 }, content);
+		return wm.Open(new WindowOptions { Title = title, Icon = icon, InitialWidth = 1100, InitialHeight = 650 }, content);
 	}
 }

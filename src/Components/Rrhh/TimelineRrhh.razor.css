@@ -1,0 +1,59 @@
+.timeline-rrhh {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ── Hour axis ── */
+.timeline-rrhh-axis {
+    position: relative;
+    height: 16px;
+    margin-bottom: 3px;
+}
+
+.timeline-rrhh-axis-label {
+    position: absolute;
+    font-size: 10px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--dnz-label-color, #94a3b8);
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1;
+}
+
+/* First label: left-aligned to its mark */
+.timeline-rrhh-axis-left {
+    transform: translateX(0);
+}
+
+/* Last label: right-aligned to its mark */
+.timeline-rrhh-axis-right {
+    transform: translateX(-100%);
+}
+
+/* Middle labels: centered on their mark */
+.timeline-rrhh-axis-center {
+    transform: translateX(-50%);
+}
+
+/* ── Track (bar container) ── */
+.timeline-rrhh-track {
+    position: relative;
+    min-height: 32px;
+    background: var(--dnz-tab-content-bg, #f0f1f3);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--dnz-input-border, #dfe5ec);
+}
+
+/* ── Gridlines ── */
+.timeline-rrhh-gridline {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--dnz-header-border, #e2e8f0);
+    opacity: 0.4;
+    pointer-events: none;
+}

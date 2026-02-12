@@ -1,6 +1,6 @@
 @namespace DinaZen.Components.WindowManager
 @implements IAsyncDisposable
-@inject DnzWindowManagerService WM
+@inject WindowManagerService WM
 @inject IJSRuntime JS
 @inject Radzen.NotificationService NotificationService
 
@@ -9,7 +9,7 @@
 	<div class="dnz-window-host">
 		@foreach (var win in WM.Windows)
 		{
-			<DnzWindow @key="win.Id"
+			<Window @key="win.Id"
 					   State="win"
 					   OnCloseRequest="HandleClose"
 					   OnMinimizeRequest="HandleMinimize"
@@ -17,13 +17,13 @@
 					   OnFocusRequest="HandleFocus" />
 		}
 
-		<DnzTaskbar />
+		<Taskbar />
 	</div>
 }
 
 @code {
 	private IJSObjectReference _jsModule;
-	private DotNetObjectReference<DnzWindowHost> _dotNetRef;
+	private DotNetObjectReference<WindowHost> _dotNetRef;
 	private bool _viewportInitialized;
 
 	protected override void OnInitialized()
@@ -40,7 +40,7 @@
 			{
 				Severity = Radzen.NotificationSeverity.Warning,
 				Summary = "Límite de ventanas",
-				Detail = $"No se pueden abrir más de {DnzWindowManagerService.MaxWindows} ventanas. Cierra alguna para continuar.",
+				Detail = $"No se pueden abrir más de {WindowManagerService.MaxWindows} ventanas. Cierra alguna para continuar.",
 				Duration = 4000
 			});
 		});
@@ -48,7 +48,7 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (!_viewportInitialized)
+		if (_viewportInitialized == false)
 		{
 			try
 			{

@@ -296,7 +296,7 @@
 	// ── Static helper para abrir como ventana ──
 
 	public static string OpenAsWindow(
-		DnzWindowManagerService windowManager,
+		WindowManagerService windowManager,
 		DinaupClientC client,
 		string docId,
 		Dictionary<string, string> variableValues = null,
@@ -316,7 +316,7 @@
 			builder.CloseComponent();
 		};
 
-		var options = new DnzWindowOptions
+		var options = new WindowOptions
 		{
 			Title = title,
 			Icon = icon,

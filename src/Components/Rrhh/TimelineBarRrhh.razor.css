@@ -1,18 +1,86 @@
+/* ═══════════════════════════════════════════════════════════
+   TimelineBarRrhh — Flat, clean, Microsoft-style bars
+   ═══════════════════════════════════════════════════════════ */
+
 .timeline-bar-rrhh {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 3px;
+    bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 11px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    transition: opacity 0.15s ease;
     z-index: 1;
+    font-weight: 500;
+    color: #fff;
+    box-sizing: border-box;
+    transition: filter 0.12s ease, z-index 0s;
 }
 
 .timeline-bar-rrhh:hover {
-    opacity: 0.85;
+    filter: brightness(0.92);
     z-index: 2;
+}
+
+/* ── Icon ── */
+.timeline-bar-rrhh ::deep .tlbar-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+
+/* ── Label ── */
+.timeline-bar-rrhh .tlbar-label {
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.92;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Phantom (dashed right edge) ── */
+.timeline-bar-rrhh.tlbar-phantom {
+    border-right: 2px dashed rgba(255, 255, 255, 0.5);
+}
+
+/* ── Holiday — Red ── */
+.timeline-bar-rrhh.tlbar-holiday {
+    background: #e53935;
+}
+
+/* ── Sick Leave — Slate ── */
+.timeline-bar-rrhh.tlbar-sick-leave {
+    background: #546e7a;
+}
+
+/* ── Rest — Neutral gray ── */
+.timeline-bar-rrhh.tlbar-rest {
+    background: #90a4ae;
+}
+
+/* ── Official Shift — Blue ── */
+.timeline-bar-rrhh.tlbar-official-shift {
+    background: #1e88e5;
+}
+
+/* ── Actual Shift — Green ── */
+.timeline-bar-rrhh.tlbar-actual-shift {
+    background: #43a047;
+}
+
+/* ── Absence — Amber ── */
+.timeline-bar-rrhh.tlbar-absence {
+    background: #f57c00;
+}
+
+/* ── Vacation — Teal ── */
+.timeline-bar-rrhh.tlbar-vacation {
+    background: #00acc1;
 }

@@ -5,7 +5,7 @@
     @if (Compact)
     {
         <span class="time-compact @GetStatusClass()" title="@GetTooltip()">
-            @if (!string.IsNullOrEmpty(Label))
+            @if (string.IsNullOrEmpty(Label) == false)
             {
                 <span class="time-compact-label">@Label</span>
             }
@@ -26,7 +26,7 @@
     else
     {
         <div class="time-comparison @GetStatusClass()" title="@GetTooltip()">
-            @if (!string.IsNullOrEmpty(Label))
+            @if (string.IsNullOrEmpty(Label) == false)
             {
                 <div class="time-comparison-label">@Label</div>
             }
@@ -148,7 +148,7 @@
 
         if (PlannedTime == 0)
         {
-            if (!string.IsNullOrEmpty(Label))
+            if (string.IsNullOrEmpty(Label) == false)
                 return $"{Label}: {actualFormatted}";
             return actualFormatted;
         }
@@ -163,7 +163,7 @@
             _ => $"{FormatMinutes(diff)} over budget"
         };
 
-        if (!string.IsNullOrEmpty(Label))
+        if (string.IsNullOrEmpty(Label) == false)
             return $"{Label}: {actualFormatted} / {plannedFormatted} ({status})";
 
         return $"{actualFormatted} / {plannedFormatted} ({status})";

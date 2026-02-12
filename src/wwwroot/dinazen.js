@@ -137,7 +137,12 @@ window.DinaZen.highlightCode = function () {
 
 window.DinaZen.highlightElement = function (element) {
 	if (typeof hljs === 'undefined' || !element) return;
+	// Remove previous highlight so hljs re-processes the element
+	element.classList.remove('hljs');
+	element.removeAttribute('data-highlighted');
+	element.textContent = element.textContent;
 	hljs.highlightElement(element);
 };
+
 
  

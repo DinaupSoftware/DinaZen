@@ -1,6 +1,6 @@
 namespace DinaZen.Components;
 
-public class DnzPresignUploadResult
+public class PresignUploadResult
 {
     public string FileName { get; set; } = "";
     public string Url { get; set; } = "";

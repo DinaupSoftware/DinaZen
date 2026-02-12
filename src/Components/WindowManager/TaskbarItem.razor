@@ -44,7 +44,7 @@
 </div>
 
 @code {
-	[Parameter, EditorRequired] public DnzWindowState State { get; set; }
+	[Parameter, EditorRequired] public WindowState State { get; set; }
 	[Parameter] public EventCallback<string> OnToggle { get; set; }
 	[Parameter] public EventCallback<string> OnClose { get; set; }
 

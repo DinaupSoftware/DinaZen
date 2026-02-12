@@ -10,7 +10,7 @@
 		}
 	</span>
 }
-else if (!string.IsNullOrEmpty(EmptyText))
+else if (string.IsNullOrEmpty(EmptyText) == false)
 {
 	<span class="@NumberClass" style="@Style">@EmptyText</span>
 }

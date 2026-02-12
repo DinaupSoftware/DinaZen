@@ -8,18 +8,18 @@ public class TimeIntervalRrhh
 {
     public TimeIntervalRrhh() { }
 
-    public TimeIntervalRrhh(DateTime inicio, DateTime fin, string category = "")
+    public TimeIntervalRrhh(DateTime start, DateTime end, string category = "")
     {
-        Inicio = inicio;
-        Fin = fin;
+        Start = start;
+        End = end;
         Category = category;
     }
 
-    public DateTime Inicio { get; set; }
-    public DateTime Fin { get; set; }
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
 
     /// <summary>
-    /// Category or type label for this interval (e.g. "Ordinarias", "Extra", "Descanso").
+    /// Category or type label for this interval (e.g. "Standard", "Extra", "Rest").
     /// </summary>
     public string Category { get; set; } = "";
 
@@ -32,7 +32,7 @@ public class TimeIntervalRrhh
     {
         get
         {
-            var diff = Fin.TimeOfDay - Inicio.TimeOfDay;
+            var diff = End.TimeOfDay - Start.TimeOfDay;
             if (diff < TimeSpan.Zero)
                 diff += TimeSpan.FromDays(1);
             return diff;

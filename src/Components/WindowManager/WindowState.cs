@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace DinaZen.Components.WindowManager;
 
-public class DnzWindowState
+public class WindowState
 {
 	public string Id { get; set; } = Guid.NewGuid().ToString("N")[..8];
 	public string Title { get; set; } = "";

@@ -6,14 +6,14 @@ namespace DinaZen.Components.WindowManager;
 /// Servicio scoped que gestiona ventanas flotantes tipo macOS.
 /// Un instancia por circuito Blazor.
 /// </summary>
-public class DnzWindowManagerService
+public class WindowManagerService
 {
-	private readonly List<DnzWindowState> _windows = new();
+	private readonly List<WindowState> _windows = new();
 	private int _zCounter = 100;
 	private int _openCount = 0;
 
 	public const int MaxWindows = 6;
-	public IReadOnlyList<DnzWindowState> Windows => _windows;
+	public IReadOnlyList<WindowState> Windows => _windows;
 	public event Action OnChanged;
 	public event Action OnMaxWindowsReached;
 
@@ -37,7 +37,7 @@ public class DnzWindowManagerService
 	// Altura del taskbar (68px) + bottom (10px) + margen de seguridad (12px)
 	private const double TaskbarTotalHeight = 90.0;
 
-	public string Open(DnzWindowOptions options, RenderFragment content)
+	public string Open(WindowOptions options, RenderFragment content)
 	{
 		if (_windows.Count >= MaxWindows)
 		{
@@ -102,7 +102,7 @@ public class DnzWindowManagerService
 
 		// Redondear a enteros: evita decimales que con culturas como es-ES
 		// generarian CSS invalido (ej: "791,4px" en vez de "791px")
-		var state = new DnzWindowState
+		var state = new WindowState
 		{
 			Id = options.PresetId.IsNotEmpty() ? options.PresetId : Guid.NewGuid().ToString("N")[..8],
 			Title = options.Title,
@@ -136,7 +136,7 @@ public class DnzWindowManagerService
 
 		// Activar la ultima ventana visible
 		var topWindow = _windows
-			.Where(w => !w.IsMinimized)
+			.Where(w => w.IsMinimized == false)
 			.OrderByDescending(w => w.ZIndex)
 			.FirstOrDefault();
 
@@ -151,7 +151,7 @@ public class DnzWindowManagerService
 	/// </summary>
 	public void CloseActive()
 	{
-		var active = _windows.FirstOrDefault(w => w.IsActive && !w.IsMinimized);
+		var active = _windows.FirstOrDefault(w => w.IsActive && w.IsMinimized == false);
 		if (active == null) return;
 		Close(active.Id);
 	}
@@ -180,7 +180,7 @@ public class DnzWindowManagerService
 
 		// Activar la siguiente ventana visible
 		var topWindow = _windows
-			.Where(w => !w.IsMinimized)
+			.Where(w => w.IsMinimized == false)
 			.OrderByDescending(w => w.ZIndex)
 			.FirstOrDefault();
 
@@ -200,7 +200,7 @@ public class DnzWindowManagerService
 		var win = _windows.FirstOrDefault(w => w.Id == windowId);
 		if (win == null) return;
 
-		win.IsMaximized = !win.IsMaximized;
+		win.IsMaximized = (win.IsMaximized == false);
 		NotifyChanged();
 	}
 
@@ -232,7 +232,7 @@ public class DnzWindowManagerService
 	/// <summary>
 	/// Busca una ventana por ID. Retorna null si no existe.
 	/// </summary>
-	public DnzWindowState GetWindow(string windowId)
+	public WindowState GetWindow(string windowId)
 	{
 		return _windows.FirstOrDefault(w => w.Id == windowId);
 	}

@@ -1,0 +1,13 @@
+@namespace DinaZen.Components
+
+@if (Dinaup.EnvExtensions.GetCurrentEnv() == Dinaup.Env.Staging) {
+	<div class="env-bar env-staging">
+		<RadzenIcon Icon="science" /> Entorno de <b>pre-producción</b> — la aplicación puede contener errores.
+	</div>
+}
+
+@if (Dinaup.EnvExtensions.GetCurrentEnv() == Dinaup.Env.Dev) {
+	<div class="env-bar env-dev">
+		<RadzenIcon Icon="code" /> Entorno de <b>desarrollo</b> — la aplicación puede contener errores.
+	</div>
+}

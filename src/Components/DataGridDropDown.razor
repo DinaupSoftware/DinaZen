@@ -117,6 +117,7 @@
 
 	[Parameter] public string TextProperty { get; set; }
 	[Parameter] public string ColorProperty { get; set; }
+	[Parameter] public string IconoProperty { get; set; }
 	[Parameter] public IEnumerable<T> Data { get; set; } = new List<T>();
 
 	// ── Templates ──
@@ -146,7 +147,7 @@
 		get => _value;
 		set
 		{
-			if (!EqualityComparer<T>.Default.Equals(_value, value))
+			if (EqualityComparer<T>.Default.Equals(_value, value) == false)
 			{
 				_value = value;
 

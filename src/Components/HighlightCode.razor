@@ -2,11 +2,11 @@
 
 <div class="highlight-code @SizeClass">
 	<div class="highlight-code-header">
-		@if (!string.IsNullOrEmpty(Language))
+		@if (string.IsNullOrEmpty(Language) == false)
 		{
 			<span class="highlight-code-lang">@LanguageDisplay</span>
 		}
-		@if (!string.IsNullOrEmpty(FileName))
+		@if (string.IsNullOrEmpty(FileName) == false)
 		{
 			<span class="highlight-code-file">@FileName</span>
 		}
@@ -27,7 +27,7 @@
 		</div>
 	</div>
 	<div class="highlight-code-body">
-		@if (ShowLineNumbers && !string.IsNullOrEmpty(Code))
+		@if (ShowLineNumbers && string.IsNullOrEmpty(Code) == false)
 		{
 			<div class="highlight-code-lines">
 				@for (int i = 1; i <= LineCount; i++)
@@ -51,8 +51,18 @@
 	private ElementReference codeElement;
 	private bool copied;
 	private bool highlighted;
+	private string lastCode;
 
 	public enum HighlightCodeSize { Small, Default, Large }
+
+	protected override void OnParametersSet()
+	{
+		if (Code != lastCode)
+		{
+			highlighted = false;
+			lastCode = Code;
+		}
+	}
 
 	private string SizeClass => Size switch
 	{
@@ -74,7 +84,7 @@
 		_ => Language?.ToLower() ?? ""
 	};
 
-	private string LanguageClass => !string.IsNullOrEmpty(Language) ? $"language-{LanguageForHighlight}" : "";
+	private string LanguageClass => string.IsNullOrEmpty(Language) == false ? $"language-{LanguageForHighlight}" : "";
 
 	private string LanguageDisplay => Language?.ToUpper() switch
 	{
@@ -97,7 +107,7 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (firstRender || !highlighted)
+		if (firstRender || highlighted == false)
 		{
 			try
 			{
