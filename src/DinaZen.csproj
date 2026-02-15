@@ -4,7 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>10.14.0.2</Version>
+		<Version>10.14.0.7</Version>
 		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
@@ -32,20 +32,20 @@
 		</Using>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="DemoUp.MyDinaup" Version="10.12.0.2" />
-		<PackageReference Include="Dinaup" Version="10.12.0.11" />
-		<PackageReference Include="Meziantou.Analyzer" Version="2.0.298">
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.12.0.*" />
+		<PackageReference Include="Dinaup" Version="10.14.0.*" />
+		<PackageReference Include="Meziantou.Analyzer" Version="2.0.302">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
-		<PackageReference Include="Radzen.Blazor" Version="8.7.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
+		<PackageReference Include="Radzen.Blazor" Version="9.0.*" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Include="Components\StatsDisplay.razor" />
-	  <None Include="Components\StepperStepU.razor" />
-	  <None Include="Components\StepperU.razor" />
-	  <None Include="Components\TimeComparisonDisplay.razor" />
+	  <None Include="Components\DnzStatsDisplay.razor" />
+	  <None Include="Components\DnzStepperStep.razor" />
+	  <None Include="Components\DnzStepper.razor" />
+	  <None Include="Components\DnzTimeComparisonDisplay.razor" />
 	</ItemGroup>
 
 

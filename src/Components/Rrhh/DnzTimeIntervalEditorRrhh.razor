@@ -1,0 +1,607 @@
+@*
+    DnzTimeIntervalEditorRrhh - Multiple time intervals editor.
+    Compact custom inputs (no RadzenDatePicker), auto-sort ASC, ghost row,
+    rest/gap indicator between intervals, toolbar with copy/paste/templates.
+
+    Origin: play.dinaup.com HumanResources/Dialog/Componentes/MultiIntervalEditorEsperadasU.razor
+*@
+
+@using DinaZen.Components.Rrhh.Models
+@inject IJSRuntime JS
+
+<div class="tie-container">
+
+    @* ── TOOLBAR ── *@
+    @if (ShowToolbar)
+    {
+        <div class="tie-toolbar">
+            @if (AllowAdd)
+            {
+                <div class="tie-toolbar-group">
+                    <button type="button" class="tie-toolbar-btn tie-toolbar-btn-dropdown @(_showTemplates ? "active" : "")" @onclick="ToggleTemplates" title="Templates">
+                        <RadzenIcon Icon="event_note" />
+                        <RadzenIcon Icon="@(_showTemplates ? "arrow_drop_up" : "arrow_drop_down")" />
+                    </button>
+                    @if (_showTemplates)
+                    {
+                        <div class="tie-backdrop" @onclick="() => _showTemplates = false"></div>
+                        <div class="tie-templates-popover">
+                            @foreach (var t in EffectiveTemplates)
+                            {
+                                <button type="button" class="tie-template-item" @onclick="() => ApplyTemplateAsync(t)">
+                                    <RadzenIcon Icon="@t.Icon" />
+                                    <span>@t.Name</span>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <button type="button" class="tie-toolbar-btn @(_copied ? "copied" : "")"
+                    @onclick="CopyToClipboardAsync" title="@(_copied ? "Copied" : "Copy")">
+                <RadzenIcon Icon="@(_copied ? "check" : "content_copy")" />
+            </button>
+
+            @if (AllowAdd)
+            {
+                <button type="button" class="tie-toolbar-btn" @onclick="PasteFromClipboardAsync" title="Paste">
+                    <RadzenIcon Icon="content_paste" />
+                </button>
+            }
+
+            @if (AllowRemove && Intervals.Count > 0)
+            {
+                <span class="tie-toolbar-sep"></span>
+                <button type="button" class="tie-toolbar-btn" @onclick="ClearAllAsync" title="Clear">
+                    <RadzenIcon Icon="delete_sweep" />
+                </button>
+            }
+
+            @if (AutoSort == false && AllowSort)
+            {
+                <button type="button" class="tie-toolbar-btn" @onclick="SortIntervalsAsync" title="Sort">
+                    <RadzenIcon Icon="sort" />
+                </button>
+            }
+
+            @if (ExtraButtons != null)
+            {
+                <span class="tie-toolbar-sep"></span>
+                @ExtraButtons
+            }
+        </div>
+    }
+
+    @* ── ROWS ── *@
+    <div class="tie-rows">
+        @if (Intervals.Count == 0 && AllowAdd == false)
+        {
+            <div class="tie-empty">No intervals</div>
+        }
+
+        @for (int i = 0; i < Intervals.Count; i++)
+        {
+            var idx = i;
+            var interval = Intervals[idx];
+            EnsureEditText(interval);
+
+            <div class="tie-row" @key="interval">
+                <input type="text"
+                       class="tie-time-input"
+                       value="@GetEditText(interval, true)"
+                       placeholder="HH:mm"
+                       readonly="@ReadOnly"
+                       tabindex="@(ReadOnly ? -1 : 0)"
+                       @oninput="e => OnInputChange(interval, true, e)"
+                       @onblur="() => OnBlurAsync(interval, true)"
+                       @onfocus="e => OnFocus(interval, true)" />
+
+                <span class="tie-arrow">&rarr;</span>
+
+                <input type="text"
+                       class="tie-time-input"
+                       value="@GetEditText(interval, false)"
+                       placeholder="HH:mm"
+                       readonly="@ReadOnly"
+                       tabindex="@(ReadOnly ? -1 : 0)"
+                       @oninput="e => OnInputChange(interval, false, e)"
+                       @onblur="() => OnBlurAsync(interval, false)"
+                       @onfocus="e => OnFocus(interval, false)" />
+
+                <span class="tie-vr"></span>
+                <span class="tie-duration">
+                    <DnzTimeSpanDisplayCompact Value="@interval.Duration" />
+                </span>
+
+                @if (Categories != null && Categories.Count > 0)
+                {
+                    <span class="tie-vr"></span>
+                    @if (ReadOnly)
+                    {
+                        <span class="tie-category-chip tie-category-chip-readonly @GetCategoryClass(interval.Category)">
+                            @(string.IsNullOrEmpty(interval.Category) ? "Untyped" : interval.Category)
+                        </span>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="tie-category-chip @GetCategoryClass(interval.Category)"
+                                @onclick="() => CycleCategory(interval)"
+                                title="Click to change type">
+                            @(string.IsNullOrEmpty(interval.Category) ? "Untyped" : interval.Category)
+                            <RadzenIcon Icon="unfold_more" />
+                        </button>
+                    }
+                }
+                else if (IntervalTypeTemplate != null)
+                {
+                    <span class="tie-vr"></span>
+                    @IntervalTypeTemplate(interval)
+                }
+
+                @if (AllowRemove)
+                {
+                    <button type="button" class="tie-btn-remove" @onclick="() => RemoveIntervalAsync(idx)" title="Remove">
+                        <RadzenIcon Icon="close" />
+                    </button>
+                }
+            </div>
+
+            @* ── GAP INDICATOR ── *@
+            @if (ShowGapIndicator && idx < Intervals.Count - 1)
+            {
+                var gap = GetGap(Intervals[idx], Intervals[idx + 1]);
+                @if (gap > TimeSpan.Zero)
+                {
+                    <div class="tie-gap">
+                        <div class="tie-gap-line"></div>
+                        <span class="tie-gap-label">&#9208; @FormatGap(gap) @GapLabel</span>
+                        <div class="tie-gap-line"></div>
+                    </div>
+                }
+            }
+        }
+
+        @* ── GHOST ROW ── *@
+        @if (AllowAdd)
+        {
+            <div class="tie-ghost-sep"></div>
+            <div class="tie-row tie-row-ghost">
+                <input type="text"
+                       class="tie-time-input"
+                       value="@_ghostStartText"
+                       placeholder="HH:mm"
+                       @oninput="e => _ghostStartText = e.Value?.ToString() ?? string.Empty"
+                       @onfocus="OnGhostFocus"
+                       @onblur="OnGhostBlurAsync" />
+
+                <span class="tie-arrow">&rarr;</span>
+
+                <input type="text"
+                       class="tie-time-input"
+                       value="@_ghostEndText"
+                       placeholder="HH:mm"
+                       @oninput="e => _ghostEndText = e.Value?.ToString() ?? string.Empty"
+                       @onfocus="OnGhostFocus"
+                       @onblur="OnGhostBlurAsync" />
+
+                <span class="tie-vr"></span>
+                <span class="tie-duration" style="opacity:0.3">
+                    <DnzTimeSpanDisplayCompact Value="@TimeSpan.Zero" />
+                </span>
+            </div>
+        }
+    </div>
+
+    @* ── FOOTER ── *@
+    <div class="tie-footer">
+        <div class="tie-footer-totals">
+            @foreach (var ct in _categoryTotals)
+            {
+                <DnzSpanKV Key="@ct.Key" Horizontal="true">
+                    <DnzTimeSpanDisplayCompact Value="@ct.Value" />
+                </DnzSpanKV>
+            }
+        </div>
+        <DnzSpanKV Key="Total" Horizontal="true">
+            <DnzTimeSpanDisplayCompact Value="@_totalHoras" />
+        </DnzSpanKV>
+    </div>
+</div>
+
+@code {
+
+    // ── Parameters (backward compatible) ──
+
+    [Parameter] public List<TimeIntervalRrhh> Intervals { get; set; } = new();
+    [Parameter] public EventCallback<List<TimeIntervalRrhh>> IntervalsChanged { get; set; }
+    [Parameter] public RenderFragment<TimeIntervalRrhh> IntervalTypeTemplate { get; set; }
+    [Parameter] public RenderFragment ExtraButtons { get; set; }
+    [Parameter] public bool AllowSort { get; set; } = true;
+    [Parameter] public bool AllowAdd { get; set; } = true;
+    [Parameter] public bool AllowRemove { get; set; } = true;
+    [Parameter] public Func<TimeIntervalRrhh, string> CategorySelector { get; set; }
+
+    // ── New parameters ──
+
+    [Parameter] public List<TimeIntervalTemplateRrhh> Templates { get; set; }
+    [Parameter] public List<string> Categories { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public bool ShowToolbar { get; set; } = true;
+    [Parameter] public bool ShowGapIndicator { get; set; } = true;
+    [Parameter] public bool AutoSort { get; set; } = true;
+    [Parameter] public string GapLabel { get; set; } = "rest";
+
+    // ── Internal state ──
+
+    private TimeSpan _totalHoras;
+    private Dictionary<string, TimeSpan> _categoryTotals = new();
+    private bool _showTemplates;
+    private bool _copied;
+    private string _ghostStartText = "";
+    private string _ghostEndText = "";
+
+    // Edit text tracking per interval (keyed by object ref)
+    private readonly Dictionary<TimeIntervalRrhh, (string start, string end)> _editTexts = new();
+    private readonly HashSet<(TimeIntervalRrhh interval, bool isStart)> _focused = new();
+
+    // ── Default templates ──
+
+    private List<TimeIntervalTemplateRrhh> EffectiveTemplates => Templates ?? _defaultTemplates;
+
+    private static readonly List<TimeIntervalTemplateRrhh> _defaultTemplates = new()
+    {
+        new("Full shift", "work", (8, 0, 13, 0, ""), (14, 0, 17, 0, "")),
+        new("Intensive shift", "bolt", (7, 0, 15, 0, "")),
+        new("Morning half", "wb_sunny", (8, 0, 14, 0, "")),
+        new("Afternoon half", "nights_stay", (14, 0, 20, 0, ""))
+    };
+
+    // ── Lifecycle ──
+
+    protected override void OnParametersSet()
+    {
+        CalculateTotals();
+        // Sync edit texts for any intervals not yet tracked
+        foreach (var interval in Intervals)
+        {
+            EnsureEditText(interval);
+        }
+        // Clean up stale entries
+        var stale = _editTexts.Keys.Where(k => Intervals.Contains(k) == false).ToList();
+        foreach (var k in stale) _editTexts.Remove(k);
+    }
+
+    // ── Edit text helpers ──
+
+    private void EnsureEditText(TimeIntervalRrhh interval)
+    {
+        if (_editTexts.ContainsKey(interval) == false)
+        {
+            _editTexts[interval] = (FormatTime(interval.Start), FormatTime(interval.End));
+        }
+    }
+
+    private string GetEditText(TimeIntervalRrhh interval, bool isStart)
+    {
+        if (_editTexts.TryGetValue(interval, out var texts))
+            return isStart ? texts.start : texts.end;
+        return FormatTime(isStart ? interval.Start : interval.End);
+    }
+
+    private void OnInputChange(TimeIntervalRrhh interval, bool isStart, ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        if (_editTexts.TryGetValue(interval, out var texts))
+        {
+            _editTexts[interval] = isStart ? (val, texts.end) : (texts.start, val);
+        }
+    }
+
+    private void OnFocus(TimeIntervalRrhh interval, bool isStart)
+    {
+        _focused.Add((interval, isStart));
+    }
+
+    private async Task OnBlurAsync(TimeIntervalRrhh interval, bool isStart)
+    {
+        _focused.Remove((interval, isStart));
+
+        if (_editTexts.TryGetValue(interval, out var texts) == false) return;
+
+        var raw = isStart ? texts.start : texts.end;
+        var parsed = ParseTimeInput(raw);
+
+        if (parsed.HasValue)
+        {
+            var dt = DateTime.Today.Add(parsed.Value.ToTimeSpan());
+            if (isStart)
+                interval.Start = dt;
+            else
+                interval.End = dt;
+
+            // Update display text to formatted value
+            _editTexts[interval] = isStart
+                ? (FormatTime(interval.Start), texts.end)
+                : (texts.start, FormatTime(interval.End));
+
+            await OnIntervalChangedAsync();
+        }
+        else
+        {
+            // Revert to model value
+            _editTexts[interval] = isStart
+                ? (FormatTime(interval.Start), texts.end)
+                : (texts.start, FormatTime(interval.End));
+        }
+    }
+
+    // ── Ghost row ──
+
+    private bool _ghostFocused;
+
+    private void OnGhostFocus()
+    {
+        _ghostFocused = true;
+    }
+
+    private async Task OnGhostBlurAsync()
+    {
+        _ghostFocused = false;
+
+        // Wait long enough for the browser to move focus to the sibling input
+        await Task.Delay(50);
+
+        // If focus moved to the other ghost input, don't materialize yet
+        if (_ghostFocused) return;
+
+        var startParsed = ParseTimeInput(_ghostStartText);
+        if (startParsed.HasValue == false) return;
+
+        var endParsed = ParseTimeInput(_ghostEndText);
+        // Don't materialize if only start was typed (user still needs to type end)
+        if (endParsed.HasValue == false) return;
+
+        var startDt = DateTime.Today.Add(startParsed.Value.ToTimeSpan());
+        var endDt = DateTime.Today.Add(endParsed.Value.ToTimeSpan());
+
+        var newInterval = new TimeIntervalRrhh(startDt, endDt);
+        Intervals.Add(newInterval);
+
+        _ghostStartText = "";
+        _ghostEndText = "";
+
+        await OnIntervalChangedAsync();
+    }
+
+    // ── Interval operations ──
+
+    private async Task RemoveIntervalAsync(int index)
+    {
+        if (index >= 0 && index < Intervals.Count)
+        {
+            var interval = Intervals[index];
+            _editTexts.Remove(interval);
+            Intervals.RemoveAt(index);
+            await OnIntervalChangedAsync();
+        }
+    }
+
+    private async Task SortIntervalsAsync()
+    {
+        Intervals.Sort((a, b) => a.Start.TimeOfDay.CompareTo(b.Start.TimeOfDay));
+        await OnIntervalChangedAsync();
+    }
+
+    private async Task ClearAllAsync()
+    {
+        _editTexts.Clear();
+        Intervals.Clear();
+        await OnIntervalChangedAsync();
+    }
+
+    private async Task OnIntervalChangedAsync()
+    {
+        if (AutoSort)
+        {
+            Intervals.Sort((a, b) => a.Start.TimeOfDay.CompareTo(b.Start.TimeOfDay));
+        }
+
+        // Refresh edit texts from model (unless currently focused)
+        foreach (var interval in Intervals)
+        {
+            var startFocused = _focused.Contains((interval, true));
+            var endFocused = _focused.Contains((interval, false));
+
+            if (_editTexts.TryGetValue(interval, out var texts))
+            {
+                _editTexts[interval] = (
+                    startFocused ? texts.start : FormatTime(interval.Start),
+                    endFocused ? texts.end : FormatTime(interval.End)
+                );
+            }
+            else
+            {
+                _editTexts[interval] = (FormatTime(interval.Start), FormatTime(interval.End));
+            }
+        }
+
+        CalculateTotals();
+        await IntervalsChanged.InvokeAsync(Intervals);
+    }
+
+    // ── Totals calculation ──
+
+    private void CalculateTotals()
+    {
+        _totalHoras = TimeSpan.Zero;
+        foreach (var i in Intervals)
+            _totalHoras += i.Duration;
+
+        if (CategorySelector != null)
+        {
+            _categoryTotals = Intervals
+                .GroupBy(i => CategorySelector(i))
+                .Where(g => string.IsNullOrEmpty(g.Key) == false)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Aggregate(TimeSpan.Zero, (acc, i) => acc + i.Duration)
+                );
+        }
+        else
+        {
+            _categoryTotals = new();
+        }
+    }
+
+    // ── Category chip ──
+
+    private async void CycleCategory(TimeIntervalRrhh interval)
+    {
+        if (Categories == null || Categories.Count == 0) return;
+
+        var currentIndex = string.IsNullOrEmpty(interval.Category)
+            ? -1
+            : Categories.IndexOf(interval.Category);
+
+        var nextIndex = (currentIndex + 1) % Categories.Count;
+        interval.Category = Categories[nextIndex];
+
+        await OnIntervalChangedAsync();
+        StateHasChanged();
+    }
+
+    private static string GetCategoryClass(string category)
+    {
+        if (string.IsNullOrEmpty(category)) return "tie-cat-none";
+        return "tie-cat-" + category.ToLowerInvariant().Replace(" ", "").Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u");
+    }
+
+    // ── Gap indicator ──
+
+    private static TimeSpan GetGap(TimeIntervalRrhh current, TimeIntervalRrhh next)
+    {
+        var gap = next.Start.TimeOfDay - current.End.TimeOfDay;
+        if (gap < TimeSpan.Zero)
+            gap += TimeSpan.FromDays(1);
+        return gap;
+    }
+
+    private static string FormatGap(TimeSpan gap)
+    {
+        if (gap.TotalMinutes < 1) return "";
+        if (gap.Hours == 0) return $"{gap.Minutes}m";
+        if (gap.Minutes == 0) return $"{gap.Hours}h";
+        return $"{gap.Hours}h {gap.Minutes}m";
+    }
+
+    // ── Templates ──
+
+    private void ToggleTemplates() => _showTemplates = (_showTemplates == false);
+
+    private async Task ApplyTemplateAsync(TimeIntervalTemplateRrhh template)
+    {
+        _editTexts.Clear();
+        Intervals.Clear();
+        foreach (var i in template.Intervals)
+        {
+            Intervals.Add(new TimeIntervalRrhh(i.Start, i.End, i.Category) { SubCategoryId = i.SubCategoryId });
+        }
+        _showTemplates = false;
+        await OnIntervalChangedAsync();
+    }
+
+    // ── Clipboard ──
+
+    private async Task CopyToClipboardAsync()
+    {
+        if (Intervals.Count == 0) return;
+        try
+        {
+            var data = Intervals.Select(i => new
+            {
+                start = FormatTime(i.Start),
+                end = FormatTime(i.End),
+                category = i.Category,
+                subCategoryId = i.SubCategoryId
+            });
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            _copied = true;
+            StateHasChanged();
+            await Task.Delay(2000);
+            _copied = false;
+            StateHasChanged();
+        }
+        catch { }
+    }
+
+    private async Task PasteFromClipboardAsync()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string>("navigator.clipboard.readText");
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            var items = System.Text.Json.JsonSerializer.Deserialize<List<ClipboardInterval>>(json);
+            if (items == null || items.Count == 0) return;
+
+            _editTexts.Clear();
+            Intervals.Clear();
+            foreach (var item in items)
+            {
+                var start = ParseTimeInput(item.start);
+                var end = ParseTimeInput(item.end);
+                if (start.HasValue == false || end.HasValue == false) continue;
+
+                Intervals.Add(new TimeIntervalRrhh(
+                    DateTime.Today.Add(start.Value.ToTimeSpan()),
+                    DateTime.Today.Add(end.Value.ToTimeSpan()),
+                    item.category ?? ""
+                ) { SubCategoryId = item.subCategoryId });
+            }
+            await OnIntervalChangedAsync();
+        }
+        catch { }
+    }
+
+    private record ClipboardInterval(string start, string end, string category, Guid? subCategoryId);
+
+    // ── Smart time parsing ──
+
+    private static TimeOnly? ParseTimeInput(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+
+        raw = raw.Trim().Replace(".", ":").Replace(",", ":").Replace(";", ":");
+
+        // Already has separator -> HH:mm
+        if (raw.Contains(':'))
+        {
+            var parts = raw.Split(':');
+            if (parts.Length >= 2
+                && int.TryParse(parts[0], out int h)
+                && int.TryParse(parts[1], out int m)
+                && h >= 0 && h <= 23 && m >= 0 && m <= 59)
+            {
+                return new TimeOnly(h, m);
+            }
+            return null;
+        }
+
+        // Pure digits
+        if (int.TryParse(raw, out int num) == false || num < 0) return null;
+
+        return raw.Length switch
+        {
+            1 when num >= 0 && num <= 9 => new TimeOnly(num, 0),
+            2 when num >= 0 && num <= 23 => new TimeOnly(num, 0),
+            3 when num / 100 <= 23 && num % 100 <= 59 => new TimeOnly(num / 100, num % 100),
+            4 when num / 100 <= 23 && num % 100 <= 59 => new TimeOnly(num / 100, num % 100),
+            _ => null
+        };
+    }
+
+    private static string FormatTime(DateTime dt) => dt.ToString("HH:mm");
+}

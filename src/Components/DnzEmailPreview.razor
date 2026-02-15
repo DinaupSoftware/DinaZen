@@ -1,0 +1,52 @@
+<div class="email-preview-wrapper">
+	@if (Destinatario.IsNotEmpty() || Asunto.IsNotEmpty())
+	{
+		<div class="email-preview-header">
+			@if (Destinatario.IsNotEmpty())
+			{
+				<div><b>Para:</b> @Destinatario</div>
+			}
+			@if (Asunto.IsNotEmpty())
+			{
+				<div><b>Asunto:</b> @Asunto</div>
+			}
+		</div>
+	}
+	<iframe src=@DataUri
+			sandbox="allow-same-origin"
+			class="email-preview-frame"
+			style=@($"height:{Height};")>
+	</iframe>
+</div>
+
+@code {
+
+	/// <summary>
+	/// HTML body completo del email (incluida plantilla).
+	/// </summary>
+	[Parameter]
+	public string Body { get; set; } = "";
+
+	/// <summary>
+	/// Dirección de email del destinatario (se muestra en la cabecera).
+	/// </summary>
+	[Parameter]
+	public string Destinatario { get; set; } = "";
+
+	/// <summary>
+	/// Asunto del email (se muestra en la cabecera).
+	/// </summary>
+	[Parameter]
+	public string Asunto { get; set; } = "";
+
+	/// <summary>
+	/// Altura del iframe. Por defecto "400px".
+	/// </summary>
+	[Parameter]
+	public string Height { get; set; } = "400px";
+
+	private string DataUri => Body.IsNotEmpty()
+		? $"data:text/html;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Body))}"
+		: "about:blank";
+
+}

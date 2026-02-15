@@ -1,0 +1,251 @@
+@namespace DinaZen.Components.DinaupFlex.Forms
+@implements IDisposable
+
+@if (_isLoading)
+{
+	<DnzLoader />
+}
+else if (_form.IsNotNull())
+{
+	<div class="dnz-form-view dnz-form-mode-new">
+		<div class="dnz-form-header">
+			<div class="dnz-form-header-info">
+				<img src=@($"https://dinaupcdn.com/public/{_form.MainForm.Section.IconoID.STR()}.png") width="20px" height="20px" />
+				<span>@_form.MainForm.Section.Label</span>
+				<RadzenBadge BadgeStyle="BadgeStyle.Success" Variant="Variant.Flat" Text="Nuevo" />
+			</div>
+			<div class="d-flex align-items-center gap-1">
+				@if (_hasChanges)
+				{
+					<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="Modificado" />
+				}
+				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Text" Size="ButtonSize.Small" Click="CloseForm" Style="margin-left:12px; opacity:0.6" />
+			</div>
+		</div>
+
+		<div class="dnz-form-mode-strip dnz-mode-new"></div>
+
+		<div class="dnz-form-title">
+			@foreach (var tab in _form.MainForm.Tabs.Where(x => x.TabName == "*"))
+			{
+				<DnzFormTab @key=@($"fbt-{_form.MainForm.Token}-{tab.TabName}-star")
+						  Tab="tab"
+						  OnTabChanged="HandleTabChange"
+						  OnAddItem="HandleAddItem"
+						  OnOpenListItem="HandleOpenListItem"
+						  OnDeleteItemPrimaryList="HandleDeleteListItem"
+						  Client="Client" />
+			}
+		</div>
+
+		<div class="dnz-form-body">
+			<RadzenTabs RenderMode="TabRenderMode.Server">
+				<Tabs>
+					@foreach (var tab in _form.MainForm.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
+					{
+						<RadzenTabsItem @key=@($"fbt-{_form.MainForm.Token}-{tab.TabName}")
+										Text="@(_form.MainForm.Tabs.Count == 2 ? "" : tab.TabName)">
+							<DnzFormTab @key=@($"fbt-{_form.MainForm.Token}-{tab.TabName}-tabu")
+									  Tab="tab"
+									  OnTabChanged="HandleTabChange"
+									  OnAddItem="HandleAddItem"
+									  OnOpenListItem="HandleOpenListItem"
+									  OnDeleteItemPrimaryList="HandleDeleteListItem"
+									  Client="Client" />
+						</RadzenTabsItem>
+					}
+				</Tabs>
+			</RadzenTabs>
+		</div>
+
+		<div class="dnz-form-footer">
+			<div class="d-flex justify-content-end align-items-center gap-2 w-100">
+				@if (_isSaving)
+				{
+					<DnzLoader />
+				}
+				else
+				{
+					<RadzenButton IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
+					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" />
+				}
+			</div>
+		</div>
+	</div>
+}
+else if (_errorMessage.IsNotEmpty())
+{
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+		@_errorMessage
+	</RadzenAlert>
+}
+
+@code {
+
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+	[Parameter, EditorRequired] public string Token { get; set; }
+
+	private VirtualFormDTO _form;
+	private bool _isLoading = true;
+	private bool _isSaving = false;
+	private bool _hasChanges = false;
+	private string _errorMessage = "";
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+
+		try
+		{
+			_form = await Client.GetOpenedWindows(Token, null);
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+		}
+	}
+
+	private async Task HandleTabChange(VirtualFormDTO.Tab newTab)
+	{
+		try
+		{
+			_hasChanges = true;
+			await SyncForm(
+				_form.WithUpdatedForm(
+					_form.GetFormByTabToken(newTab.TabToken).WithTab(newTab)
+				)
+			);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task SyncForm(VirtualFormDTO vForm)
+	{
+		try
+		{
+			var result = await Client.FormUpdate(vForm);
+			_form = result.NewForm;
+			await InvokeAsync(StateHasChanged);
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = "Sesion caducada: " + ex.Message;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+
+	private async Task HandleAddItem()
+	{
+		if (_form == null || Client == null) return;
+		try
+		{
+			await SyncForm(await Client.FormNewListItem(_form, null));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task HandleOpenListItem(VirtualFormDTO.FormDetail formList)
+	{
+		if (formList == null) return;
+		try
+		{
+			var tabCallback = EventCallback.Factory.Create<VirtualFormDTO.Tab>(this, HandleTabChange);
+			var parameters = new Dictionary<string, object>
+			{
+				{ nameof(DnzFormList.FormList), formList },
+				{ nameof(DnzFormList.OnTabChanged), tabCallback },
+				{ nameof(DnzFormList.Client), Client }
+			};
+			await DialogService.OpenAsync<DnzFormList>("", parameters, new DialogOptions
+			{
+				ShowClose = false, ShowTitle = false, Width = "70%", Height = "70%",
+				CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false
+			});
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task HandleDeleteListItem(string tokenListId)
+	{
+		if (_form == null || Client == null) return;
+		try
+		{
+			await SyncForm(await Client.FormRemoveListItem(_form, tokenListId));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task SaveForm()
+	{
+		if (_isSaving || _form == null) return;
+		_isSaving = true;
+		StateHasChanged();
+
+		try
+		{
+			var saveResult = await Client.FormSave(_form);
+			var newVF = saveResult.Item1;
+			var okResult = saveResult.Item2;
+
+			if (newVF.IsNotNull() && newVF.Aviso.IsNotEmpty())
+			{
+				NotificationService.Notify(new NotificationMessage
+				{
+					Severity = NotificationSeverity.Warning,
+					Duration = 15000,
+					Summary = newVF.Aviso
+				});
+			}
+			else if (newVF == null)
+			{
+				_form = null;
+				try { DialogService.Close(okResult?.RowID?.ToGUID() ?? Guid.Empty); } catch { }
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error al guardar", ex.Message);
+		}
+		finally
+		{
+			_isSaving = false;
+			StateHasChanged();
+		}
+	}
+
+	private async Task CloseForm()
+	{
+		if (_form != null && Client != null)
+		{
+			try { await Client.FormCancel(_form); } catch { }
+		}
+		_form = null;
+		try { DialogService.Close(Guid.Empty); } catch { }
+		StateHasChanged();
+	}
+
+	public void Dispose()
+	{
+		if (_form != null && Client != null)
+		{
+			try { _ = Client.FormCancel(_form); } catch { }
+		}
+		_form = null;
+	}
+}

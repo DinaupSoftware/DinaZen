@@ -1,0 +1,16 @@
+@using System.Reflection
+
+@{
+	var v = Version;
+}
+
+<script src="@($"/_content/DinaZen/dinazen.js?v=x-{v}")"></script>
+<script src="@($"/_content/DinaZen/highlight.min.js?v=x-{v}")"></script>
+<script src="@($"/_content/DinaZen/uppy.min.js?v=x-{v}")"></script>
+<script src="@($"/_content/DinaZen/dinazen-upload.js?v=x-{v}")"></script>
+
+@code {
+
+	private static readonly string Version =
+		typeof(DnzScripts).Assembly.GetName().Version?.ToString() ?? "0";
+}

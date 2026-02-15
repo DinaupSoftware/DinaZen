@@ -1,7 +1,7 @@
 namespace DinaZen.Components.DinaupFlex.Forms;
 
 /// <summary>
-/// Resultado devuelto cuando un DinaupFormView se cierra.
+/// Resultado devuelto cuando un DnzFormView se cierra.
 /// </summary>
 public class DinaupFormResult
 {
@@ -32,7 +32,7 @@ public class DinaupFormResult
 }
 
 /// <summary>
-/// Motivo por el que se cerro un formulario DinaupFormView.
+/// Motivo por el que se cerro un formulario DnzFormView.
 /// </summary>
 public enum DinaupFormCloseReason
 {

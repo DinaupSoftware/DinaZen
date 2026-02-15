@@ -15,6 +15,7 @@ window.DinaZen.setIframeBlob = (iframeId, htmlContent) => {
 	document.getElementById(iframeId).src = url;
 };
 
+
 window.DinaZen.printIframe = function (id) {
 	var iframe = document.getElementById(id);
 

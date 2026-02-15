@@ -1,0 +1,166 @@
+.dz-jsonkv-editor {
+    border: 1px solid var(--rz-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--rz-base-background-color);
+    font-size: 13px;
+}
+
+.dz-jsonkv-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--rz-panel-background-color);
+    border-bottom: 1px solid var(--rz-border-color);
+}
+
+.dz-jsonkv-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--rz-text-color);
+}
+
+.dz-jsonkv-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 11.5px;
+    color: var(--rz-text-secondary-color);
+    background: var(--rz-base-background-color);
+    border-bottom: 1px solid var(--rz-border-color);
+}
+
+.dz-jsonkv-info code {
+    background: var(--rz-selection-background-color);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: monospace;
+}
+
+.dz-jsonkv-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 16px;
+    color: var(--rz-text-secondary-color);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.dz-jsonkv-empty:hover {
+    background: var(--rz-selection-background-color);
+}
+
+.dz-jsonkv-rows {
+    padding: 4px 0;
+}
+
+.dz-jsonkv-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 2px 8px;
+}
+
+.dz-jsonkv-row:hover {
+    background: var(--rz-selection-background-color);
+}
+
+.dz-jsonkv-row:hover .dz-jsonkv-remove {
+    opacity: 1;
+}
+
+.dz-jsonkv-key,
+.dz-jsonkv-value {
+    flex: 1;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: monospace;
+    background: transparent;
+    color: var(--rz-text-color);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.dz-jsonkv-key {
+    max-width: 40%;
+    font-weight: 600;
+}
+
+.dz-jsonkv-key:focus,
+.dz-jsonkv-value:focus {
+    border-color: var(--rz-primary);
+    background: var(--rz-base-background-color);
+}
+
+.dz-jsonkv-key::placeholder,
+.dz-jsonkv-value::placeholder {
+    color: var(--rz-text-disabled-color);
+    font-weight: 400;
+}
+
+.dz-jsonkv-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--rz-text-secondary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.dz-jsonkv-remove:hover {
+    background: var(--rz-danger-light);
+    color: var(--rz-danger);
+}
+
+.dz-jsonkv-paste {
+    padding: 8px 12px 12px;
+    background: var(--rz-base-background-color);
+    border-bottom: 1px solid var(--rz-border-color);
+}
+
+.dz-jsonkv-paste-input {
+    width: 100%;
+    border: 1px solid var(--rz-border-color);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: monospace;
+    background: var(--rz-base-background-color);
+    color: var(--rz-text-color);
+    outline: none;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.dz-jsonkv-paste-input:focus {
+    border-color: var(--rz-primary);
+}
+
+.dz-jsonkv-paste-input::placeholder {
+    color: var(--rz-text-disabled-color);
+}
+
+.dz-jsonkv-paste-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    justify-content: flex-end;
+}

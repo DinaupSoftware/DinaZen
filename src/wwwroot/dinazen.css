@@ -312,6 +312,14 @@
     border-radius: 24px;
 }
 
+/* ═══════════ CARD TITLE + CARD BODY ═══════════ */
+/* When compact title is followed by DnzCardBody, the background contrast acts as separator — border is redundant */
+header:has(+ .dnz-card-body) {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 /* ═══════════ AUTOFADE ═══════════ */
 .autofade {
     animation: autofade-in 0.25s ease-out;

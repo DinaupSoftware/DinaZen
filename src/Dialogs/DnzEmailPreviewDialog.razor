@@ -1,0 +1,115 @@
+<DnzDialogLayout Icon="mail" Title=@Asunto>
+	<BodyContent>
+		<div class="d-flex flex-column" style="padding:12px;height:100%;">
+			<DnzEmailPreview Body=@Body Destinatario=@Destinatario Asunto=@Asunto Height="100%" />
+		</div>
+	</BodyContent>
+	<FooterContent>
+		<div class="d-flex justify-content-end gap-1 align-items-center" style="margin-right:20px">
+			<RadzenButton IsBusy=@isBusy Click=@Confirmar ButtonStyle="ButtonStyle.Success" Text=@ConfirmarTexto Icon="send" Variant="Variant.Text" />
+			<RadzenButton Click=@Cancelar ButtonStyle="ButtonStyle.Danger" Text="Cancelar" Icon="close" Variant="Variant.Text" />
+		</div>
+	</FooterContent>
+</DnzDialogLayout>
+
+
+@code {
+
+	/// <summary>
+	/// HTML body completo del email (incluida plantilla).
+	/// </summary>
+	[Parameter]
+	public string Body { get; set; } = "";
+
+	/// <summary>
+	/// Dirección de email del destinatario.
+	/// </summary>
+	[Parameter]
+	public string Destinatario { get; set; } = "";
+
+	/// <summary>
+	/// Asunto del email.
+	/// </summary>
+	[Parameter]
+	public string Asunto { get; set; } = "";
+
+	/// <summary>
+	/// Texto del botón de confirmar. Por defecto "Enviar".
+	/// </summary>
+	[Parameter]
+	public string ConfirmarTexto { get; set; } = "Enviar";
+
+	/// <summary>
+	/// Callback que se ejecuta al pulsar confirmar. Debe devolver true si la operación fue exitosa.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnConfirmar { get; set; }
+
+	/// <summary>
+	/// Callback que se ejecuta al pulsar cancelar.
+	/// </summary>
+	[Parameter]
+	public EventCallback OnCancelar { get; set; }
+
+	private bool isBusy = false;
+
+	async Task Confirmar()
+	{
+		if (isBusy) return;
+		isBusy = true;
+		StateHasChanged();
+
+		try
+		{
+			await OnConfirmar.InvokeAsync();
+		}
+		finally
+		{
+			isBusy = false;
+			StateHasChanged();
+		}
+	}
+
+	void Cancelar()
+	{
+		if (OnCancelar.HasDelegate)
+			OnCancelar.InvokeAsync();
+		else
+			DialogService.Close();
+	}
+
+	/// <summary>
+	/// Abre el dialog de previa de email. Devuelve true si se confirmó.
+	/// </summary>
+	public static async Task<bool> OpenAsync(
+		DialogService dialogService,
+		string body,
+		string destinatario,
+		string asunto,
+		EventCallback onConfirmar,
+		string confirmarTexto = "Enviar")
+	{
+		var parameters = new Dictionary<string, object>()
+		{
+			{ nameof(Body), body },
+			{ nameof(Destinatario), destinatario },
+			{ nameof(Asunto), asunto },
+			{ nameof(OnConfirmar), onConfirmar },
+			{ nameof(ConfirmarTexto), confirmarTexto },
+		};
+		var options = new DialogOptions()
+		{
+			Width = "700px",
+			Height = "80%",
+			ShowClose = false,
+			ShowTitle = false,
+			Resizable = true,
+			Draggable = true,
+			CloseDialogOnOverlayClick = true,
+			CloseDialogOnEsc = true
+		};
+
+		var result = await dialogService.OpenAsync<DnzEmailPreviewDialog>("Email Preview", parameters, options);
+		return result is true;
+	}
+}

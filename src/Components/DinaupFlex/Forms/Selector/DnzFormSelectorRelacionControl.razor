@@ -1,0 +1,373 @@
+@using Radzen.Blazor.Rendering
+
+
+
+<div @key=@(DataControl.Token + "-12342334") class="d-flex align-items-center gap-2 justify-content-between @(DataControl.InputType == "file" ? "w-100 h-100" : "") ">
+
+
+	@if (DataControl.InputType == "file") {
+
+
+		<RadzenCard class="w-100 h-100 d-flex flex-column ">
+
+
+			@if (subiendoArchivo) {
+
+				<RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Info" @bind-Value=@subiendoArchivoProgreso />
+
+			} else if (fileDTO == null) {
+
+
+				<div class="d-flex justify-content-between align-items-center">
+					<RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">@DataControl.Label</RadzenText>
+				</div>
+
+
+				<div style="width: 100%; flex:1; display: flex; justify-content: center; align-items: center;margin:0px;padding:0px">
+					<DnzFileUploaderButton Client="@Client"
+										   ButtonText="Subir archivo"
+										   ButtonIcon="upload_file"
+										   MaxFiles="1"
+										   OnFilesUploaded="@OnFilesComplete"
+										   OnError="@(msg => NotificationService.Notify(NotificationSeverity.Error, msg))" />
+				</div>
+
+			} else {
+
+				<div class="d-flex flex-column ">
+					<div class="d-flex align-items-center justify-content-between">
+						<RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" style="margin:0">@DataControl.Label</RadzenText>
+						<div class="d-flex align-items-center gap-1">
+							<DnzFileUploaderButton Client="@Client"
+												   ButtonText=""
+												   ButtonIcon="upload"
+												   ButtonStyle="ButtonStyle.Secondary"
+												   ButtonSize="ButtonSize.ExtraSmall"
+												   MaxFiles="1"
+												   OnFilesUploaded="@OnFilesComplete" />
+							<RadzenButton Visible=@(fileDTO.IsNotNull()) Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Click=@EliminarRelacion />
+						</div>
+					</div>
+				</div>
+
+
+
+				<div style="width: 100%; flex:1; display: flex; justify-content: center; align-items: center;">
+					@if (fileDTO.IsNotNull() && fileDTO.IsImage) {
+						<img src=@fileDTO.url_original style="max-width: 100%; max-height: @(DataControl.Height - 100)px; object-fit: contain;" />
+					}
+					else
+					{
+						<DnzFileName IsCompact=true DnzFileNameDisplay=@fileDTO.File DownloadURL=@fileDTO.url_original />
+					}
+				</div>
+
+				@if (fileDTO.IsNotNull() && fileDTO.IsImage) {
+					<a style="font-size:11px" href=@fileDTO.url_original target="_blank"> @fileDTO.File  </a>
+				}
+
+			}
+		</RadzenCard>
+
+	} else if (DataControl.TokenList != "" || (DataControl.DropDowList != null && DataControl.DropDowList.Any())) {
+
+
+
+
+		@if (DataControl.IsLabelLeft) {
+			<div @ref=elDivX @onclick=@(args => OpenPopup()) style="cursor:pointer" class="dup_input  justify-content-between  dup_input_estandar d-flex align-items-center  align-content-center gap-2 flex-grow-1">
+				@if (ModoCelda == false) {
+					<RadzenLabel ContextMenu=ContextMenuAction key=@(DataControl.Token + "-eti") style=@($"width:{DataControl.LabelWidth}px") class="labelinput" for="@DataControl.Token">
+						@DataControl.Label
+						<span class="ico_IsModified"></span>
+						<span class="ico_IsRequired"></span>
+					</RadzenLabel>
+				}
+				<RadzenTextBox class=@(ModoCelda ? "input-autosize" : "flex-grow-1") Value=@DataControl.Value_Text ReadOnly=true></RadzenTextBox>
+				<div style="margin-left:-24px; font-size:10px; color: var(--bs-gray); width:20px; height:20px" class="DropDownArrow"> </div>
+			</div>
+
+		} else {
+
+
+			@if (DataControl.Value_Img.IsNotEmpty() && DataControl.Value_Text != "Unidades") {
+				<DnzDynamicRowPreviewIMG Style="margin-right:12px;zoom:0.9" Class="opacity-75" @key=@(DataControl.Token + "-1343499") Data=DataControl></DnzDynamicRowPreviewIMG>
+			}
+
+			<div Style=" cursor:pointer" @key=@(DataControl.Token + "-2") @ref=elDivX @onclick=@(args => OpenPopup()) class="dup_input  dup_input_estandar d-flex flex-column w-100">
+				@if (ModoCelda == false) {
+					<RadzenLabel ContextMenu=ContextMenuAction class="labelinput" for="@DataControl.Token">
+						@DataControl.Label
+						<span class="ico_IsModified"></span>
+						<span class="ico_IsRequired"></span>
+					</RadzenLabel>
+				}
+
+				@if (DataControl.BadgetsStyle.IsNotEmpty()) {
+					<div class="d-flex align-items-center rz-textbox p-0 h-auto">
+						<div class="flex-grow-1 " style="padding-left:1px">
+							@if (DataControl.Value_Text.IsNotEmpty()) {
+								<DnzBadgetAutoColor Value=@DataControl.Value_Text BadgetStyle=@DataControl.BadgetsStyle />
+							}
+						</div>
+						<div style=" font-size:10px; color: var(--bs-gray); width:15px; height:20px" class="DropDownArrow"></div>
+					</div>
+				} else {
+					<div class="d-flex align-items-center">
+						<RadzenTextBox class=@(ModoCelda ? "input-autosize" : "flex-grow-1") Value=@DataControl.Value_Text ReadOnly=true></RadzenTextBox>
+						<div style="margin-left:-19px; font-size:10px; color: var(--bs-gray); width:15px; height:20px" class="DropDownArrow"></div>
+					</div>
+				}
+			</div>
+		}
+
+
+		@if (ModoCelda == false) {
+			<div class="autoHide d-flex">
+
+				@if (DataControl.IsFilled) {
+					@if (DataControl.IsLocked == false) {
+						<RadzenButton style="zoom:0.9" @key=@(DataControl.Token + "-3") Icon="close" Variant="Variant.Text" Click=EliminarRelacion ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" />
+					}
+
+					@if (DataControl.TokenList != "" && Client != null) {
+						<RadzenButton Click=@(async () => await AccederAsync()) style="zoom:0.9;margin-right:10px" @key=@(DataControl.Token + "-4") Variant="Variant.Text" Icon="open_in_new" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" />
+					}
+				} else {
+					@if (DataControl.TokenList != "" && DataControl.IsLocked == false && Client != null) {
+						<RadzenButton Click=@(async () => await AgregarAsync()) style="zoom:0.9" @key=@(DataControl.Token + "-5") Variant="Variant.Text" Icon="add" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" />
+					}
+				}
+			</div>
+		}
+
+
+	} else {
+		<div class="d-flex flex-column">
+
+			<b>@DataControl.Label</b>
+			<span>@DataControl.Value_Text </span>
+		</div>
+
+	}
+</div>
+
+
+
+
+<Popup @key=@(DataControl.Token + "-6") @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute; max-width:600px;  border:var(--rz-panel-border);">
+
+	<style>
+		.desplegablecontent .rz-card {
+			margin: 0px !important;
+			padding: 0px !important
+		}
+
+		.rz-group-header {
+			display: none !important
+		}
+	</style>
+
+	<div class="desplegablecontent" style="background:white">
+
+		<div class="d-flex gap-2">
+			@if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) {
+
+			} else if (Client != null && DataControl.TokenList.IsNotEmpty()) {
+				<RadzenIcon Icon="open_in_new" @onclick=@AbrirEnPopUp />
+			}
+			<RadzenTextBox @ref=@txtBoxSearch @onkeydown=@OnKeyDown @key=@(DataControl.Token + "-7") id=@("search" + idSeach) Placeholder="Escribe para buscar..." Style="width:100%;" @oninput=@(args => {
+																																												  searchString = $"{args.Value}";
+																																											  }) Value="@searchString" />
+		</div>
+
+		@if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) {
+			<div class="dup_input dup_input_estandar d-flex flex-column dup_dropdown" style="width:350px">
+
+				@foreach (var context in DataControl.DropDowList.Where((x) => x.Title.ContainsWebSearchMode(searchString))) {
+
+					<div class="d-flex p-1 align-content-center align-content-center dup_dropdownitem" @onclick=@((x) => SelectOrder(context))>
+						<img src=@context.Icon width="24" style="margin-right:10px" onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" /> @context.Title
+					</div>
+				}
+
+			</div>
+
+		} else if (Client != null && DataControl.TokenList.IsNotEmpty()) {
+			<DnzReportView Client="Client"
+							  ReportId="@DataControl.TokenList"
+							  QuerySearch="@searchString"
+							  ShowTitle="false"
+							  ShowSearch="false"
+							  Limit="50"
+							  Filtrable="false"
+							  OnItemSelect="@(async (row) => await SelectOrder(row))" />
+		}
+	</div>
+</Popup>
+
+
+
+@code {
+
+	// ── Parameters ──
+	[Parameter] public DinaupClientC Client { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
+	[Parameter] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+	[Parameter] public EventCallback<MouseEventArgs> ContextMenuAction { get; set; }
+	[Parameter] public bool ModoCelda { get; set; }
+
+	// ── Private fields ──
+	RadzenTextBox txtBoxSearch;
+	ElementReference elDivX;
+	Popup popup;
+	string searchString = "";
+	private string idSeach = Guid.NewGuid().ToString().Replace("-", "");
+	bool subiendoArchivo;
+	double subiendoArchivoProgreso;
+	DinaupFileDTO fileDTO;
+
+	// ── Lifecycle ──
+
+	protected override Task OnParametersSetAsync() {
+		_ = actualizarInfoArchivoAsync();
+		return base.OnParametersSetAsync();
+	}
+
+	public void Dispose() {
+		if (DnzFormConfig.DeepDispose) {
+			DataControl = null;
+		}
+	}
+
+	// ── Popup ──
+
+	void OpenPopup() {
+		if (DataControl.IsLocked == false) {
+			popup.ToggleAsync(elDivX);
+		} else {
+			NotificationService.Notify(NotificationSeverity.Warning, "Ups.", "Este campo no es editable.");
+		}
+	}
+
+	async Task OnOpen() {
+		if (DataControl.IsLocked == false)
+			await JS.InvokeVoidAsync("eval", "setTimeout(function(){ document.getElementById('search" + idSeach + "').focus(); }, 300)");
+	}
+
+	async Task OnKeyDown(KeyboardEventArgs args) {
+		// Keyboard navigation delegated to host via ReportSelectorTemplate
+	}
+
+	// ── Selection ──
+
+	async Task SelectOrder(VirtualFormDTO.DropDownItem dataRow) {
+		try { await popup.CloseAsync(); } catch { }
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.Value).WithValueText(dataRow.Title).WithValueImageURL(dataRow.Icon));
+	}
+
+	async Task SelectOrder(DinaupDynamicRowDTO dataRow) {
+		try { await popup.CloseAsync(); } catch { }
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue(dataRow.ID).WithValueText(dataRow.Title).WithValueImageURL(dataRow.PreviewIMG));
+	}
+
+	async Task EliminarRelacion() {
+		await OnDataControlChanged.InvokeAsync(DataControl.WithValue("").WithValueText(""));
+	}
+
+	async Task AbrirEnPopUp() {
+		if (Client != null && DataControl.TokenList.IsNotEmpty()) {
+			var selectedItem = await DnzItemPickerDialog.OpenAsync(DialogService, Client, DataControl.TokenList);
+			if (selectedItem.IsNotNull())
+				await this.SelectOrder(selectedItem);
+		}
+	}
+
+	// ── Relation actions ──
+
+	async Task AccederAsync() {
+		if (Client != null)
+			await DnzFormView.OpenAsync(DialogService, Client, DataControl.RelationWithSectionId, DataControl.Value, null);
+	}
+
+	async Task AgregarAsync() {
+		try {
+			if (Client != null) {
+				var result = await Client.OpenedFormAddRelation(DataControl.RelationWithSectionId, DataControl.Token);
+				var tokenForm = result?.TokenForm;
+				if (tokenForm.IsNotEmpty()) {
+					var options = new DialogOptions {
+						WrapperCssClass = "dinaupdialogform",
+						Width = "90%",
+						Height = "90%",
+						CloseDialogOnEsc = true,
+						Resizable = true,
+						Draggable = true,
+						CloseDialogOnOverlayClick = false,
+						ShowClose = false,
+						ShowTitle = false
+					};
+
+					await DialogService.OpenAsync<DnzFormByTokenView>("", new Dictionary<string, object>
+					{
+						{ nameof(DnzFormByTokenView.Client), Client },
+						{ nameof(DnzFormByTokenView.Token), tokenForm }
+					}, options);
+				}
+			}
+		} catch (Exception ex) {
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
+		}
+	}
+
+	// ── File upload ──
+
+	void OnProgress(UploadProgressArgs args, string name) {
+		if (args.Progress == 100) {
+			subiendoArchivo = false;
+			subiendoArchivoProgreso = 0;
+			InvokeAsync(StateHasChanged);
+		} else {
+			subiendoArchivo = true;
+			subiendoArchivoProgreso = args.Progress;
+			InvokeAsync(StateHasChanged);
+		}
+	}
+
+	async Task OnFilesComplete(List<DinaupFileDTO> files) {
+		var x = files?.FirstOrDefault();
+		if (x == null) return;
+		try {
+			await OnDataControlChanged.InvokeAsync(DataControl.WithValue(x.Id.STR()).WithValueText(x.Name));
+			_ = actualizarInfoArchivoAsync();
+		} catch (Exception ex) {
+			NotificationService.Notify(NotificationSeverity.Error, ex.Message);
+		}
+		subiendoArchivo = false;
+		_ = InvokeAsync(StateHasChanged);
+	}
+
+	void OnError(UploadErrorEventArgs args) {
+		subiendoArchivo = false;
+		InvokeAsync(StateHasChanged);
+	}
+
+	async Task actualizarInfoArchivoAsync() {
+		if (fileDTO != null && fileDTO.Id.STR() == DataControl.Value)
+			return;
+
+		if (fileDTO != null && DataControl.Value.IsGUID() == false) {
+			fileDTO = null;
+			_ = InvokeAsync(StateHasChanged);
+			return;
+		}
+
+		if (DataControl.InputType == "file" && Client != null) {
+			if (DataControl.Value.IsGUID()) {
+				FileResponse file = await Client.FileGetAsync(DataControl.Value.ToGUID());
+				fileDTO = file.Files.Values.First();
+				_ = InvokeAsync(StateHasChanged);
+			}
+		}
+	}
+}

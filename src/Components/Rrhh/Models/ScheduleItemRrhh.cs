@@ -2,7 +2,7 @@ namespace DinaZen.Components.Rrhh.Models;
 
 /// <summary>
 /// Represents a single time slot in a weekly schedule.
-/// Used by WeeklyScheduleGridRrhh.
+/// Used by DnzWeeklyScheduleGridRrhh.
 /// </summary>
 public class ScheduleItemRrhh
 {

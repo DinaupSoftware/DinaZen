@@ -1,0 +1,46 @@
+@if (Value.HasValue)
+{
+	<span class="@_class" style="@_style">
+		@FormatGB(Value.Value)
+	</span>
+}
+
+@code {
+
+	[Parameter] public decimal? Value { get; set; }
+	[Parameter] public bool AutoColor { get; set; } = false;
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string FontSize { get; set; } = "16px";
+
+	private string _class = "";
+	private string _style = "";
+
+	protected override Task OnParametersSetAsync()
+	{
+		string _color = "";
+
+		if (AutoColor && Value.HasValue && Value.Value > 100)
+			_color = "color:#6A0808";
+		else if (AutoColor && Value.HasValue && Value.Value > 50)
+			_color = "color:#B45309";
+
+		_class = Class + " numspan";
+		_style = $"font-size:{FontSize}; width: fit-content; word-break: keep-all; white-space: nowrap;{_color}";
+		return base.OnParametersSetAsync();
+	}
+
+	private static string FormatGB(decimal gb)
+	{
+		if (gb >= 1024)
+			return $"{(gb / 1024):0.##} TB";
+
+		if (gb >= 1)
+			return $"{gb:0.##} GB";
+
+		if (gb >= 0.001m)
+			return $"{(gb * 1024):0.##} MB";
+
+		return $"{(gb * 1024 * 1024):0.##} KB";
+	}
+
+}

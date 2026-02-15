@@ -1,0 +1,56 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Provider
+
+@if (Context?.Mapping?.CanKanban == true && Context.Rows.IsNotEmpty())
+{
+	<div class="dnz-status-summary">
+		@foreach (var group in _groups)
+		{
+			<div class="dnz-status-summary-item" @onclick="() => OnStatusClick.InvokeAsync(group.Value)">
+				@if (Context.Mapping.StatusColumn.BadgetsStyle.IsNotEmpty())
+				{
+					<DnzBadgetAutoColor Value="@group.Value" BadgetStyle="@Context.Mapping.StatusColumn.BadgetsStyle" />
+				}
+				else
+				{
+					<span class="dnz-status-summary-label">@group.Value</span>
+				}
+				<span class="dnz-status-summary-count">@group.Count</span>
+				@if (_total > 0)
+				{
+					<div class="dnz-status-summary-bar">
+						<div class="dnz-status-summary-bar-fill" style="width:@((group.Count * 100 / _total))%"></div>
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
+
+@code {
+
+	[CascadingParameter] public ReportContext Context { get; set; }
+	[Parameter] public EventCallback<string> OnStatusClick { get; set; }
+
+	private List<StatusGroup> _groups = new();
+	private int _total;
+
+	protected override void OnParametersSet()
+	{
+		if (Context?.Rows == null || Context.Mapping?.StatusColumn == null) return;
+
+		var col = Context.Mapping.StatusColumn;
+		_total = Context.Rows.Count;
+
+		_groups = Context.Rows
+			.GroupBy(r => r.GetLegible(col.Keyword) ?? "(vacío)")
+			.Select(g => new StatusGroup { Value = g.Key, Count = g.Count() })
+			.OrderByDescending(g => g.Count)
+			.ToList();
+	}
+
+	private class StatusGroup
+	{
+		public string Value { get; set; }
+		public int Count { get; set; }
+	}
+}

@@ -1,0 +1,140 @@
+@namespace DinaZen.Components.WindowManager
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject DnzWindowManagerService _wm
+
+<div id="@_elementId"
+	 class="dnz-window @(State.IsActive ? "dnz-win-focused" : "") @(State.IsMinimized ? "dnz-win-minimized" : "") @(State.IsMaximized ? "dnz-win-maximized" : "")"
+	 style="@GetWindowStyle()">
+
+	@* ── Titlebar (drag handle) ── *@
+	<div class="dnz-win-titlebar">
+		@* Traffic lights *@
+		<div class="dnz-win-traffic">
+			<button class="dnz-win-btn-close" @onclick="OnClose" @onclick:stopPropagation="true" title="Cerrar">
+				<svg viewBox="0 0 12 12"><path d="M3.5 3.5l5 5M8.5 3.5l-5 5" stroke="#4d0000" stroke-width="1.2" fill="none" /></svg>
+			</button>
+			<button class="dnz-win-btn-minimize" @onclick="OnMinimize" @onclick:stopPropagation="true" title="Minimizar">
+				<svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#995700" stroke-width="1.2" fill="none" /></svg>
+			</button>
+			<button class="dnz-win-btn-maximize" @onclick="OnMaximize" @onclick:stopPropagation="true" title="Maximizar">
+				<svg viewBox="0 0 12 12"><path d="M3.5 6L6 3.5 8.5 6 6 8.5z" stroke="#006500" stroke-width="1.1" fill="none" /></svg>
+			</button>
+		</div>
+
+		@* Title (centered) — icon + two-line text *@
+		<div class="dnz-win-title">
+			@if (State.IconUrl.IsNotEmpty())
+			{
+				<img src="@State.IconUrl" alt="" class="dnz-win-title-icon" onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" />
+			}
+			else if (State.Icon.IsNotEmpty())
+			{
+				<RadzenIcon Icon="@State.Icon" Style="font-size:16px; color:#555;" />
+			}
+			<div class="dnz-win-title-text">
+				@if (State.Subtitle.IsNotEmpty())
+				{
+					<span class="dnz-win-title-sub">@State.Title</span>
+					<span class="dnz-win-title-main">@State.Subtitle</span>
+				}
+				else
+				{
+					<span class="dnz-win-title-main">@State.Title</span>
+				}
+			</div>
+		</div>
+
+		@* Spacer for symmetry *@
+		<div class="dnz-win-traffic-spacer"></div>
+	</div>
+
+	@* ── Content ── *@
+	<div class="dnz-win-body">
+		@State.Content
+	</div>
+
+	@* ── Resize handles ── *@
+	<div class="dnz-win-resize" data-dir="n"></div>
+	<div class="dnz-win-resize" data-dir="s"></div>
+	<div class="dnz-win-resize" data-dir="e"></div>
+	<div class="dnz-win-resize" data-dir="w"></div>
+	<div class="dnz-win-resize" data-dir="ne"></div>
+	<div class="dnz-win-resize" data-dir="nw"></div>
+	<div class="dnz-win-resize" data-dir="se"></div>
+	<div class="dnz-win-resize" data-dir="sw"></div>
+</div>
+
+@code {
+	[Parameter, EditorRequired] public WindowState State { get; set; }
+	[Parameter] public EventCallback<string> OnCloseRequest { get; set; }
+	[Parameter] public EventCallback<string> OnMinimizeRequest { get; set; }
+	[Parameter] public EventCallback<string> OnMaximizeRequest { get; set; }
+	[Parameter] public EventCallback<string> OnFocusRequest { get; set; }
+
+	private string _elementId => $"dnz-win-{State.Id}";
+
+	// Genera el style con InvariantCulture para evitar que culturas como es-ES
+	// usen coma como separador decimal (ej: "791,4px" invalido en CSS)
+	private string GetWindowStyle() =>
+		string.Create(System.Globalization.CultureInfo.InvariantCulture,
+			$"left:{State.X}px;top:{State.Y}px;width:{State.Width}px;height:{State.Height}px;z-index:{State.ZIndex}");
+	private IJSObjectReference _jsModule;
+	private DotNetObjectReference<DnzWindow> _dotNetRef;
+	private bool _jsInitialized;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender || (_jsInitialized == false && State.IsMinimized == false))
+		{
+			await InitJsAsync();
+		}
+	}
+
+	private async Task InitJsAsync()
+	{
+		if (_jsInitialized) return;
+		try
+		{
+			_jsModule = await JS.InvokeAsync<IJSObjectReference>(
+				"import", "./_content/DinaZen/dinazen-windows.js");
+			_dotNetRef = DotNetObjectReference.Create(this);
+			await _jsModule.InvokeVoidAsync("initWindow", _elementId, _dotNetRef, 1000, 400);
+			_jsInitialized = true;
+		}
+		catch { }
+	}
+
+	[JSInvokable]
+	public void JsDragEnd(double x, double y, double w, double h)
+	{
+		State.X = x;
+		State.Y = y;
+		State.Width = w;
+		State.Height = h;
+	}
+
+	[JSInvokable]
+	public async Task JsFocus()
+	{
+		await OnFocusRequest.InvokeAsync(State.Id);
+	}
+
+	private async Task OnClose() => await OnCloseRequest.InvokeAsync(State.Id);
+	private async Task OnMinimize() => await OnMinimizeRequest.InvokeAsync(State.Id);
+	private async Task OnMaximize() => await OnMaximizeRequest.InvokeAsync(State.Id);
+
+	public async ValueTask DisposeAsync()
+	{
+		try
+		{
+			if (_jsModule != null && _jsInitialized)
+			{
+				await _jsModule.InvokeVoidAsync("destroyWindow", _elementId);
+				await _jsModule.DisposeAsync();
+			}
+			_dotNetRef?.Dispose();
+		}
+		catch { }
+	}
+}

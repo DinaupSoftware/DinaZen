@@ -1,0 +1,82 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Provider
+
+@if (Context?.Rows != null && Context.Rows.Count > 0)
+{
+	<div class="dnz-summary-bar">
+
+		<div class="dnz-summary-item">
+			<RadzenIcon Icon="list_alt" />
+			<span class="dnz-summary-value">@Context.TotalResults</span>
+			<span class="dnz-summary-label">Registros</span>
+		</div>
+
+		@foreach (var col in Context.Mapping.AllMoney)
+		{
+			<div class="dnz-summary-item">
+				<RadzenIcon Icon="payments" />
+				<span class="dnz-summary-value">
+					<DnzSpanMoney Amount="@Context.Rows.Sum(r => r.GetDec(col.Keyword))" />
+				</span>
+				<span class="dnz-summary-label">@col.Label</span>
+			</div>
+		}
+
+		@foreach (var col in Context.Mapping.AllNumeric)
+		{
+			<div class="dnz-summary-item">
+				<RadzenIcon Icon="functions" />
+				<span class="dnz-summary-value">
+					<DnzSpanDecimal Value="@Context.Rows.Sum(r => r.GetDec(col.Keyword))" />
+				</span>
+				<span class="dnz-summary-label">@col.Label</span>
+			</div>
+		}
+
+		@if (Context.Mapping.MinutesColumn.IsNotNull())
+		{
+			var minCol = Context.Mapping.MinutesColumn;
+			<div class="dnz-summary-item">
+				<RadzenIcon Icon="schedule" />
+				<span class="dnz-summary-value">
+					<DnzSpanMinutes Value="@Context.Rows.Sum(r => r.GetDec(minCol.Keyword))" />
+				</span>
+				<span class="dnz-summary-label">@minCol.Label</span>
+			</div>
+		}
+
+		@foreach (var col in Context.Mapping.AllBools)
+		{
+			var total = Context.Rows.Count;
+			var trueCount = Context.Rows.Count(r => r.GetBool(col.Keyword));
+			<div class="dnz-summary-item">
+				<RadzenIcon Icon="check_circle" />
+				<span class="dnz-summary-value">@trueCount / @total</span>
+				<span class="dnz-summary-label">@col.Label</span>
+			</div>
+		}
+
+		@if (Context.Mapping.PrimaryDate.IsNotNull())
+		{
+			var dateCol = Context.Mapping.PrimaryDate;
+			var dates = Context.Rows
+				.Select(r => r.GetDateTime(dateCol.Keyword))
+				.Where(d => d != default)
+				.ToList();
+			if (dates.Count > 0)
+			{
+				<div class="dnz-summary-item">
+					<RadzenIcon Icon="date_range" />
+					<span class="dnz-summary-value">
+						@RegionService.ToLocalFriendlyDate(dates.Min()) — @RegionService.ToLocalFriendlyDate(dates.Max())
+					</span>
+					<span class="dnz-summary-label">Rango @dateCol.Label</span>
+				</div>
+			}
+		}
+
+	</div>
+}
+
+@code {
+	[CascadingParameter] public ReportContext Context { get; set; }
+}

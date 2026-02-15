@@ -1,0 +1,247 @@
+@namespace DinaZen.Components.DinaupFlex.Components
+@using Radzen.Blazor.Rendering
+
+<style>
+	.obli label {
+		color: red !important
+	}
+
+		.obli label::after {
+			content: "*";
+			font-size: 0.8em;
+			margin-left: 4px;
+		}
+
+	.obli .rz-form-field-content {
+		background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
+		border-bottom: 2px solid #ffb0b0;
+	}
+</style>
+
+
+<ErrorBoundary>
+	<RadzenFormField Text=@Label Variant="Variant.Flat" class=@("dropdown-menu-component" + ((IsRequired && SelectedRow.IsEmpty()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " " + Class) Style=@Style>
+		<Start>
+			@if (Icon.IsNotEmpty()) {
+				<RadzenIcon Icon=@Icon />
+			}
+		</Start>
+		<ChildContent>
+
+			@if (isInitializing && DefaultID.IsNotEmpty()) {
+				<div style="width:100%; margin-top: 13px" class=" d-flex  justify-content-center align-items-center align-content-center">
+					<DnzSkeleton Lines="1" MaxWidth="80%" />
+				</div>
+			} else {
+
+				<div @ref=containerRef @onclick=@(args => ToggleAsync()) class="d-flex align-items-center" style=" min-height:54.6px; padding-right:4px; border-radius:6px;flex:1; padding: 4px 10px">
+					<span class="d-flex justify-content-between flex-grow-1 dropdown-menu-text" style="cursor:pointer;padding-top: 20px">
+						<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 200px;" class="dropdown-menu-text flex-grow-1">
+							@SelectedRow?.Label
+						</span>
+					</span>
+				</div>
+
+			}
+
+
+		</ChildContent>
+		<End>
+			@if (Disabled == false) {
+				<div style=" margin-top: -15px; " class="d-flex align-content-center align-items-center gap-1">
+
+					<RadzenIcon Icon="arrow_drop_down" @onclick=@(args => ToggleAsync()) />
+
+					@if (SelectedRow.IsNotEmpty()) {
+						<div class="d-flex flex-column gap-1">
+							<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" onclick=@(() => OnClearClick()) />
+
+							@if (SelectedRow.SectionID.IsNotEmpty() && OnOpenRecord.HasDelegate) {
+								<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" onclick=@(() => OnOpenClick()) />
+							}
+						</div>
+					} else {
+
+						<RadzenButton Visible=@OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle=" ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
+					}
+				</div>
+			}
+		</End>
+	</RadzenFormField>
+</ErrorBoundary>
+
+<Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
+	<ErrorBoundary>
+		<RadzenTextBox @ref=textBox id=@searchInputId Placeholder="Type to search..." Style="width:100%;" @oninput=@OnInput />
+		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false  Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
+	</ErrorBoundary>
+</Popup>
+
+
+
+@code {
+
+	string searchInputId = Guid.NewGuid().ToString().Replace("-", "");
+
+
+	[Parameter]
+	public string Icon { get; set; }
+
+	[Parameter]
+	public bool AdminMode { get; set; } = false;
+
+	[Parameter, EditorRequired]
+	public DinaupClientC Client { get; set; }
+
+
+	public async Task ToggleAsync() {
+
+		if (Disabled) return;
+		await popup.ToggleAsync(containerRef);
+	}
+
+
+	[Parameter] public string Class { get; set; } = "";
+
+
+	private void OnInput(ChangeEventArgs args) {
+		if (Disabled) return;
+		reportControl.UpdateSearch(args.Value?.ToString() ?? string.Empty);
+	}
+
+
+	[Parameter] public string KeyboardShortcut { get; set; }
+
+
+
+	DnzReportView reportControl;
+	ElementReference containerRef;
+	Popup popup;
+	RadzenTextBox textBox;
+
+
+	[Parameter] public string Style { get; set; } = "flex:1";
+
+	[Parameter] public string Placeholder { get; set; }
+
+
+	[Parameter] public EventCallback<IDinaupRow> SelectedRowChanged { get; set; }
+	[Parameter] public IDinaupRow SelectedRow { get; set; }
+	[Parameter] public string Label { get; set; }
+	[Parameter] public string ReportId { get; set; }
+
+	[Parameter] public bool IsRequired { get; set; }
+	[Parameter] public bool Disabled { get; set; }
+
+
+	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
+
+	[Parameter]
+	public EventCallback<Guid> OnAdd { get; set; }
+
+	[Parameter]
+	public EventCallback<IDinaupRow> OnOpenRecord { get; set; }
+
+	[Parameter] public Guid DefaultID { get; set; }
+
+
+	bool isInitializing = true;
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+
+		if (DefaultID.IsNotEmpty()) {
+			await SelectByIdAsync(DefaultID);
+		}
+		isInitializing = false;
+
+	}
+
+	protected override Task OnParametersSetAsync() {
+		return base.OnParametersSetAsync();
+	}
+
+
+	public async Task SelectAsync(Dinaup.DinaupBasicInformation data) {
+		await SelectAsync(data.ToDinaupDynamicRowDTO());
+	}
+
+
+	public async Task SelectAsync(DnzRowSelector source) {
+
+		await SelectAsync(source.SelectedRow);
+
+	}
+
+
+	public async Task SelectByIdAsync(Guid ID) {
+
+		if (ID.IsNotEmpty()) {
+			var paramsX = new ReportRequestParameters(ReportId, 1);
+			paramsX.AddFilter("id", "=", ID);
+			paramsX.AdminMode = true;
+
+			var result = await Client.Report_GetAsync(paramsX);
+
+			var rows = result.DataList.GetDynamicsRowsOBJ();
+			if (rows.IsNotEmpty()) {
+				await SelectAsync(rows.FirstOrDefault());
+			}
+
+		}
+
+	}
+
+
+
+	public async Task SelectAsync(IDinaupRow dataRow) {
+
+		if (dataRow.IsNull()) {
+			SelectedRow = null;
+			_ = InvokeAsync(this.StateHasChanged);
+			_ = SelectedRowChanged.InvokeAsync(null);
+		} else {
+			SelectedRow = dataRow;
+			_ = InvokeAsync(this.StateHasChanged);
+			_ = SelectedRowChanged.InvokeAsync(dataRow);
+		}
+
+
+		try {
+			await popup.CloseAsync();
+		} catch (Exception) {
+
+		}
+	}
+
+
+
+	async Task OnOpen() {
+		if (Disabled) return;
+		await JS.InvokeVoidAsync("eval", "setTimeout(function(){ document.getElementById('" + searchInputId + "').focus(); }, 200)");
+	}
+
+
+
+	private async Task OnAddClick() {
+
+		if (Disabled) return;
+		if (OnAdd.HasDelegate)
+			await OnAdd.InvokeAsync();
+
+	}
+
+	private async Task OnClearClick() {
+
+		_ = SelectAsync((IDinaupRow)null);
+
+	}
+
+	private async Task OnOpenClick() {
+
+		if (this.SelectedRow.IsNotNull() && OnOpenRecord.HasDelegate)
+			await OnOpenRecord.InvokeAsync(this.SelectedRow);
+
+	}
+
+}

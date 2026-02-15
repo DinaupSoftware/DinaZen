@@ -1,0 +1,102 @@
+@namespace DinaZen.Components.WindowManager
+@implements IAsyncDisposable
+@inject DnzWindowManagerService WM
+@inject IJSRuntime JS
+@inject Radzen.NotificationService NotificationService
+
+@if (WM.Windows.Any())
+{
+	<div class="dnz-window-host">
+		@foreach (var win in WM.Windows)
+		{
+			<DnzWindow @key="win.Id"
+					   State="win"
+					   OnCloseRequest="HandleClose"
+					   OnMinimizeRequest="HandleMinimize"
+					   OnMaximizeRequest="HandleMaximize"
+					   OnFocusRequest="HandleFocus" />
+		}
+
+		<DnzTaskbar />
+	</div>
+}
+
+@code {
+	private IJSObjectReference _jsModule;
+	private DotNetObjectReference<DnzWindowHost> _dotNetRef;
+	private bool _viewportInitialized;
+
+	protected override void OnInitialized()
+	{
+		WM.OnChanged += HandleStateChanged;
+		WM.OnMaxWindowsReached += HandleMaxWindowsReached;
+	}
+
+	private void HandleMaxWindowsReached()
+	{
+		InvokeAsync(() =>
+		{
+			NotificationService.Notify(new Radzen.NotificationMessage
+			{
+				Severity = Radzen.NotificationSeverity.Warning,
+				Summary = "Límite de ventanas",
+				Detail = $"No se pueden abrir más de {DnzWindowManagerService.MaxWindows} ventanas. Cierra alguna para continuar.",
+				Duration = 4000
+			});
+		});
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (_viewportInitialized == false)
+		{
+			try
+			{
+				_jsModule = await JS.InvokeAsync<IJSObjectReference>(
+					"import", "./_content/DinaZen/dinazen-windows.js");
+				var vp = await _jsModule.InvokeAsync<ViewportInfo>("getViewport");
+				WM.SetViewport(vp.Width, vp.Height);
+
+				_dotNetRef = DotNetObjectReference.Create(this);
+				await _jsModule.InvokeVoidAsync("initEscapeClose", _dotNetRef);
+
+				_viewportInitialized = true;
+			}
+			catch { }
+		}
+	}
+
+	[JSInvokable]
+	public void JsEscapePressed()
+	{
+		WM.CloseActive();
+	}
+
+	private void HandleClose(string id) => WM.Close(id);
+	private void HandleMinimize(string id) => WM.Minimize(id);
+	private void HandleMaximize(string id) => WM.ToggleMaximize(id);
+	private void HandleFocus(string id) => WM.Focus(id);
+
+	private void HandleStateChanged()
+	{
+		InvokeAsync(StateHasChanged);
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		WM.OnChanged -= HandleStateChanged;
+		WM.OnMaxWindowsReached -= HandleMaxWindowsReached;
+		if (_jsModule != null)
+		{
+			try
+			{
+				await _jsModule.InvokeVoidAsync("disposeEscapeClose");
+				await _jsModule.DisposeAsync();
+			}
+			catch { }
+		}
+		_dotNetRef?.Dispose();
+	}
+
+	private record ViewportInfo(double Width, double Height);
+}

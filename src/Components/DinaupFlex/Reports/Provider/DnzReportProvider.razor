@@ -1,0 +1,95 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Provider
+@using DinaZen.Components.DinaupFlex.DnzResponseQuestions
+
+<CascadingValue Value=@_context>
+	@if (_context.IsLoading && _context.DataList == null)
+	{
+		<DnzLoader />
+	}
+	else if (_showResponse && _context.Report?.VariableList?.Variables != null)
+	{
+		<DnzResponseQuestions Variables="@_context.Report.VariableList.Variables"
+						   VariableValues="@(VariablesValues ?? new())"
+						   OnConfirm="@HandleVariableConfirm" />
+	}
+	else if (_context.ErrorMessage.IsNotEmpty())
+	{
+		<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+			@_context.ErrorMessage
+		</RadzenAlert>
+	}
+	else
+	{
+		@ChildContent
+	}
+</CascadingValue>
+
+@code {
+
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+	[Parameter, EditorRequired] public string ReportId { get; set; } = "";
+	[Parameter] public Dictionary<string, string> VariablesValues { get; set; }
+	[Parameter] public string QuerySearch { get; set; } = "";
+	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
+	[Parameter] public int Limite { get; set; } = 500;
+	[Parameter] public Dictionary<string, bool> Orden { get; set; }
+	[Parameter] public bool AdminMode { get; set; } = false;
+	[Parameter] public RenderFragment ChildContent { get; set; }
+	[Parameter] public EventCallback OnDataLoaded { get; set; }
+
+	private ReportContext _context = new();
+	private bool _showResponse;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_context.RefreshAsync = LoadAsync;
+		await LoadAsync();
+	}
+
+	private void HandleVariableConfirm(Dictionary<string, string> v)
+	{
+		VariablesValues = v;
+		_ = LoadAsync();
+	}
+
+	private async Task LoadAsync()
+	{
+		if (Limite == 0) Limite = 500;
+		_context.IsLoading = true;
+		_context.ErrorMessage = "";
+
+		try
+		{
+			var p = new ReportRequestParameters(ReportId, Limite)
+			{
+				Variables = VariablesValues,
+				QuerySearch = QuerySearch,
+				Order = Orden,
+				Expresion = AdvancedFilter,
+				AdminMode = AdminMode
+			};
+
+			var response = await Client.Report_GetAsync(p);
+			if (response.IsNotNull())
+			{
+				_context.Report = response.Report;
+				_showResponse = response.DataList.IsNull();
+				_context.DataList = response.DataList;
+				_context.Rows = _context.DataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
+				_context.TotalResults = _context.DataList?.TotalResults ?? _context.Rows.Count;
+				_context.Mapping = ReportColumnMapping.Analyze(
+					_context.DataList?.Columns?.ToList()
+				);
+
+				if (OnDataLoaded.HasDelegate)
+					try { await OnDataLoaded.InvokeAsync(); } catch { }
+			}
+		}
+		catch (Exception ex) { _context.ErrorMessage = ex.Message; }
+		finally
+		{
+			_context.IsLoading = false;
+			await InvokeAsync(StateHasChanged);
+		}
+	}
+}

@@ -1,0 +1,99 @@
+@if (Container.IsNull()) return;
+
+<RadzenCard @key=@(Container.Token + "1742963010") style="@cardStyle" class="ctrlucont dnp-form-container">
+
+	@if (Container.Icon.IsNotEmpty())
+	{
+		<div style="@iconStyle"></div>
+	}
+
+	@if ((Container.TokenList).IsNotEmpty())
+	{
+		@if (Container.Botones.IsNotEmpty())
+		{
+			<div style="height:calc(100% - 40px)">
+				@if (ReportTemplate != null)
+				{
+					@ReportTemplate(Container.TokenList)
+				}
+			</div>
+
+			<div class="pt-2">
+				@foreach (var button in Container.Botones)
+				{
+					<DnzContainerButton OnMostrarDialogRequiereGuardar=@OnMostrarDialogRequiereGuardar @key=@(Container.Token + "-" + button.Id) Container=@Container OnButtonClick=@HandleOnButtonClick ButtonData="button" />
+				}
+			</div>
+		}
+		else
+		{
+			@if (ReportTemplate != null)
+			{
+				@ReportTemplate(Container.TokenList)
+			}
+		}
+	}
+	else if (Container.IsPrimaryList)
+	{
+		<DnzFormPrimaryList @key=@(Container.Token + "-plist")
+						 OnDeleteItemPrimaryList="HandleOnDeleteItemPrimaryList"
+						 OnTabChanged="HandleTabChanged"
+						 OnAddItem="HandleNewItemList"
+						 OnOpenListItem="OnOpenListItem"
+						 Client="Client"
+						 List="@Container.ParentForm.List" />
+	}
+</RadzenCard>
+
+@code {
+
+	[Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
+	[Parameter] public EventCallback<string> OnButtonClick { get; set; }
+	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.Container Container { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
+	[Parameter] public EventCallback<string> OnDeleteItemPrimaryList { get; set; }
+	[Parameter] public EventCallback OnAddItem { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.FormDetail> OnOpenListItem { get; set; }
+
+	private string cardStyle = "";
+	private string iconStyle = "";
+
+	public void Dispose()
+	{
+		if (DnzFormConfig.DeepDispose)
+		{
+			Container = null;
+		}
+	}
+
+	protected override void OnParametersSet()
+	{
+		if (Container.IsNotNull())
+		{
+			cardStyle = $"position: absolute; left: {Container.X}px; top: {Container.Y}px; width: {(Container.MaxWidth ? "calc(100% - 100px)" : $"{Container.Width}px")}; height: {Container.Height}px;";
+			iconStyle = $"position: absolute; left: 30px; top: 0; width: 64px; height: {Container.Height}px; background-image: url('{Container.Icon}'); background-size: contain; background-repeat: no-repeat; background-position: center center;";
+		}
+	}
+
+	void HandleOnButtonClick(string id)
+	{
+		OnButtonClick.InvokeAsync(id);
+	}
+
+	private Task HandleOnDeleteItemPrimaryList(string deleteId)
+	{
+		return OnDeleteItemPrimaryList.InvokeAsync(deleteId);
+	}
+
+	private Task HandleTabChanged(Dinaup.VirtualFormDTO.Tab updateTab)
+	{
+		return OnTabChanged.InvokeAsync(updateTab);
+	}
+
+	async Task HandleNewItemList()
+	{
+		await OnAddItem.InvokeAsync();
+	}
+}

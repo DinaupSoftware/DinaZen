@@ -1,7 +1,7 @@
 namespace DinaZen.Components.Rrhh.Models;
 
 /// <summary>
-/// Visual style presets for TimelineBarRrhh.
+/// Visual style presets for DnzTimelineBarRrhh.
 /// Each style represents a different HR scenario with distinct colors and icons.
 /// </summary>
 public enum TimelineBarStyleRrhh

@@ -1,0 +1,98 @@
+@if (Tab.TabName == "*")
+{
+	@if (Tab.ParentForm.MainTextGenerateOnSave == false && Tab.Controls.IsNotEmpty())
+	{
+		<RadzenTextBox Placeholder="Título" Disabled=Tab.Controls.First().IsLocked Change=@(args => HandleControlChanged(Tab.Controls.First().WithValue(args)))
+					   @key=@(Tab.ParentForm.Token + Tab.Controls.First().Token + "-valor") Style="font-size:22px; width:90%;" Value=@Tab.Controls.First().Value class="w-100  obli" />
+	}
+
+}
+else
+{
+
+	<div class="dnp-form-tab" @key=@(Tab.TabToken + "-1742963288") style=@($"min-width:{Tab.Width.ToString()}px;height:{(Tab.Height + 10).ToString()}px; position:relative")>
+
+		@foreach (var control in Tab.Containers.Values)
+		{
+			<DnzContainer @key=@control.Token OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client ReportTemplate=ReportTemplate />
+		}
+
+		@foreach (var currentControl in Tab.Controls ?? new())
+		{
+			<DnzControl @key=@currentControl.Token OnDataControlChanged=HandleControlChanged DataControl=currentControl Client=Client OnFormatearCodigo=OnFormatearCodigo />
+		}
+
+		@foreach (var currentButtom in Tab.Buttons ?? new())
+		{
+			<DnzButton @key=@currentButtom.Key OnMostrarDialogRequiereGuardar=HandleRequiereGuardar OnButtonClick=HandleButtonClick ButtonData=currentButtom.Value />
+		}
+
+	</div>
+
+
+}
+
+
+@code {
+
+	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.Tab Tab { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
+	[Parameter] public EventCallback<string> OnDeleteItemPrimaryList { get; set; }
+	[Parameter] public EventCallback<string> OnButtonClick { get; set; }
+	[Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.FormDetail> OnOpenListItem { get; set; }
+
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
+	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
+
+
+
+	public void Dispose()
+	{
+
+		if (DnzFormConfig.DeepDispose)
+		{
+			Tab = null;
+		}
+	}
+
+
+
+
+	private Task HandleRequiereGuardar(string mensaje)
+	{
+		return OnMostrarDialogRequiereGuardar.InvokeAsync(mensaje);
+	}
+
+	private Task HandleButtonClick(string idOToken)
+	{
+		return OnButtonClick.InvokeAsync(idOToken);
+	}
+
+	private Task HandleOnDeleteItemPrimaryList(string deleteId)
+	{
+		return OnDeleteItemPrimaryList.InvokeAsync(deleteId);
+	}
+
+
+	private Task HandleControlChanged(Dinaup.VirtualFormDTO.Control updatedControl)
+	{
+		return OnTabChanged.InvokeAsync(Tab.WithUpdatedControl(updatedControl));
+	}
+
+	private Task HandleTabChanged(Dinaup.VirtualFormDTO.Tab updateTab)
+	{
+		return OnTabChanged.InvokeAsync(updateTab);
+	}
+
+	[Parameter] public EventCallback OnAddItem { get; set; }
+
+
+
+	async Task HandleNewItemList()
+	{
+		await OnAddItem.InvokeAsync();
+
+	}
+}

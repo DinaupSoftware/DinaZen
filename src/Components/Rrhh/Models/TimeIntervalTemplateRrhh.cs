@@ -2,7 +2,7 @@ namespace DinaZen.Components.Rrhh.Models;
 
 /// <summary>
 /// Predefined shift template with a name and a set of intervals.
-/// Used by TimeIntervalEditorRrhh for quick-fill templates.
+/// Used by DnzTimeIntervalEditorRrhh for quick-fill templates.
 /// </summary>
 public class TimeIntervalTemplateRrhh
 {

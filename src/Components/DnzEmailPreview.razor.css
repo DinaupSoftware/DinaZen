@@ -1,0 +1,27 @@
+.email-preview-wrapper {
+	border: 1px solid var(--rz-border-color, #e2e8f0);
+	border-radius: 8px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.email-preview-header {
+	background: var(--rz-base-background-color, #f8fafc);
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--rz-border-color, #e2e8f0);
+	font-size: 0.82em;
+	color: var(--rz-text-secondary-color, #64748b);
+	line-height: 1.6;
+	flex-shrink: 0;
+}
+
+.email-preview-frame {
+	width: 100%;
+	border: none;
+	display: block;
+	background: #fff;
+	flex: 1;
+	min-height: 200px;
+}

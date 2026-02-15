@@ -1,0 +1,329 @@
+@namespace DinaZen.Components.DinaupFlex.DynamicDocuments
+@using DinaZen.Components.DinaupFlex.DnzResponseQuestions
+
+<DnzDialogLayout Icon="description" Title="@(_docInfo?.Name ?? "Documento")">
+	<TitleContent>
+		<div class="d-flex align-items-center justify-content-between w-100">
+			<div class="d-flex align-items-center gap-2">
+				<RadzenIcon Icon="description" Style="color:var(--rz-primary); font-size:20px" />
+				<span style="font-weight:600">@(_docInfo?.Name ?? "Documento")</span>
+			</div>
+			<div class="d-flex align-items-center gap-1">
+				@if (_documentContent.IsNotEmpty())
+				{
+					<RadzenButton Icon="print" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+								  Click="@PrintDocument" />
+					@if (OnSendEmail.HasDelegate)
+					{
+						<RadzenButton Icon="send" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+									  Click="@HandleSendEmail" />
+					}
+				}
+				@if (CompatibleDocuments.IsNotEmpty())
+				{
+					<RadzenDropDown AllowFiltering="true"
+								   FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+								   FilterOperator="StringFilterOperator.Contains"
+								   @bind-Value="@DocId"
+								   @bind-Value:after="@UpdateAsync"
+								   TValue="string"
+								   ValueProperty="@nameof(DinaupDynamicDocumentDTO.IDSTR)"
+								   TextProperty="@nameof(DinaupDynamicDocumentDTO.Title)"
+								   Data="@CompatibleDocuments"
+								   Style="max-width:250px" />
+				}
+				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+							  Click="@(() => DialogService.Close())" Style="opacity:0.6" />
+			</div>
+		</div>
+	</TitleContent>
+	<BodyContent>
+		@if (_isLoading)
+		{
+			<div style="display:flex; align-items:center; justify-content:center; height:100%">
+				<DnzLoader />
+			</div>
+		}
+		else if (_requiresVariables && _docInfo?.Questions?.Variables != null)
+		{
+			<DnzResponseQuestions Variables="@_docInfo.Questions.Variables"
+							  VariableValues="@VariableValues"
+							  OnConfirm="@HandleVariableConfirm" />
+		}
+		else if (_documentContent.IsNotEmpty())
+		{
+			<iframe id="@_iframeId" style="width:100%; height:100%; border:none; border-radius:6px" />
+		}
+		else if (_errorMessage.IsNotEmpty())
+		{
+			<div style="padding:20px">
+				<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+					@_errorMessage
+				</RadzenAlert>
+			</div>
+		}
+	</BodyContent>
+</DnzDialogLayout>
+
+@code {
+
+	/// <summary>
+	/// Cliente DinaupSL (no requerido si se usa PreloadedResult).
+	/// </summary>
+	[Parameter] public DinaupClientC Client { get; set; }
+
+	/// <summary>
+	/// ID del documento dinamico (no requerido si se usa PreloadedResult).
+	/// </summary>
+	[Parameter] public string DocId { get; set; } = "";
+
+	/// <summary>
+	/// Resultado pre-cargado. Si se proporciona, no ejecuta la API.
+	/// </summary>
+	[Parameter] public DynamicDocumentsGetResponse PreloadedResult { get; set; }
+
+	/// <summary>
+	/// Variables para la ejecucion del documento.
+	/// </summary>
+	[Parameter] public Dictionary<string, string> VariableValues { get; set; } = new();
+
+	/// <summary>
+	/// Lista de documentos compatibles (para selector dropdown).
+	/// </summary>
+	[Parameter] public List<DinaupDynamicDocumentDTO> CompatibleDocuments { get; set; }
+
+	/// <summary>
+	/// Si true, lanza print automaticamente al cargar.
+	/// </summary>
+	[Parameter] public bool AutoPrint { get; set; }
+
+	/// <summary>
+	/// Evento para enviar el documento por email.
+	/// </summary>
+	[Parameter] public EventCallback<DinaupDocumentEmailRequest> OnSendEmail { get; set; }
+
+	private DynamicDocumentsGetResponse.DDocumentC _docInfo;
+	private string _documentContent = "";
+	private bool _requiresVariables = false;
+	private bool _isLoading = true;
+	private string _errorMessage = "";
+	private string _iframeId = $"dnz-doc-{Guid.NewGuid():N}";
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (PreloadedResult != null)
+		{
+			_docInfo = PreloadedResult.DynamicDocument;
+			_documentContent = PreloadedResult.Content ?? "";
+			_isLoading = false;
+		}
+		else
+		{
+			await UpdateAsync();
+		}
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && _documentContent.IsNotEmpty())
+		{
+			try
+			{
+				await JS.InvokeVoidAsync("DinaZen.setIframeBlob", _iframeId, _documentContent);
+				if (AutoPrint)
+					await JS.InvokeVoidAsync("DinaZen.printIframe", _iframeId);
+			}
+			catch { }
+		}
+	}
+
+	private void HandleVariableConfirm(Dictionary<string, string> variableValues)
+	{
+		VariableValues = variableValues;
+		_ = UpdateAsync();
+	}
+
+	public async Task UpdateAsync()
+	{
+		_isLoading = true;
+		_errorMessage = "";
+		_requiresVariables = false;
+		_documentContent = "";
+		StateHasChanged();
+
+		try
+		{
+			var sendVar = new Dictionary<string, string>();
+
+			if (CompatibleDocuments.IsNotEmpty())
+			{
+				foreach (var currentDocument in CompatibleDocuments)
+				{
+					string actualKey = currentDocument.VariableList.Variables.Keys.First();
+					if (!sendVar.ContainsKey(actualKey))
+						sendVar.Add(actualKey, VariableValues?.Values?.FirstOrDefault() ?? "");
+				}
+			}
+
+			if (sendVar.IsEmpty() && VariableValues.IsNotEmpty())
+				sendVar = VariableValues;
+
+			var response = sendVar.IsNotEmpty()
+				? await Client.DynamicDocuments_ExecuteAsync(DocId, sendVar)
+				: await Client.DynamicDocuments_ExecuteAsync(DocId);
+
+			_docInfo = response.DynamicDocument;
+			_documentContent = response.Content ?? "";
+
+			if (response.Status == 3) // RequiresAsResponse
+			{
+				_requiresVariables = true;
+				VariableValues = new Dictionary<string, string>();
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+			StateHasChanged();
+		}
+
+		if (_documentContent.IsNotEmpty())
+		{
+			try
+			{
+				await JS.InvokeVoidAsync("DinaZen.setIframeBlob", _iframeId, _documentContent);
+				if (AutoPrint)
+					await JS.InvokeVoidAsync("DinaZen.printIframe", _iframeId);
+			}
+			catch { }
+		}
+	}
+
+	private async Task PrintDocument()
+	{
+		try
+		{
+			await JS.InvokeVoidAsync("DinaZen.printIframe", _iframeId);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task HandleSendEmail()
+	{
+		if (_docInfo == null || _documentContent.IsEmpty() || !OnSendEmail.HasDelegate) return;
+
+		var request = new DinaupDocumentEmailRequest
+		{
+			DocumentHtml = _documentContent,
+			DocumentTitle = _docInfo.Name ?? ""
+		};
+
+		await OnSendEmail.InvokeAsync(request);
+	}
+
+	// ── Static helper para abrir como modal ──
+
+	public static async Task OpenAsync(
+		DialogService dialogService,
+		DinaupClientC client,
+		string docId,
+		Dictionary<string, string> variableValues = null,
+		List<DinaupDynamicDocumentDTO> compatibleDocuments = null,
+		string width = "85%",
+		string height = "80%")
+	{
+		var parameters = new Dictionary<string, object>
+		{
+			{ nameof(Client), client },
+			{ nameof(DocId), docId }
+		};
+
+		if (variableValues != null)
+			parameters.Add(nameof(VariableValues), variableValues);
+		if (compatibleDocuments != null)
+			parameters.Add(nameof(CompatibleDocuments), compatibleDocuments);
+
+		var options = new DialogOptions
+		{
+			Width = width,
+			Height = height,
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			ShowClose = false,
+			ShowTitle = false
+		};
+
+		await dialogService.OpenAsync<DnzDynamicDocumentView>(null, parameters, options);
+	}
+
+	/// <summary>
+	/// Abre un resultado ya ejecutado como modal (reemplaza DynamicDocumentResultDialog).
+	/// </summary>
+	public static async Task OpenPreloadedAsync(
+		DialogService dialogService,
+		DynamicDocumentsGetResponse result,
+		string title = "Documento",
+		string width = "80%",
+		string height = "90%")
+	{
+		var parameters = new Dictionary<string, object>
+		{
+			{ nameof(PreloadedResult), result }
+		};
+
+		var options = new DialogOptions
+		{
+			Width = width,
+			Height = height,
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			ShowClose = false,
+			ShowTitle = false
+		};
+
+		await dialogService.OpenAsync<DnzDynamicDocumentView>(null, parameters, options);
+	}
+
+	// ── Static helper para abrir como ventana ──
+
+	public static string OpenAsWindow(
+		DnzWindowManagerService windowManager,
+		DinaupClientC client,
+		string docId,
+		Dictionary<string, string> variableValues = null,
+		List<DinaupDynamicDocumentDTO> compatibleDocuments = null,
+		string title = "Documento",
+		string icon = "description")
+	{
+		RenderFragment content = builder =>
+		{
+			builder.OpenComponent<DnzDynamicDocumentView>(0);
+			builder.AddAttribute(1, nameof(Client), client);
+			builder.AddAttribute(2, nameof(DocId), docId);
+			if (variableValues != null)
+				builder.AddAttribute(3, nameof(VariableValues), variableValues);
+			if (compatibleDocuments != null)
+				builder.AddAttribute(4, nameof(CompatibleDocuments), compatibleDocuments);
+			builder.CloseComponent();
+		};
+
+		var options = new WindowOptions
+		{
+			Title = title,
+			Icon = icon,
+			InitialWidth = 1020,
+			InitialHeight = 650
+		};
+
+		return windowManager.Open(options, content);
+	}
+}

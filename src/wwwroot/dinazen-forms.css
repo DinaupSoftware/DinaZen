@@ -55,9 +55,9 @@
     --dnz-input-bg:            #fff;
     --dnz-input-border:        #dfe5ec;
     --dnz-input-border-hover:  #c4ccda;
-    --dnz-input-color:         var(--rz-base-900, #1b1d20);
-    --dnz-input-placeholder:   var(--rz-base-400, #bdbdbd);
-    --dnz-label-color:         var(--rz-base-600, #6b7280);
+    --dnz-input-color:         var(--rz-text-color, #1b1d20);
+    --dnz-input-placeholder:   var(--rz-text-disabled-color, #bdbdbd);
+    --dnz-label-color:         var(--rz-text-secondary-color, #6b7280);
     --dnz-surface:             #fff;
     --dnz-surface-raised:      #f8fafb;
 
@@ -548,7 +548,7 @@ div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .ico
 /* Dropdown & multiselect */
 .rz-multiselect,
 .rz-dropdown {
-    padding: 4px 8px !important;
+    /*padding: 4px 8px !important;*/
 }
 
 /* Numeric */
@@ -973,24 +973,45 @@ textarea.rz-textarea {
    with design-token colors for consistency.
    ================================================================ */
 
+/* Base (flat) styles */
 .dialog-estandar-layout-header {
     padding: 14px 24px;
-    border-bottom: 1px solid var(--dnz-header-border);
-    background: var(--dnz-header-bg);
+    border-bottom: 1px solid var(--rz-border-color, var(--dnz-header-border));
+    background: var(--rz-dialog-titlebar-background-color, var(--dnz-header-bg));
 }
 
 .dialog-estandar-layout-content {
-    background: var(--dnz-surface);
+    background: var(--rz-body-background-color, var(--dnz-surface));
 }
 
 .dialog-estandar-layout-footer {
-    border-top: 1px solid var(--dnz-header-border);
-    background: var(--dnz-header-bg);
+    padding: 12px 24px;
+    border-top: 1px solid var(--rz-border-color, var(--dnz-header-border));
+    background: var(--rz-dialog-titlebar-background-color, var(--dnz-header-bg));
+}
+
+/* Styled (non-flat) variant: visible header/footer + gray content */
+.dialog-estandar-layout--styled > .dialog-estandar-layout-header {
+    background: var(--rz-dialog-titlebar-background-color, var(--dnz-surface-raised));
+    border-bottom: 1px solid var(--rz-border-color, var(--dnz-header-border));
+}
+
+.dialog-estandar-layout--styled > .dialog-estandar-layout-content {
+    background: var(--rz-base-background-color, var(--dnz-tab-content-bg));
+    padding: 10px;
+}
+
+.dialog-estandar-layout--styled > .dialog-estandar-layout-footer {
+    background: var(--rz-dialog-titlebar-background-color, var(--dnz-surface-raised));
+    border-top: 1px solid var(--rz-border-color, var(--dnz-header-border));
 }
 
 /* Dialog styling */
 .rz-dialog-wrapper .rz-dialog {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: var(--rz-dialog-shadow, 0 12px 40px rgba(0, 0, 0, 0.14), 0 4px 12px rgba(0, 0, 0, 0.08)) !important;
+    border: 1px solid var(--rz-border-color, rgba(0, 0, 0, 0.06));
+    border-radius: var(--rz-dialog-border-radius, 12px);
+    overflow: hidden;
 }
 
 /* ================================================================

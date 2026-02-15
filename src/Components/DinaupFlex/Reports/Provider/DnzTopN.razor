@@ -1,0 +1,85 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Provider
+
+@if (Context?.Mapping?.CanChart == true && Context.Rows.IsNotEmpty())
+{
+	<div class="dnz-topn">
+		@if (ShowTitle)
+		{
+			<div class="dnz-topn-header">
+				<RadzenIcon Icon="leaderboard" />
+				<span>Top @N — @_valueCol?.Label</span>
+			</div>
+		}
+
+		@{
+			var maxVal = _items.Count > 0 ? _items.Max(i => Math.Abs(i.Value)) : 0m;
+		}
+
+		@foreach (var item in _items)
+		{
+			var pct = maxVal > 0 ? (int)(Math.Abs(item.Value) * 100 / maxVal) : 0;
+			<div class="dnz-topn-row">
+				<div class="dnz-topn-label">@item.Label</div>
+				<div class="dnz-topn-bar-container">
+					<div class="dnz-topn-bar" style="width:@(pct)%"></div>
+				</div>
+				<div class="dnz-topn-value">
+					@if (_valueCol?.Role == RoleFieldE.Moneda)
+					{
+						<DnzSpanMoney Amount="@item.Value" AutoColorRed=true />
+					}
+					else if (_valueCol?.Role == RoleFieldE.Minutos)
+					{
+						<DnzSpanMinutes Value="@item.Value" />
+					}
+					else
+					{
+						<DnzSpanDecimal Value="@item.Value" />
+					}
+				</div>
+			</div>
+		}
+	</div>
+}
+
+@code {
+
+	[CascadingParameter] public ReportContext Context { get; set; }
+	[Parameter] public int N { get; set; } = 10;
+	[Parameter] public bool ShowTitle { get; set; } = true;
+	[Parameter] public string ValueColumn { get; set; }
+	[Parameter] public bool Ascending { get; set; } = false;
+
+	private List<TopItem> _items = new();
+	private DinaupFieldDTO _valueCol;
+
+	protected override void OnParametersSet()
+	{
+		if (Context?.Rows == null || Context.Mapping == null) return;
+
+		_valueCol = ValueColumn.IsNotEmpty()
+			? Context.Mapping.AllVisible.FirstOrDefault(c => c.Keyword == ValueColumn)
+			: Context.Mapping.PrimaryNumeric;
+
+		if (_valueCol == null) return;
+
+		var ordered = Ascending
+			? Context.Rows.OrderBy(r => r.GetDec(_valueCol.Keyword))
+			: Context.Rows.OrderByDescending(r => r.GetDec(_valueCol.Keyword));
+
+		_items = ordered
+			.Take(N)
+			.Select(r => new TopItem
+			{
+				Label = r.Title ?? r.ID,
+				Value = r.GetDec(_valueCol.Keyword)
+			})
+			.ToList();
+	}
+
+	private class TopItem
+	{
+		public string Label { get; set; }
+		public decimal Value { get; set; }
+	}
+}

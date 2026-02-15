@@ -1,0 +1,33 @@
+@* DnzCardBody - Creates a full-width body section inside a RadzenCard
+   using negative margin to escape the parent's padding. *@
+
+<div class="@($"dnz-card-body {Class}")" 	Style="@Style">
+	@ChildContent
+</div>
+
+@code {
+	/// <summary>
+	/// Content of the body section.
+	/// </summary>
+	[Parameter] public RenderFragment ChildContent { get; set; }
+
+	/// <summary>
+	/// Additional CSS classes.
+	/// </summary>
+	[Parameter] public string Class { get; set; } = string.Empty;
+
+	/// <summary>
+	/// Additional inline styles (appended after the negative margin).
+	/// </summary>
+	[Parameter] public string Style { get; set; } = string.Empty;
+}
+
+<style>
+	.dnz-card-body {
+		margin: 1rem calc(-1 * var(--rz-card-padding));
+		padding:  var(--rz-card-padding);
+		border-radius: 0 !important;
+		box-shadow: none !important;
+		background: var(--rz-base-background-color)
+	}
+</style>

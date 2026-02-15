@@ -1,0 +1,142 @@
+@namespace DinaZen.Components.DinaupFlex.Reports.Provider
+@inject DnzWindowManagerService WindowManager
+@inject DnzInterceptorService Interceptor
+
+@if (Context?.Rows != null)
+{
+	if (Context.Rows.Count == 0)
+	{
+		<div class="dnz-report-empty">
+			<RadzenIcon Icon="search_off" />
+			<span>Sin resultados</span>
+		</div>
+	}
+	else
+	{
+		<div class="dnz-card-list">
+			@foreach (var row in Context.Rows)
+			{
+				<div class="dnz-card-list-item" @onclick="() => HandleClick(row)">
+
+					@if (row.PreviewIMG.IsNotEmpty())
+					{
+						<img class="dnz-card-list-img @(row.PreviewIMGRound ? "round" : "")"
+							 src="@($"https://dinaupcdn.com/public/{row.PreviewIMG}.png")"
+							 onerror="this.style.display='none'" />
+					}
+
+					<div class="dnz-card-list-body">
+						<div class="dnz-card-list-title">@row.Title</div>
+
+						<div class="dnz-card-list-fields">
+							@foreach (var col in _displayCols)
+							{
+								var value = RenderField(row, col);
+								if (value.IsNotEmpty())
+								{
+									<div class="dnz-card-list-field">
+										<span class="dnz-card-list-field-label">@col.Label</span>
+										@switch (col.Format)
+										{
+											case FieldFormatE.DEC when col.Role == RoleFieldE.Moneda:
+												<DnzSpanMoney Amount="@row.GetDec(col.Keyword)" AutoColorRed=true />
+												break;
+											case FieldFormatE.BOOL:
+												if (row.GetBool(col.Keyword))
+												{
+													<RadzenBadge Text="Si" BadgeStyle="BadgeStyle.Success" Shade="Shade.Light" />
+												}
+												else
+												{
+													<RadzenBadge Text="No" BadgeStyle="BadgeStyle.Danger" Shade="Shade.Light" />
+												}
+												break;
+											default:
+												if (col.BadgetsStyle.IsNotEmpty() || col.Predefined_Values.IsNotEmpty())
+												{
+													<DnzBadgetAutoColor Value=@value BadgetStyle=col.BadgetsStyle />
+												}
+												else
+												{
+													<span>@value</span>
+												}
+												break;
+										}
+									</div>
+								}
+							}
+						</div>
+					</div>
+
+					@if (_moneyCol.IsNotNull())
+					{
+						<div class="dnz-card-list-amount">
+							<DnzSpanMoney Amount="@row.GetDec(_moneyCol.Keyword)" AutoColorRed=true />
+						</div>
+					}
+
+				</div>
+			}
+		</div>
+	}
+}
+
+@code {
+
+	[CascadingParameter] public ReportContext Context { get; set; }
+	[Parameter] public int MaxFields { get; set; } = 4;
+	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
+
+	private List<DinaupFieldDTO> _displayCols = new();
+	private DinaupFieldDTO _moneyCol;
+
+	protected override void OnParametersSet()
+	{
+		if (Context?.Mapping == null) return;
+
+		_moneyCol = Context.Mapping.MoneyColumn;
+		_displayCols = Context.Mapping.AllVisible
+			.Where(c => !c.IsPrimaryField && c != _moneyCol)
+			.Take(MaxFields)
+			.ToList();
+	}
+
+	private string RenderField(DinaupDynamicRowDTO row, DinaupFieldDTO col)
+	{
+		return col.Format switch
+		{
+			FieldFormatE.DEC => row.GetDec(col.Keyword).ToString(),
+			FieldFormatE.INT => row.GetInt(col.Keyword).ToString(),
+			FieldFormatE.BOOL => row.GetBool(col.Keyword) ? "Si" : "No",
+			FieldFormatE.DateAndTime => row.GetDateTime(col.Keyword) is DateTime dt && dt != default
+				? RegionService.ToLocalFriendlyDateTime(dt) : "",
+			FieldFormatE.DATE => row.GetDateTime(col.Keyword) is DateTime d && d != default
+				? RegionService.ToLocalFriendlyDate(d) : "",
+			_ => row.GetLegible(col.Keyword) ?? ""
+		};
+	}
+
+	private async Task HandleClick(DinaupDynamicRowDTO row)
+	{
+		if (OnItemSelect.HasDelegate)
+		{
+			await OnItemSelect.InvokeAsync(row);
+			return;
+		}
+
+		if (string.IsNullOrEmpty(row.SectionId)) return;
+
+		if (await Interceptor.TryOpenRecordAsync(new OpenRecordRequest
+		{
+			SectionId = row.SectionId,
+			RowId = row.ID,
+			Title = row.Title ?? "",
+			Client = null
+		})) return;
+
+		if (WindowManager != null)
+			DnzFormView.OpenAsWindow(WindowManager, null, row.SectionId, row.ID, title: row.Title ?? "Formulario");
+		else
+			await DnzFormView.OpenAsync(DialogService, null, row.SectionId, row.ID);
+	}
+}

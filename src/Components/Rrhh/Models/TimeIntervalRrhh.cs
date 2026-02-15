@@ -2,7 +2,7 @@ namespace DinaZen.Components.Rrhh.Models;
 
 /// <summary>
 /// Represents a time interval with start/end times and a category.
-/// Used by TimeIntervalEditorRrhh.
+/// Used by DnzTimeIntervalEditorRrhh.
 /// </summary>
 public class TimeIntervalRrhh
 {
