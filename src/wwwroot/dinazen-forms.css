@@ -997,7 +997,7 @@ textarea.rz-textarea {
 }
 
 .dialog-estandar-layout--styled > .dialog-estandar-layout-content {
-    background: var(--rz-base-background-color, var(--dnz-tab-content-bg));
+    background: var(--dnz-tab-content-bg);
     padding: 10px;
 }
 

@@ -28,6 +28,21 @@
 		</div>
 	</RadzenCard>
 }
+else if (IsCompact)
+{
+	<RadzenCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style">
+		<div class="dz-kpi-compact">
+			@if (string.IsNullOrEmpty(Icon) == false)
+			{
+				<RadzenIcon Icon="@Icon" Style="@($"font-size:1.2rem; color:{Color};")" />
+			}
+			<div class="dz-kpi-compact-text">
+				<span class="dz-kpi-compact-value" style="@($"color:{Color};")">@Value</span>
+				<span class="dz-kpi-compact-title">@Title</span>
+			</div>
+		</div>
+	</RadzenCard>
+}
 else
 {
 	<RadzenCard Variant="@Variant" class="@Class" Style="@Style">
@@ -69,6 +84,7 @@ else
 	[Parameter] public string Color { get; set; } = "black";
 	[Parameter] public string Value { get; set; } = "";
 	[Parameter] public string Description { get; set; } = "";
+	[Parameter] public bool IsCompact { get; set; } = false;
 	[Parameter] public EventCallback OnClick { get; set; }
 	[Parameter] public string ButtonText { get; set; } = "";
 	[Parameter] public string ButtonIcon { get; set; } = "";

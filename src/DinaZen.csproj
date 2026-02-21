@@ -32,9 +32,9 @@
 		</Using>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="DemoUp.MyDinaup" Version="10.12.0.*" />
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.0.*" />
 		<PackageReference Include="Dinaup" Version="10.14.0.*" />
-		<PackageReference Include="Meziantou.Analyzer" Version="2.0.302">
+		<PackageReference Include="Meziantou.Analyzer" Version="3.0.10">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

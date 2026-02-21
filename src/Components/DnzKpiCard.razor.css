@@ -7,3 +7,32 @@
 	padding: 8px 20px;
 	text-align: center;
 }
+
+.dz-kpi-compact-card {
+	width: fit-content;
+}
+
+.dz-kpi-compact {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	white-space: nowrap;
+}
+
+.dz-kpi-compact-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.dz-kpi-compact-value {
+	font-size: 1.1rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.dz-kpi-compact-title {
+	font-size: 0.78rem;
+	color: var(--rz-text-tertiary-color, #6b7280);
+	line-height: 1.2;
+}
