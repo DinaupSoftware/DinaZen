@@ -1,6 +1,6 @@
 @if (HighlightColor != HighlightColorType.Undefined)
 {
-	<RadzenCard Variant="Variant.Filled" Style="@GetGradient()" class="@Class">
+	<RadzenCard Variant="Variant.Filled" Style="@GetGradient()" class="@Class" title="@Tooltip">
 		<div class="d-flex flex-column gap-2 text-white">
 			<div class="d-flex justify-content-between align-items-center gap-2">
 				<div>
@@ -30,7 +30,7 @@
 }
 else if (IsCompact)
 {
-	<RadzenCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style">
+	<RadzenCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style" title="@Tooltip">
 		<div class="dz-kpi-compact">
 			@if (string.IsNullOrEmpty(Icon) == false)
 			{
@@ -45,7 +45,7 @@ else if (IsCompact)
 }
 else
 {
-	<RadzenCard Variant="@Variant" class="@Class" Style="@Style">
+	<RadzenCard Variant="@Variant" class="@Class" Style="@Style" title="@Tooltip">
 		<div class="dz-kpi-content">
 			@if (string.IsNullOrEmpty(Icon) == false)
 			{
@@ -89,6 +89,7 @@ else
 	[Parameter] public string ButtonText { get; set; } = "";
 	[Parameter] public string ButtonIcon { get; set; } = "";
 	[Parameter] public HighlightColorType HighlightColor { get; set; } = HighlightColorType.Undefined;
+	[Parameter] public string Tooltip { get; set; } = "";
 	[Parameter] public Radzen.Variant Variant { get; set; } = Radzen.Variant.Filled;
 
 	public enum HighlightColorType

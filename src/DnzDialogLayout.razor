@@ -23,7 +23,7 @@
 </style>
 
 <div @ref=rootElement class="dialog-estandar-layout h-100 grid-layout @(Flat ? "" : "dialog-estandar-layout--styled")">
-	<div class="dialog-estandar-layout-header">
+	<div class="dialog-estandar-layout-header" style=@HeaderStyle>
 		@if (TitleContent != null)
 		{
 			@TitleContent
@@ -90,6 +90,7 @@
 	[Parameter] public RenderFragment FooterContent { get; set; }
 
 	[Parameter] public string ContentStyle { get; set; }
+	[Parameter] public string HeaderStyle { get; set; }
 
 	/// <summary>
 	/// Si true, el dialog es completamente blanco/plano (sin degradados ni fondo gris).

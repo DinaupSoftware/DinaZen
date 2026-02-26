@@ -1,4 +1,4 @@
-﻿using DinaZen.Components.Gantt.Models;
+using DinaZen.Components.Gantt.Models;
 using System.Globalization;
 
 namespace DinaZen.Components.Gantt
@@ -20,7 +20,7 @@ namespace DinaZen.Components.Gantt
             var (viewportFrom, viewportTo) = viewport.GetRange();
 
 
-            var retornar = new List<GanttItem> ();
+            var retornar = new List<GanttItem>();
 
 
             var totalTicks = (viewportTo - viewportFrom).Ticks;
@@ -41,7 +41,7 @@ namespace DinaZen.Components.Gantt
                 s.LeftPercent = leftTicks * 100d / totalTicks;
                 s.WidthPercent = widthTicks * 100d / totalTicks;
                 retornar.Add(s);
- 
+
             }
 
             return retornar;
@@ -158,7 +158,7 @@ namespace DinaZen.Components.Gantt
                             AddColumn(
                                 cursor,
                                 cursor.AddYears(1),
-                                cursor.Year.ToString());
+                                cursor.Year.STR());
 
                             cursor = cursor.AddYears(1);
                         }
