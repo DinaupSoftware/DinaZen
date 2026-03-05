@@ -4,7 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>10.14.0.10</Version>
+		<Version>10.14.0.11</Version>
 		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
@@ -32,17 +32,21 @@
 		</Using>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.0.*" />
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.0.6" />
 		<PackageReference Include="Dinaup" Version="10.14.0.*" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
 		<PackageReference Include="Radzen.Blazor" Version="9.0.*" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="Components\DnzStatsDisplay.razor" />
 	  <None Include="Components\DnzStepperStep.razor" />
 	  <None Include="Components\DnzStepper.razor" />
 	  <None Include="Components\DnzTimeComparisonDisplay.razor" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.19" />
 	</ItemGroup>
 
 

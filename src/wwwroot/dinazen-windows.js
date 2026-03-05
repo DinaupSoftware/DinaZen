@@ -6,6 +6,8 @@
 const _windows = new Map();
 let _escapeRef = null;
 let _escapeHandler = null;
+let _resizeHandler = null;
+let _resizeTimer = null;
 
 export function getViewport() {
 	return { width: window.innerWidth, height: window.innerHeight };
@@ -26,6 +28,15 @@ export function initEscapeClose(dotNetRef) {
 		}
 	};
 	document.addEventListener('keydown', _escapeHandler);
+
+	// Viewport resize listener — mantiene las dimensiones actualizadas
+	_resizeHandler = () => {
+		clearTimeout(_resizeTimer);
+		_resizeTimer = setTimeout(() => {
+			_escapeRef?.invokeMethodAsync('JsViewportChanged', window.innerWidth, window.innerHeight);
+		}, 200);
+	};
+	window.addEventListener('resize', _resizeHandler);
 }
 
 export function disposeEscapeClose() {
@@ -33,6 +44,11 @@ export function disposeEscapeClose() {
 		document.removeEventListener('keydown', _escapeHandler);
 		_escapeHandler = null;
 	}
+	if (_resizeHandler) {
+		window.removeEventListener('resize', _resizeHandler);
+		_resizeHandler = null;
+	}
+	clearTimeout(_resizeTimer);
 	_escapeRef = null;
 }
 
@@ -66,8 +82,8 @@ export function destroyWindow(elementId) {
 
 export function setPosition(elementId, x, y, w, h) {
 	const state = _windows.get(elementId);
-	if (!state) return;
-	const el = state.el;
+	const el = state ? state.el : document.getElementById(elementId);
+	if (!el) return;
 	el.style.left = x + 'px';
 	el.style.top = y + 'px';
 	el.style.width = w + 'px';

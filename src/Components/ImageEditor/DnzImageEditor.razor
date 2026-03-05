@@ -1,0 +1,300 @@
+@implements IAsyncDisposable
+
+<div class="dnz-imged" style="@Style" @attributes="AdditionalAttributes">
+	<div class="dnz-imged-toolbar">
+		<div class="d-flex align-items-center gap-1 flex-wrap">
+			@if (_hasImage == false)
+			{
+				<RadzenButton Icon="upload" Text="Abrir" Size="ButtonSize.Small" Variant="Variant.Text" Click=@TriggerFileUpload />
+			}
+			else
+			{
+				<RadzenButton Icon="undo" Size="ButtonSize.Small" Variant="Variant.Text" Click=@Undo Disabled=@(_canUndo == false) title="Deshacer" />
+				<RadzenButton Icon="redo" Size="ButtonSize.Small" Variant="Variant.Text" Click=@Redo Disabled=@(_canRedo == false) title="Rehacer" />
+				<div class="dnz-imged-sep"></div>
+				<RadzenButton Icon="auto_fix_high" Text="Mejorar" Size="ButtonSize.Small" Variant="Variant.Text" Click=@ToggleEnhance ButtonStyle=@(_enhanceOn ? ButtonStyle.Info : ButtonStyle.Secondary) />
+				<div class="dnz-imged-sep"></div>
+				<RadzenButton Icon="tune" Size="ButtonSize.Small" Variant="Variant.Text" Click=@ToggleAdjustPanel ButtonStyle=@(_showAdjust ? ButtonStyle.Info : ButtonStyle.Secondary) title="Ajustes" />
+				<RadzenButton Icon="crop" Size="ButtonSize.Small" Variant="Variant.Text" Click=@ToggleCrop ButtonStyle=@(_cropMode ? ButtonStyle.Info : ButtonStyle.Secondary) title="Recortar" />
+				<RadzenButton Icon="rotate_left" Size="ButtonSize.Small" Variant="Variant.Text" Click=@(() => Rotate(-90)) title="Rotar izquierda" />
+				<RadzenButton Icon="rotate_right" Size="ButtonSize.Small" Variant="Variant.Text" Click=@(() => Rotate(90)) title="Rotar derecha" />
+				<RadzenButton Icon="flip" Size="ButtonSize.Small" Variant="Variant.Text" Click=@(() => Flip("h")) title="Voltear horizontal" />
+				<RadzenButton Icon="flip" Size="ButtonSize.Small" Variant="Variant.Text" Click=@(() => Flip("v")) Style="transform:rotate(90deg)" title="Voltear vertical" />
+
+				@if (ExternalTools.IsNotNull() && ExternalTools.Any())
+				{
+					<div class="dnz-imged-sep"></div>
+					@foreach (var tool in ExternalTools.OrderBy(t => t.Order))
+					{
+						var t = tool;
+						<RadzenButton Icon=@t.Icon Text=@t.Name Size="ButtonSize.Small" Variant="Variant.Text" Click=@(() => RunExternalTool(t)) Disabled=@_toolBusy title=@t.Description ButtonStyle=@(_activeToolId == t.Id ? ButtonStyle.Info : ButtonStyle.Secondary) />
+					}
+				}
+
+				<div class="flex-grow-1"></div>
+				<RadzenButton Icon="restart_alt" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Click=@ResetAll title="Restaurar original" />
+			}
+		</div>
+	</div>
+
+	<div class="dnz-imged-body">
+		<div class="dnz-imged-canvas-area" id=@_canvasAreaId>
+			@if (_hasImage == false)
+			{
+				<div class="dnz-imged-dropzone" @onclick=@TriggerFileUpload>
+					<RadzenIcon Icon="add_photo_alternate" Style="font-size:48px;color:var(--rz-primary)" />
+					<RadzenText TextStyle="TextStyle.Subtitle1" class="m-0">Arrastra una imagen</RadzenText>
+					<RadzenText TextStyle="TextStyle.Caption" class="text-muted m-0">o haz clic</RadzenText>
+				</div>
+			}
+			<div class="dnz-imged-canvas-wrap" style=@(_hasImage ? "" : "display:none")>
+				<canvas id=@_canvasId></canvas>
+				@if (_toolBusy)
+				{
+					<div class="dnz-imged-scan-overlay"><div class="dnz-imged-scan-line"></div></div>
+				}
+				<div class="dnz-imged-crop-ov" id=@_cropOvId>
+					<div class="dnz-imged-crop-sel" id=@_cropSelId>
+						<div class="dnz-imged-crop-h tl" data-h="tl"></div>
+						<div class="dnz-imged-crop-h tr" data-h="tr"></div>
+						<div class="dnz-imged-crop-h bl" data-h="bl"></div>
+						<div class="dnz-imged-crop-h br" data-h="br"></div>
+						<div class="dnz-imged-crop-dim" id=@_cropDimId></div>
+					</div>
+				</div>
+			</div>
+
+			@if (_cropMode)
+			{
+				<div class="dnz-imged-crop-bar">
+					<RadzenButton Text="Cancelar" Icon="close" Size="ButtonSize.Small" Variant="Variant.Text" Click=@CancelCrop />
+					<RadzenButton Text="Aplicar" Icon="check" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click=@ApplyCrop />
+				</div>
+			}
+		</div>
+
+		<div class="dnz-imged-side-panel" id=@_sidePanelId style=@((_showAdjust || _activeToolPanel != null) && _hasImage ? "" : "display:none")>
+			@if (_activeToolPanel != null)
+			{
+				<div class="p-2">
+					<div class="d-flex align-items-center justify-content-between mb-2">
+						<span style="font-size:12px; font-weight:600;">@_activeToolName</span>
+						<RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@CloseToolPanel />
+					</div>
+					@_activeToolPanel
+				</div>
+			}
+		</div>
+	</div>
+
+	<div class="dnz-imged-footer">
+		<span>@_imageDims</span>
+		@if (_toolBusy)
+		{
+			<span style="margin-left:8px; color:var(--rz-primary);">Procesando...</span>
+		}
+	</div>
+</div>
+
+@code {
+	[Parameter] public string ImageUrl { get; set; }
+	[Parameter] public byte[] ImageBytes { get; set; }
+	[Parameter] public IEnumerable<IDnzImageTool> ExternalTools { get; set; }
+	[Parameter] public EventCallback<byte[]> OnSave { get; set; }
+	[Parameter] public EventCallback OnCancel { get; set; }
+	[Parameter] public string Style { get; set; }
+	[Parameter] public string PresignEndpoint { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+	private string _instanceId = Guid.NewGuid().ToString("N");
+	private string _canvasId => $"dnzimged_{_instanceId}";
+	private string _canvasAreaId => $"dnzimgedArea_{_instanceId}";
+	private string _cropOvId => $"dnzimgedCrop_{_instanceId}";
+	private string _cropSelId => $"dnzimgedCropSel_{_instanceId}";
+	private string _cropDimId => $"dnzimgedCropDim_{_instanceId}";
+	private string _sidePanelId => $"dnzimgedPanel_{_instanceId}";
+
+	private bool _hasImage;
+	private bool _canUndo, _canRedo;
+	private bool _enhanceOn;
+	private bool _showAdjust;
+	private bool _cropMode;
+	private bool _toolBusy;
+	private string _imageDims = "\u2014";
+	private string _activeToolId;
+	private string _activeToolName;
+	private RenderFragment _activeToolPanel;
+
+	private DotNetObjectReference<DnzImageEditor> _dotNetRef;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			_dotNetRef = DotNetObjectReference.Create(this);
+			await JS.InvokeVoidAsync("DnzImageEditor.init", _instanceId, _canvasId, _cropOvId, _cropSelId, _cropDimId, _canvasAreaId, _sidePanelId, _dotNetRef);
+
+			if (ImageBytes.IsNotNull() && ImageBytes.Length > 0)
+			{
+				var base64 = $"data:image/png;base64,{Convert.ToBase64String(ImageBytes)}";
+				await JS.InvokeVoidAsync("DnzImageEditor.loadFromDataUri", _instanceId, base64);
+			}
+			else if (ImageUrl.IsNotEmpty())
+			{
+				await JS.InvokeVoidAsync("DnzImageEditor.loadFromUrl", _instanceId, ImageUrl);
+			}
+		}
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		try { await JS.InvokeVoidAsync("DnzImageEditor.dispose", _instanceId); } catch { }
+		_dotNetRef?.Dispose();
+	}
+
+	[JSInvokable]
+	public void OnHistoryChanged(bool canUndo, bool canRedo) { _canUndo = canUndo; _canRedo = canRedo; InvokeAsync(StateHasChanged); }
+
+	[JSInvokable]
+	public void OnImageInfoChanged(int width, int height) { _imageDims = $"{width} \u00d7 {height}px"; _hasImage = true; InvokeAsync(StateHasChanged); }
+
+	[JSInvokable]
+	public void OnCropModeChanged(bool active) { _cropMode = active; InvokeAsync(StateHasChanged); }
+
+	[JSInvokable]
+	public void OnEnhanceChanged(bool active) { _enhanceOn = active; InvokeAsync(StateHasChanged); }
+
+	async Task Undo() => await JS.InvokeVoidAsync("DnzImageEditor.undo", _instanceId);
+	async Task Redo() => await JS.InvokeVoidAsync("DnzImageEditor.redo", _instanceId);
+
+	async Task ToggleEnhance() { _enhanceOn = !_enhanceOn; await JS.InvokeVoidAsync("DnzImageEditor.toggleEnhance", _instanceId); }
+
+	async Task ToggleAdjustPanel()
+	{
+		_showAdjust = !_showAdjust;
+		if (_showAdjust) CloseToolPanel();
+		await JS.InvokeVoidAsync("DnzImageEditor.showAdjustPanel", _instanceId, _showAdjust);
+	}
+
+	async Task ToggleCrop()
+	{
+		_cropMode = !_cropMode;
+		if (_cropMode) await JS.InvokeVoidAsync("DnzImageEditor.startCrop", _instanceId);
+		else await JS.InvokeVoidAsync("DnzImageEditor.cancelCrop", _instanceId);
+	}
+
+	async Task ApplyCrop() => await JS.InvokeVoidAsync("DnzImageEditor.applyCrop", _instanceId);
+	async Task CancelCrop() { await JS.InvokeVoidAsync("DnzImageEditor.cancelCrop", _instanceId); _cropMode = false; }
+
+	async Task Rotate(int deg) => await JS.InvokeVoidAsync("DnzImageEditor.rotate", _instanceId, deg);
+	async Task Flip(string dir) => await JS.InvokeVoidAsync("DnzImageEditor.flip", _instanceId, dir);
+
+	async Task ResetAll()
+	{
+		await JS.InvokeVoidAsync("DnzImageEditor.resetAll", _instanceId);
+		_enhanceOn = false;
+		_showAdjust = false;
+		CloseToolPanel();
+	}
+
+	async Task TriggerFileUpload() => await JS.InvokeVoidAsync("DnzImageEditor.triggerFileInput", _instanceId);
+
+	/// <summary>
+	/// Extracts the current canvas as byte[]. Call from dialog/parent to get result.
+	/// </summary>
+	public async Task<byte[]> GetResultBytesAsync()
+	{
+		var base64 = await JS.InvokeAsync<string>("DnzImageEditor.getImageAsBase64", _instanceId);
+		if (base64.IsEmpty()) return null;
+		var idx = base64.IndexOf(",");
+		if (idx >= 0) base64 = base64[(idx + 1)..];
+		return Convert.FromBase64String(base64);
+	}
+
+	/// <summary>
+	/// Uploads the current canvas directly to S3 via presign endpoint, bypassing SignalR for image data.
+	/// Returns the S3 GET URL and server fileName, or null if failed.
+	/// </summary>
+	public async Task<PresignUploadResult> UploadResultToS3Async(string signEndpoint)
+	{
+		var result = await JS.InvokeAsync<System.Text.Json.JsonElement>("DnzImageEditor.uploadToS3", _instanceId, signEndpoint);
+		if (result.ValueKind == System.Text.Json.JsonValueKind.Null) return null;
+		return new PresignUploadResult { Url = result.GetProperty("getUrl").GetString(), FileName = result.GetProperty("fileName").GetString() };
+	}
+
+	private async Task RunExternalTool(IDnzImageTool tool)
+	{
+		if (_toolBusy) return;
+
+		if (tool.HasCustomUI)
+		{
+			_showAdjust = false;
+			await JS.InvokeVoidAsync("DnzImageEditor.showAdjustPanel", _instanceId, false);
+			_activeToolId = tool.Id;
+			_activeToolName = tool.Name;
+			var ctx = new ImageToolContext(this);
+			_activeToolPanel = tool.GetToolPanel(ctx);
+			StateHasChanged();
+			return;
+		}
+
+		_toolBusy = true;
+		StateHasChanged();
+		try
+		{
+			// Try S3 round-trip first (no image data over SignalR)
+			if (PresignEndpoint.IsNotEmpty())
+			{
+				var sourceResult = await UploadResultToS3Async(PresignEndpoint);
+				if (sourceResult.IsNotNull())
+				{
+					var resultUrl = await tool.ProcessFromUrlAsync(sourceResult.Url, new ImageToolContext(this));
+					if (resultUrl.IsNotEmpty())
+					{
+						await JS.InvokeVoidAsync("DnzImageEditor.loadFromUrl", _instanceId, resultUrl);
+						return;
+					}
+				}
+			}
+
+			// Fallback: byte-based processing (SignalR — for tools that don't support URL processing)
+			var currentBytes = await GetResultBytesAsync();
+			if (currentBytes.IsNull()) return;
+			var ctx = new ImageToolContext(this);
+			var result = await tool.ProcessAsync(currentBytes, ctx);
+			if (result.IsNotNull() && result.Length > 0)
+			{
+				var b64 = Convert.ToBase64String(result);
+				await JS.InvokeVoidAsync("DnzImageEditor.loadFromBase64", _instanceId, b64);
+			}
+		}
+		finally
+		{
+			_toolBusy = false;
+			StateHasChanged();
+		}
+	}
+
+	private void CloseToolPanel()
+	{
+		_activeToolId = null;
+		_activeToolName = null;
+		_activeToolPanel = null;
+	}
+
+	private class ImageToolContext : IDnzImageToolContext
+	{
+		private readonly DnzImageEditor _editor;
+		public ImageToolContext(DnzImageEditor editor) { _editor = editor; }
+		public byte[] CurrentImageBytes => _editor.GetResultBytesAsync().GetAwaiter().GetResult();
+		public void SetBusy(bool busy) { _editor._toolBusy = busy; _editor.InvokeAsync(_editor.StateHasChanged); }
+		public async Task ApplyResultAsync(byte[] resultBytes)
+		{
+			if (resultBytes.IsNull() || resultBytes.Length == 0) return;
+			var b64 = Convert.ToBase64String(resultBytes);
+			await _editor.JS.InvokeVoidAsync("DnzImageEditor.loadFromBase64", _editor._instanceId, b64);
+			_editor._toolBusy = false;
+			await _editor.InvokeAsync(_editor.StateHasChanged);
+		}
+	}
+}

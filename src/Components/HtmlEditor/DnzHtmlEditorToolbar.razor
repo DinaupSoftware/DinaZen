@@ -1,0 +1,59 @@
+@namespace DinaZen.Components.HtmlEditor
+
+<div class="dnz-het d-flex align-items-center gap-1 flex-wrap @Class" style="@Style">
+	@if (_tools.IsNotNull() && _tools.Any())
+	{
+		<span style="font-size:11px; opacity:0.5; margin-right:2px;">IA:</span>
+		@foreach (var tool in _tools.OrderBy(t => t.Order))
+		{
+			var t = tool;
+			<RadzenButton Icon=@t.Icon Text=@t.Name Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@(() => RunTool(t)) Disabled=@_isBusy title=@t.Description ButtonStyle="ButtonStyle.Light" />
+		}
+		@if (_isBusy)
+		{
+			<RadzenProgressBarCircular ShowValue="false" Style="width:16px; height:16px;" />
+		}
+	}
+</div>
+
+@code {
+	[Parameter] public string Value { get; set; }
+	[Parameter] public EventCallback<string> ValueChanged { get; set; }
+	[Parameter] public string Context { get; set; } = "";
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+	[Inject] IEnumerable<IDnzTextTool> InjectedTools { get; set; }
+
+	private IEnumerable<IDnzTextTool> _tools;
+	private bool _isBusy;
+
+	protected override void OnInitialized()
+	{
+		_tools = InjectedTools ?? Enumerable.Empty<IDnzTextTool>();
+	}
+
+	private async Task RunTool(IDnzTextTool tool)
+	{
+		if (_isBusy || Value.IsEmpty()) return;
+		_isBusy = true;
+		StateHasChanged();
+		try
+		{
+			var result = await tool.ProcessAsync(Value, Context);
+			if (result.IsNotEmpty())
+			{
+				Value = result;
+				await ValueChanged.InvokeAsync(result);
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+		finally
+		{
+			_isBusy = false;
+			StateHasChanged();
+		}
+	}
+}

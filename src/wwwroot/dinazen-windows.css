@@ -1,27 +1,21 @@
 /* ================================================================
    DinaZen Window Manager — dinazen-windows.css
    ================================================================
-   macOS-style floating windows
+   Windows-style floating windows
    Taskbar CSS is scoped in .razor.css files
    ================================================================ */
 
 :root {
 	/* ── Window ── */
-	--dnz-win-titlebar-h: 38px;
-	--dnz-win-radius: 10px;
+	--dnz-win-titlebar-h: 32px;
+	--dnz-win-radius: 6px;
 	--dnz-win-bg: #fff;
-	--dnz-win-border: rgba(0, 0, 0, .08);
-	--dnz-win-shadow: 0 8px 32px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .06);
-	--dnz-win-shadow-focused: 0 20px 60px rgba(0, 0, 0, .20), 0 8px 20px rgba(0, 0, 0, .10);
-	--dnz-win-titlebar-bg: linear-gradient(180deg, #f8f8f8, #ececec);
-	--dnz-win-titlebar-bg-active: linear-gradient(180deg, #ebebeb, #d4d4d4);
-	--dnz-win-titlebar-border: rgba(0, 0, 0, .08);
-
-	/* ── Traffic lights ── */
-	--dnz-win-btn-close: #ff5f57;
-	--dnz-win-btn-minimize: #febc2e;
-	--dnz-win-btn-maximize: #28c840;
-	--dnz-win-btn-inactive: #ddd;
+	--dnz-win-border: rgba(0, 0, 0, .12);
+	--dnz-win-shadow: 0 4px 16px rgba(0, 0, 0, .10), 0 1px 4px rgba(0, 0, 0, .06);
+	--dnz-win-shadow-focused: 0 8px 32px rgba(0, 0, 0, .18), 0 2px 8px rgba(0, 0, 0, .10);
+	--dnz-win-titlebar-bg: #f3f3f3;
+	--dnz-win-titlebar-bg-active: #fff;
+	--dnz-win-titlebar-border: rgba(0, 0, 0, .06);
 
 	/* ── Taskbar height (used by maximized windows) ── */
 	--dnz-taskbar-h: 56px;
@@ -83,8 +77,8 @@
 	min-height: var(--dnz-win-titlebar-h);
 	display: flex;
 	align-items: center;
-	padding: 0 14px;
-	gap: 10px;
+	padding: 0 0 0 12px;
+	gap: 8px;
 	background: var(--dnz-win-titlebar-bg);
 	border-bottom: 1px solid var(--dnz-win-titlebar-border);
 	cursor: grab;
@@ -100,55 +94,49 @@
 	cursor: grabbing;
 }
 
-/* ── Traffic light buttons ── */
+/* ── Window control buttons (Windows-style, right-aligned) ── */
 
-.dnz-win-traffic {
+.dnz-win-controls {
 	display: flex;
-	align-items: center;
-	gap: 8px;
+	align-items: stretch;
 	flex-shrink: 0;
+	height: 100%;
 }
 
-.dnz-win-traffic button {
-	width: 12px;
-	height: 12px;
-	border-radius: 50%;
+.dnz-win-btn {
+	width: 46px;
+	height: 100%;
 	border: none;
 	cursor: pointer;
 	padding: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 0;
-	transition: opacity 150ms;
-	position: relative;
+	background: transparent;
+	color: #666;
+	transition: background 120ms, color 120ms;
 }
 
-.dnz-win-traffic button:hover {
-	opacity: .85;
+.dnz-win-btn svg {
+	width: 10px;
+	height: 10px;
 }
 
-.dnz-win-traffic button svg {
-	width: 8px;
-	height: 8px;
-	opacity: 0;
-	transition: opacity 150ms;
+.dnz-win-btn:hover {
+	background: rgba(0, 0, 0, .06);
+	color: #333;
 }
 
-.dnz-win-traffic:hover button svg {
-	opacity: 1;
+.dnz-win-btn-close:hover {
+	background: #e81123;
+	color: #fff;
 }
 
-.dnz-win-btn-close { background: var(--dnz-win-btn-close); }
-.dnz-win-btn-minimize { background: var(--dnz-win-btn-minimize); }
-.dnz-win-btn-maximize { background: var(--dnz-win-btn-maximize); }
-
-/* Unfocused window: grey buttons */
-.dnz-window:not(.dnz-win-focused) .dnz-win-traffic button {
-	background: var(--dnz-win-btn-inactive);
+.dnz-window:not(.dnz-win-focused) .dnz-win-btn {
+	color: #aaa;
 }
 
-/* ── Title area (centered) ── */
+/* ── Title area (left-aligned, Windows-style) ── */
 
 .dnz-win-title {
 	flex: 1;
@@ -156,7 +144,6 @@
 	align-items: center;
 	gap: 8px;
 	overflow: hidden;
-	justify-content: center;
 }
 
 .dnz-win-title-icon {
@@ -169,7 +156,6 @@
 .dnz-win-title-text {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
 	overflow: hidden;
 	line-height: 1.15;
 }
@@ -186,9 +172,9 @@
 }
 
 .dnz-win-title-main {
-	font-size: 13px;
-	font-weight: 600;
-	color: #222;
+	font-size: 12px;
+	font-weight: 500;
+	color: #1a1a1a;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -203,11 +189,7 @@
 	color: #bbb;
 }
 
-/* ── Spacer for symmetry ── */
-.dnz-win-traffic-spacer {
-	width: 52px;
-	flex-shrink: 0;
-}
+/* ── Title text sizes ── */
 
 
 /* ── Window body ── */

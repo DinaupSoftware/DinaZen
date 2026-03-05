@@ -4,22 +4,16 @@
 @inject IJSRuntime JS
 @inject Radzen.NotificationService NotificationService
 
-@if (WM.Windows.Any())
-{
-	<div class="dnz-window-host">
-		@foreach (var win in WM.Windows)
-		{
-			<DnzWindow @key="win.Id"
-					   State="win"
-					   OnCloseRequest="HandleClose"
-					   OnMinimizeRequest="HandleMinimize"
-					   OnMaximizeRequest="HandleMaximize"
-					   OnFocusRequest="HandleFocus" />
-		}
-
+<div class="dnz-window-host">
+	@foreach (var win in WM.Windows)
+	{
+		<DnzWindow @key="win.Id" State="win" OnCloseRequest="HandleClose" OnMinimizeRequest="HandleMinimize" OnMaximizeRequest="HandleMaximize" OnFocusRequest="HandleFocus" />
+	}
+	@if (WM.Windows.Any())
+	{
 		<DnzTaskbar />
-	</div>
-}
+	}
+</div>
 
 @code {
 	private IJSObjectReference _jsModule;
@@ -52,13 +46,20 @@
 		{
 			try
 			{
-				_jsModule = await JS.InvokeAsync<IJSObjectReference>(
-					"import", "./_content/DinaZen/dinazen-windows.js");
+				_jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/DinaZen/dinazen-windows.js");
 				var vp = await _jsModule.InvokeAsync<ViewportInfo>("getViewport");
 				WM.SetViewport(vp.Width, vp.Height);
 
 				_dotNetRef = DotNetObjectReference.Create(this);
 				await _jsModule.InvokeVoidAsync("initEscapeClose", _dotNetRef);
+
+				// Si habia ventanas abiertas antes del viewport, actualizar su posicion en el DOM
+				var repositioned = WM.FlushRepositioned();
+				if (repositioned != null)
+				{
+					foreach (var win in repositioned)
+						await _jsModule.InvokeVoidAsync("setPosition", $"dnz-win-{win.Id}", win.X, win.Y, win.Width, win.Height);
+				}
 
 				_viewportInitialized = true;
 			}
@@ -70,6 +71,12 @@
 	public void JsEscapePressed()
 	{
 		WM.CloseActive();
+	}
+
+	[JSInvokable]
+	public void JsViewportChanged(double width, double height)
+	{
+		WM.SetViewport(width, height);
 	}
 
 	private void HandleClose(string id) => WM.Close(id);

@@ -9,20 +9,7 @@
 
 	@* ── Titlebar (drag handle) ── *@
 	<div class="dnz-win-titlebar">
-		@* Traffic lights *@
-		<div class="dnz-win-traffic">
-			<button class="dnz-win-btn-close" @onclick="OnClose" @onclick:stopPropagation="true" title="Cerrar">
-				<svg viewBox="0 0 12 12"><path d="M3.5 3.5l5 5M8.5 3.5l-5 5" stroke="#4d0000" stroke-width="1.2" fill="none" /></svg>
-			</button>
-			<button class="dnz-win-btn-minimize" @onclick="OnMinimize" @onclick:stopPropagation="true" title="Minimizar">
-				<svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="#995700" stroke-width="1.2" fill="none" /></svg>
-			</button>
-			<button class="dnz-win-btn-maximize" @onclick="OnMaximize" @onclick:stopPropagation="true" title="Maximizar">
-				<svg viewBox="0 0 12 12"><path d="M3.5 6L6 3.5 8.5 6 6 8.5z" stroke="#006500" stroke-width="1.1" fill="none" /></svg>
-			</button>
-		</div>
-
-		@* Title (centered) — icon + two-line text *@
+		@* Title (left-aligned) — icon + text *@
 		<div class="dnz-win-title">
 			@if (State.IconUrl.IsNotEmpty())
 			{
@@ -45,8 +32,18 @@
 			</div>
 		</div>
 
-		@* Spacer for symmetry *@
-		<div class="dnz-win-traffic-spacer"></div>
+		@* Window controls (right side, Windows-style) *@
+		<div class="dnz-win-controls">
+			<button class="dnz-win-btn dnz-win-btn-minimize" @onclick="OnMinimize" @onclick:stopPropagation="true" title="Minimizar">
+				<svg viewBox="0 0 12 12"><path d="M2 6h8" stroke="currentColor" stroke-width="1" fill="none" /></svg>
+			</button>
+			<button class="dnz-win-btn dnz-win-btn-maximize" @onclick="OnMaximize" @onclick:stopPropagation="true" title="Maximizar">
+				<svg viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1" fill="none" /></svg>
+			</button>
+			<button class="dnz-win-btn dnz-win-btn-close" @onclick="OnClose" @onclick:stopPropagation="true" title="Cerrar">
+				<svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1" fill="none" /></svg>
+			</button>
+		</div>
 	</div>
 
 	@* ── Content ── *@

@@ -9,6 +9,7 @@ namespace DinaZen.Components.WindowManager;
 public class DnzWindowManagerService
 {
 	private readonly List<WindowState> _windows = new();
+	private readonly List<string> _pendingReposition = new();
 	private int _zCounter = 100;
 	private int _openCount = 0;
 
@@ -26,12 +27,73 @@ public class DnzWindowManagerService
 
 	/// <summary>
 	/// Llamar desde JS al iniciar para establecer dimensiones del viewport.
+	/// Si hay ventanas pendientes de reposicionar, las recentra.
 	/// </summary>
 	public void SetViewport(double width, double height)
 	{
+		var wasReady = _viewportReady;
 		_viewportWidth = width;
 		_viewportHeight = height;
 		_viewportReady = true;
+
+		// Si es la primera vez que recibimos viewport y hay ventanas pendientes, reposicionar
+		if (wasReady == false && _pendingReposition.Count > 0)
+		{
+			RepositionPendingWindows();
+		}
+	}
+
+	/// <summary>
+	/// Reposiciona ventanas que se abrieron antes de tener viewport real.
+	/// Retorna las ventanas reposicionadas para que el host actualice el DOM via JS.
+	/// </summary>
+	public List<WindowState> FlushRepositioned()
+	{
+		if (_pendingReposition.Count == 0) return null;
+		var result = new List<WindowState>();
+		foreach (var id in _pendingReposition)
+		{
+			var win = _windows.FirstOrDefault(w => w.Id == id);
+			if (win != null) result.Add(win);
+		}
+		_pendingReposition.Clear();
+		return result.Count > 0 ? result : null;
+	}
+
+	private void RepositionPendingWindows()
+	{
+		foreach (var id in _pendingReposition)
+		{
+			var win = _windows.FirstOrDefault(w => w.Id == id);
+			if (win == null) continue;
+
+			var w = win.Width;
+			var h = win.Height;
+
+			// Recalcular altura optima
+			var usableHeight = _viewportHeight - DnzTaskbarTotalHeight;
+			var targetH = usableHeight * 0.90;
+			h = Math.Max(h, targetH);
+			h = Math.Min(h, usableHeight);
+
+			// Centrar verticalmente
+			var topMargin = (usableHeight - h) / 2.0;
+			var y = Math.Max(16, topMargin);
+			var bottomEdge = y + h;
+			var taskbarTop = _viewportHeight - DnzTaskbarTotalHeight;
+			if (bottomEdge > taskbarTop) y = Math.Max(16, taskbarTop - h);
+
+			// Centrar horizontalmente
+			var centerX = (_viewportWidth - w) / 2.0;
+			var x = Math.Max(20, centerX);
+			if (x + w > _viewportWidth - 20) x = Math.Max(20, _viewportWidth - w - 20);
+
+			win.X = Math.Round(x);
+			win.Y = Math.Round(y);
+			win.Width = Math.Round(w);
+			win.Height = Math.Round(h);
+		}
+		NotifyChanged();
 	}
 
 	// Altura del taskbar (68px) + bottom (10px) + margen de seguridad (12px)
@@ -60,7 +122,7 @@ public class DnzWindowManagerService
 			h = Math.Max(options.InitialHeight, targetH);
 			h = Math.Min(h, usableHeight);
 		}
-		// Si no hay viewport, usar InitialHeight tal cual (seguro en cualquier pantalla)
+		// Si no hay viewport, usar InitialHeight tal cual (se reposicionara cuando llegue el viewport)
 
 		// ── Posicion vertical: centrar en el espacio sobre el taskbar ──
 		double y;
@@ -117,6 +179,10 @@ public class DnzWindowManagerService
 			IsActive = true,
 			Content = content
 		};
+
+		// Marcar para reposicionar si no habia viewport al calcular posicion
+		if (_viewportReady == false)
+			_pendingReposition.Add(state.Id);
 
 		// Desactivar ventana anterior
 		foreach (var win in _windows)

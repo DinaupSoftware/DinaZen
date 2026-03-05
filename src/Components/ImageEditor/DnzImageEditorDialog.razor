@@ -1,0 +1,90 @@
+@using DinaZen.Components.ImageEditor
+
+<DnzDialogLayout>
+	<TitleContent>
+		<div class="d-flex align-items-center justify-content-between w-100">
+			<div class="d-flex align-items-center gap-2">
+				<RadzenIcon Icon="image" Style="color:var(--rz-primary); font-size:20px" />
+				<span style="font-weight:600">Editor de Imagen</span>
+			</div>
+			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small" Click=@Cerrar Style="opacity:0.6" />
+		</div>
+	</TitleContent>
+	<BodyContent>
+		<DnzImageEditor @ref=_editor ImageUrl=@ImageUrl ImageBytes=@ImageBytes ExternalTools=@_tools PresignEndpoint=@PresignEndpoint Style="height:100%;" />
+	</BodyContent>
+	<FooterContent>
+		<div class="d-flex justify-content-end gap-1 align-items-center px-3">
+			<RadzenButton Click=@Aceptar IsBusy=@_isBusy ButtonStyle="ButtonStyle.Success" Text="Aceptar" Icon="check" Variant="Variant.Text" />
+			<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" />
+		</div>
+	</FooterContent>
+</DnzDialogLayout>
+
+@code {
+	[Parameter] public string ImageUrl { get; set; }
+	[Parameter] public byte[] ImageBytes { get; set; }
+	[Parameter] public string PresignEndpoint { get; set; }
+	[Inject] IEnumerable<IDnzImageTool> InjectedTools { get; set; }
+
+	private DnzImageEditor _editor;
+	private IEnumerable<IDnzImageTool> _tools;
+	private bool _isBusy;
+
+	protected override void OnInitialized()
+	{
+		_tools = InjectedTools ?? Enumerable.Empty<IDnzImageTool>();
+	}
+
+	/// <summary>
+	/// Opens the image editor dialog. Returns edited byte[] or null if cancelled.
+	/// </summary>
+	public static async Task<byte[]> OpenAsync(DialogService dialogService, string imageUrl = null, byte[] imageBytes = null)
+	{
+		var dialogValues = new Dictionary<string, object>();
+		if (imageUrl.IsNotEmpty()) dialogValues.Add(nameof(ImageUrl), imageUrl);
+		if (imageBytes.IsNotNull()) dialogValues.Add(nameof(ImageBytes), imageBytes);
+		var options = new DialogOptions() { Width = "90%", Height = "90%", ShowClose = false, ShowTitle = false, CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false };
+		Task<dynamic> r = dialogService.OpenAsync<DnzImageEditorDialog>("", dialogValues, options);
+		await r;
+		return r.Result is byte[] bytes ? bytes : null;
+	}
+
+	/// <summary>
+	/// Opens the image editor and uploads the result directly to S3 via presign.
+	/// No image data travels through SignalR — only URLs.
+	/// Returns PresignUploadResult with the S3 URL, or null if cancelled.
+	/// </summary>
+	public static async Task<PresignUploadResult> OpenAndUploadToS3Async(DialogService dialogService, string presignEndpoint, string imageUrl = null)
+	{
+		var dialogValues = new Dictionary<string, object>();
+		if (imageUrl.IsNotEmpty()) dialogValues.Add(nameof(ImageUrl), imageUrl);
+		dialogValues.Add(nameof(PresignEndpoint), presignEndpoint);
+		var options = new DialogOptions() { Width = "90%", Height = "90%", ShowClose = false, ShowTitle = false, CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false };
+		Task<dynamic> r = dialogService.OpenAsync<DnzImageEditorDialog>("", dialogValues, options);
+		await r;
+		return r.Result is PresignUploadResult presign ? presign : null;
+	}
+
+	private async Task Aceptar()
+	{
+		_isBusy = true;
+		StateHasChanged();
+		try
+		{
+			if (PresignEndpoint.IsNotEmpty())
+			{
+				var result = await _editor.UploadResultToS3Async(PresignEndpoint);
+				if (result.IsNotNull()) DialogService.Close(result);
+			}
+			else
+			{
+				var bytes = await _editor.GetResultBytesAsync();
+				if (bytes.IsNotNull()) DialogService.Close(bytes);
+			}
+		}
+		finally { _isBusy = false; }
+	}
+
+	private void Cerrar() => DialogService.Close(null);
+}

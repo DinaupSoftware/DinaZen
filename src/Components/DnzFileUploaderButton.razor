@@ -4,8 +4,7 @@
 <span id="@_selector" style="display:inline-flex; align-items:center; gap:6px">
 	@if (UseDashboard == false && _isUploading)
 	{
-		<RadzenProgressBarCircular Value="@_uploadProgress"  Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false"
-								   ProgressBarStyle="ProgressBarStyle.Primary" Mode="@(_uploadProgress > 0 ? ProgressBarMode.Determinate : ProgressBarMode.Indeterminate)" />
+		<RadzenProgressBarCircular Value="@_uploadProgress"  Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="@(_uploadProgress > 0 ? ProgressBarMode.Determinate : ProgressBarMode.Indeterminate)" />
 		<span style="font-size:12px; white-space:nowrap">Subiendo @(_uploadProgress)%</span>
 	}
 	else if (UseDashboard == false && _isRegistering)
@@ -15,10 +14,7 @@
 	}
 	else
 	{
-		<RadzenButton Icon="@ButtonIcon" Text="@ButtonText"
-					  ButtonStyle="@ButtonStyle" Size="@ButtonSize"
-					  Variant="@ButtonVariant"
-					  Disabled="@Disabled" />
+		<RadzenButton Icon="@ButtonIcon" Text="@ButtonText" ButtonStyle="@ButtonStyle" Size="@ButtonSize" Variant="@ButtonVariant" Disabled="@Disabled" />
 	}
 </span>
 
@@ -40,6 +36,7 @@
 	[Parameter] public bool UseDashboard { get; set; }
 	[Parameter] public string Note { get; set; }
 	[Parameter] public EventCallback<string> OnError { get; set; }
+	[Parameter] public bool EditBeforeUpload { get; set; } = true;
 
 	private readonly string _selector = "dnz-fbtn-" + Guid.NewGuid().ToString("N")[..8];
 	private DotNetObjectReference<DnzFileUploaderButton> _dotNetRef;
@@ -70,7 +67,8 @@
 			signEndpoint = PresignEndpoint,
 			allowedExtensions = extensions,
 			maxFileSize = MaxSizeBytes,
-			maxFiles = MaxFiles
+			maxFiles = MaxFiles,
+			editImagesBeforeUpload = EditBeforeUpload && MaxFiles == 1
 		});
 
 		_initialized = true;
@@ -161,6 +159,38 @@
 		_uploadProgress = 0;
 		await InvokeAsync(StateHasChanged);
 		await OnError.InvokeAsync($"Error subiendo {fileName}: {error}");
+	}
+
+	[JSInvokable]
+	public async Task JsImageFileSelected(string imageUrl, string fileName, string mimeType)
+	{
+		var editedResult = await DnzImageEditorDialog.OpenAndUploadToS3Async(DialogService, PresignEndpoint, imageUrl: imageUrl);
+		if (editedResult.IsNull()) return;
+
+		_isRegistering = true;
+		await InvokeAsync(StateHasChanged);
+		try
+		{
+			if (OnEachFileUploaded.HasDelegate)
+			{
+				await OnEachFileUploaded.InvokeAsync(editedResult);
+			}
+			else if (Client.IsNotNull())
+			{
+				var response = await Client.File_UploadURLAsync(editedResult.Url, editedResult.FileName);
+				if (response?.FileData != null)
+					await OnFilesUploaded.InvokeAsync(new List<DinaupFileDTO> { response.FileData });
+			}
+		}
+		catch (Exception ex)
+		{
+			await OnError.InvokeAsync($"Error registrando {fileName}: {ex.Message}");
+		}
+		finally
+		{
+			_isRegistering = false;
+			await InvokeAsync(StateHasChanged);
+		}
 	}
 
 	public async ValueTask DisposeAsync()

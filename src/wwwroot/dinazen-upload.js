@@ -160,9 +160,31 @@ window.dnzUppy_initButton = function (selector, dotNetRef, options) {
     });
 
     // When files selected via input, add them to Uppy
+    const editImages = opts.editImagesBeforeUpload && maxFiles === 1;
+
     fileInput.addEventListener('change', () => {
         const files = fileInput.files;
         if (!files || files.length === 0) return;
+
+        // If editImages is on and the file is an image, upload to S3 first then send URL to C# (no base64 over SignalR)
+        if (editImages && files.length === 1 && files[0].type && files[0].type.startsWith('image/')) {
+            const file = files[0];
+            (async () => {
+                try {
+                    const signRes = await fetch(signEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileName: file.name, fileType: file.type, size: file.size }) });
+                    if (!signRes.ok) throw new Error('Presign failed: ' + await signRes.text());
+                    const signData = await signRes.json();
+                    const putRes = await fetch(signData.putUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+                    if (!putRes.ok) throw new Error('S3 upload failed: ' + putRes.status);
+                    dotNetRef.invokeMethodAsync('JsImageFileSelected', signData.getUrl, file.name, file.type);
+                } catch (e) {
+                    console.error('DinaZen Upload: error uploading for edit', e);
+                    try { dotNetRef.invokeMethodAsync('JsUploadError', file.name, e.message || 'Error uploading for edit'); } catch (_) { }
+                }
+            })();
+            fileInput.value = '';
+            return;
+        }
 
         // Notify C# that upload is starting
         try {
@@ -338,6 +360,22 @@ window.dnzUppy_initDashboard = function (selector, dotNetRef, options) {
 
     _instances.set(selector, { uppy, fileInput: null });
     return selector;
+};
+
+/**
+ * Replace file data with edited image and trigger upload.
+ * Called from C# after the image editor dialog returns.
+ */
+window.dnzUppy_uploadEditedImage = function (selector, base64, mimeType, fileName) {
+    const instance = _instances.get(selector);
+    if (!instance || !instance.uppy) return;
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: mimeType || 'image/png' });
+    try {
+        instance.uppy.addFile({ name: fileName || 'edited.png', type: mimeType || 'image/png', data: blob, source: 'image-editor' });
+    } catch (e) { console.error('DinaZen Upload: error adding edited file', e); }
 };
 
 /**

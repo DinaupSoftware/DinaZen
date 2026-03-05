@@ -1,0 +1,21 @@
+@namespace DinaZen.Components.HtmlEditor
+
+<div class="d-flex flex-column @Class" style="@Style">
+	<RadzenHtmlEditor @bind-Value=@Value @bind-Value:after=@OnValueChanged Style=@EditorStyle UploadUrl=@UploadUrl />
+	<DnzHtmlEditorToolbar @bind-Value=@Value @bind-Value:after=@OnValueChanged Context=@Context Style="padding:4px 8px; border:1px solid var(--rz-border-color); border-top:none; border-radius:0 0 4px 4px; background:var(--rz-base-100);" />
+</div>
+
+@code {
+	[Parameter] public string Value { get; set; }
+	[Parameter] public EventCallback<string> ValueChanged { get; set; }
+	[Parameter] public string Context { get; set; } = "";
+	[Parameter] public string EditorStyle { get; set; } = "min-height:300px;";
+	[Parameter] public string UploadUrl { get; set; } = "upload/image";
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+
+	private async Task OnValueChanged()
+	{
+		await ValueChanged.InvokeAsync(Value);
+	}
+}
