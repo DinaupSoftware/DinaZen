@@ -1,5 +1,6 @@
 @namespace DinaZen.Components.DinaupFlex.Components
 @using Radzen.Blazor.Rendering
+@inject DnzWindowManagerService _windowManager
 
 <style>
 	.obli label {
@@ -56,7 +57,7 @@
 						<div class="d-flex flex-column gap-1">
 							<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" onclick=@(() => OnClearClick()) />
 
-							@if (SelectedRow.SectionID.IsNotEmpty() && OnOpenRecord.HasDelegate) {
+							@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
 								<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" onclick=@(() => OnOpenClick()) />
 							}
 						</div>
@@ -72,7 +73,7 @@
 
 <Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
 	<ErrorBoundary>
-		<RadzenTextBox @ref=textBox id=@searchInputId Placeholder="Type to search..." Style="width:100%;" @oninput=@OnInput />
+		<DnzSearchInput  BounceValueChanged=@OnDebouncedSearch Class="w-100" />
 		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false  Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
 	</ErrorBoundary>
 </Popup>
@@ -81,7 +82,7 @@
 
 @code {
 
-	string searchInputId = Guid.NewGuid().ToString().Replace("-", "");
+	string _searchText = "";
 
 
 	[Parameter]
@@ -104,9 +105,10 @@
 	[Parameter] public string Class { get; set; } = "";
 
 
-	private void OnInput(ChangeEventArgs args) {
+	private async Task OnDebouncedSearch(string value) {
 		if (Disabled) return;
-		reportControl.UpdateSearch(args.Value?.ToString() ?? string.Empty);
+		this._searchText = value;
+	await	reportControl.UpdateSearchAsync(value ?? string.Empty);
 	}
 
 
@@ -117,7 +119,6 @@
 	DnzReportView reportControl;
 	ElementReference containerRef;
 	Popup popup;
-	RadzenTextBox textBox;
 
 
 	[Parameter] public string Style { get; set; } = "flex:1";
@@ -141,6 +142,8 @@
 
 	[Parameter]
 	public EventCallback<IDinaupRow> OnOpenRecord { get; set; }
+
+	[Parameter] public bool OpenInWindow { get; set; } = true;
 
 	[Parameter] public Guid DefaultID { get; set; }
 
@@ -218,7 +221,6 @@
 
 	async Task OnOpen() {
 		if (Disabled) return;
-		await JS.InvokeVoidAsync("eval", "setTimeout(function(){ document.getElementById('" + searchInputId + "').focus(); }, 200)");
 	}
 
 
@@ -238,10 +240,11 @@
 	}
 
 	private async Task OnOpenClick() {
-
-		if (this.SelectedRow.IsNotNull() && OnOpenRecord.HasDelegate)
+		if (this.SelectedRow.IsNull()) return;
+		if (OnOpenRecord.HasDelegate)
 			await OnOpenRecord.InvokeAsync(this.SelectedRow);
-
+		else if (OpenInWindow)
+			DnzFormView.OpenAsWindow(_windowManager, Client, SelectedRow.SectionID.STR(), SelectedRow.Id.STR());
 	}
 
 }
