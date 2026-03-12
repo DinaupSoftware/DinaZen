@@ -52,6 +52,7 @@
 							FilterPopupRenderMode="PopupRenderMode.OnDemand"
 							LogicalFilterOperator="LogicalFilterOperator.And"
 							RowSelect="@HandleRowSelect"
+							CellContextMenu="@OnCellContextMenu"
 							AllowColumnResize="true" HeaderTemplate=@ToolBarTemplate
 							ShowPagingSummary="true" KeyProperty="ID"
 							SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
@@ -297,6 +298,18 @@
 		_ = UpdateAsync();
 	}
 
+	public async Task UpdateSearchAsync(string query) {
+		if (QuerySearch == query) return;
+		QuerySearch = query;
+		await LoadDataAsync();
+	}
+	public void UpdateSearchInmediate(string query) {
+		if (QuerySearch == query) return;
+		QuerySearch = query;
+		LoadDataAsync();
+
+	}
+
 	public void UpdateSearch(string query) {
 		if (QuerySearch == query) return;
 		QuerySearch = query;
@@ -495,6 +508,43 @@
 			DnzFormView.OpenAsWindow(WindowManager, Client, row.SectionId, row.ID, title: row.Title ?? "Formulario");
 		else
 			await DnzFormView.OpenAsync(DialogService, Client, row.SectionId, row.ID);
+	}
+
+	// ── Context menu (click derecho) ──
+
+	private DinaupDynamicRowDTO _contextRow;
+
+	void OnCellContextMenu(DataGridCellMouseEventArgs<DinaupDynamicRowDTO> args) {
+		if (_dataList?.Section == null || string.IsNullOrEmpty(args.Data?.SectionId)) return;
+		_contextRow = args.Data;
+		var items = new List<ContextMenuItem>();
+		if (_dataList.CanDelete)
+			items.Add(new ContextMenuItem { Text = "Eliminar", Icon = "delete", IconColor = "red", Value = "delete" });
+		if (items.IsNotEmpty())
+			ContextMenuService.Open(args, items, OnContextMenuClick);
+	}
+
+	void OnContextMenuClick(MenuItemEventArgs args) {
+		ContextMenuService.Close();
+		if (args.Value?.ToString() == "delete") _ = DeleteRowAsync();
+	}
+
+	async Task DeleteRowAsync() {
+		if (_contextRow == null) return;
+		try {
+			var values = new Dictionary<string, string> { { "id", _contextRow.ID }, { "eliminado", "1" } };
+			var wo = new WriteOperation(_contextRow.ID, values);
+			var result = await Client.RunWriteOperationAsync(_contextRow.SectionId.ToGUID(), wo, false, "");
+			result.EnsureSuccess();
+			_rows.Remove(_contextRow);
+			_totalResults = Math.Max(0, _totalResults - 1);
+			_contextRow = null;
+			await InvokeAsync(StateHasChanged);
+			NotificationService.Notify(NotificationSeverity.Success, "Genial", "El registro se ha eliminado correctamente.");
+			if (OnDataChanged.HasDelegate) await OnDataChanged.InvokeAsync();
+		} catch (Exception ex) {
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message, TimeSpan.FromSeconds(30));
+		}
 	}
 
 	// ── Helpers estaticos para abrir ──
