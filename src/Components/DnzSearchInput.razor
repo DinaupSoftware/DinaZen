@@ -1,9 +1,9 @@
-﻿@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components
 @implements IDisposable
 
-<div class="d-flex rz-background-color-white rz-border-color-base-700 px-2 py-1" style="border-radius:10px">
-	<RadzenIcon Icon="search" /> 
-	<input type="text" placeholder="Buscar..." @bind="Value" @oninput="OnInput" style="border:none; ;" class="rz-background-color-white" />
+<div class=@("d-flex align-items-center gap-1 px-2 py-1 " + Class) style=@("border-radius:6px; border:1px solid var(--rz-input-border); " + Style)>
+	<RadzenIcon Icon="search" Style="font-size:18px; color:var(--rz-text-secondary-color)" />
+	<input type="text" placeholder=@Placeholder @oninput="OnInput" style="border:none; outline:none; flex:1; width:100%; background:transparent" />
 </div>
 
 @code {
@@ -12,7 +12,14 @@
 	public string Value { get; set; }
 
 	[Parameter]
-	public EventCallback<string> ValueChanged { get; set; }
+	public string Placeholder { get; set; } = "Buscar...";
+
+	[Parameter]
+	public string Class { get; set; } = "";
+
+	[Parameter]
+	public string Style { get; set; } = "";
+
 	[Parameter]
 	public EventCallback<string> BounceValueChanged { get; set; }
 
@@ -29,10 +36,9 @@
 	{
 		await BounceValueChanged.InvokeAsync(Value);
 	}
-	private async Task OnInput(ChangeEventArgs e)
+	private void OnInput(ChangeEventArgs e)
 	{
 		Value = e.Value?.ToString();
-		await ValueChanged.InvokeAsync(Value);
 		debouncer.Debounce();
 	}
 
