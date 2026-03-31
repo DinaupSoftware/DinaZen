@@ -22,14 +22,13 @@ else if (_virtualForm.IsNotNull())
 				}
 				else if (_virtualForm.MainForm.RowID.IsNotEmpty())
 				{
-					<RadzenButton Icon="info" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Size="ButtonSize.Small"
-								  Click="OpenInspector" title="Inspeccionar registro" />
+					<RadzenButton Icon="info" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Size="ButtonSize.Small" Click="OpenInspector" title="Inspeccionar registro" />
 				}
 			</div>
 			<div class="d-flex align-items-center gap-1">
 				@if (_hasChanges)
 				{
-					<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="Modificado" />
+					<RadzenBadge Visible=@_hasChanges BadgeStyle="BadgeStyle.Info" Text="Modificado" />
 				}
 
 				@* ── Print & Annotation buttons (only for existing records) ── *@
@@ -40,24 +39,20 @@ else if (_virtualForm.IsNotNull())
 						{
 							<div class="dnz-annotation-btn-wrap" @onclick="PrintCurrent" title="Imprimir">
 								<RadzenIcon Icon="print" Style="font-size:18px" />
-								<RadzenBadge BadgeStyle="BadgeStyle.Secondary" IsPill="true"
-											 Text="@_virtualForm.MainForm.Count_PrintDynamicDocumentoList.STR()" />
+								<RadzenBadge BadgeStyle="BadgeStyle.Secondary" IsPill="true" Text="@_virtualForm.MainForm.Count_PrintDynamicDocumentoList.STR()" />
 							</div>
 						}
 						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.Comments))" title="Comentarios">
 							<RadzenIcon Icon="chat" Style="font-size:18px" />
-							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Comments == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
-										 IsPill="true" Text="@_virtualForm.MainForm.Count_Comments.STR()" />
+							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Comments == 0 ? BadgeStyle.Light : BadgeStyle.Info)" IsPill="true" Text="@_virtualForm.MainForm.Count_Comments.STR()" />
 						</div>
 						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.Files))" title="Archivos">
 							<RadzenIcon Icon="attach_file" Style="font-size:18px" />
-							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_AttachedFiles == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
-										 IsPill="true" Text="@_virtualForm.MainForm.Count_AttachedFiles.STR()" />
+							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_AttachedFiles == 0 ? BadgeStyle.Light : BadgeStyle.Info)" IsPill="true" Text="@_virtualForm.MainForm.Count_AttachedFiles.STR()" />
 						</div>
 						<div class="dnz-annotation-btn-wrap" @onclick="@(() => OpenAnnotations(AnnotationTypeE.PublicGallery))" title="Galeria">
 							<RadzenIcon Icon="photo_library" Style="font-size:18px" />
-							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Gallery == 0 ? BadgeStyle.Light : BadgeStyle.Info)"
-										 IsPill="true" Text="@_virtualForm.MainForm.Count_Gallery.STR()" />
+							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Gallery == 0 ? BadgeStyle.Light : BadgeStyle.Info)" IsPill="true" Text="@_virtualForm.MainForm.Count_Gallery.STR()" />
 						</div>
 					</div>
 				}
@@ -125,21 +120,12 @@ else if (_virtualForm.IsNotNull())
 				@foreach (var ext in _extensionButtons)
 				{
 					var capturedExt = ext;
-					<RadzenButton Size="ButtonSize.Small"
-								  ButtonStyle="ButtonStyle.Light"
-								  Icon="@capturedExt.Icon"
-								  Text="@capturedExt.Title"
-								  IsBusy="@capturedExt._isBusy"
-								  Click="@(() => RunExtension(capturedExt))" />
+					<RadzenButton Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Icon="@capturedExt.Icon" Text="@capturedExt.Title" IsBusy="@capturedExt._isBusy" Click="@(() => RunExtension(capturedExt))" />
 				}
 			</div>
 			@* -- Save / Cancel (right) -- *@
 			<div class="d-flex align-items-center gap-2">
-				@if (_isSaving)
-				{
-					<DnzLoader />
-				}
-				else if (_hasChanges || _virtualForm.HasChanged())
+				@if (_hasChanges || _virtualForm.HasChanged())
 				{
 					<RadzenButton IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
 					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" />
@@ -231,6 +217,23 @@ else if (_errorMessage.IsNotEmpty())
 	/// </summary>
 	[Parameter] public string WindowId { get; set; }
 
+	/// <summary>
+	/// Field values to pre-fill on a new record (field key → value).
+	/// Only applies when DatoId is empty (new record form).
+	/// </summary>
+	[Parameter] public Dictionary<string, string> PreFillValues { get; set; }
+
+	/// <summary>
+	/// List of row dictionaries to pre-fill list fields on a new record.
+	/// Only applies when DatoId is empty (new record form).
+	/// </summary>
+	[Parameter] public List<Dictionary<string, string>> PreFillList { get; set; }
+
+	/// <summary>
+	/// File ID to automatically attach when saving (optional).
+	/// </summary>
+	[Parameter] public Guid AttachFileId { get; set; }
+
 	private bool IsInsideWindow => WindowId.IsNotEmpty();
 
 	private VirtualFormDTO _virtualForm;
@@ -291,7 +294,9 @@ else if (_errorMessage.IsNotEmpty())
 				SectionId,
 				DatoId ?? "",
 				null,
-				null
+				PreFillValues,
+				PreFillList,
+				AttachFileId.IsEmpty() ? "" : AttachFileId.STR()
 			);
 			_loadedSectionId = SectionId;
 			_loadedDatoId = DatoId ?? "";
