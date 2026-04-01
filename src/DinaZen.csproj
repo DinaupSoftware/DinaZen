@@ -32,11 +32,11 @@
 		</Using>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.1.2" />
-		<PackageReference Include="Dinaup" Version="10.14.0.11" />
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.1.*" />
+		<PackageReference Include="Dinaup" Version="10.14.0.*" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
-		<PackageReference Include="Radzen.Blazor" Version="10.1.0" />
+		<PackageReference Include="Radzen.Blazor" Version="10.1.*" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
 	</ItemGroup>
 	<ItemGroup>
@@ -46,7 +46,7 @@
 	  <None Include="Components\DnzTimeComparisonDisplay.razor" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.43" />
+	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.*" />
 	</ItemGroup>
 
 
