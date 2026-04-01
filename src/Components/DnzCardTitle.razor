@@ -76,6 +76,7 @@
 	[Parameter] public string HelpLink { get; set; } = string.Empty;
 	[Parameter] public RenderFragment HelpContent { get; set; }
 	[Parameter] public RenderFragment Actions { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> Attributes { get; set; }
 
 	private bool helpIsVisible;
 

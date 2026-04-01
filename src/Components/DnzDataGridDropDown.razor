@@ -10,14 +10,7 @@
 	return;
 }
 
-<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" class=@(" dropdownup dropdown-menu-component" + ((IsRequired && Value.IsNull()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " ") Style=@Style>
-	<Start>
-		@if (IconTemplate != null && Value.IsNotNull()) {
-			@IconTemplate(Value)
-		} else if (Icon.IsNotEmpty()) {
-			<RadzenIcon Icon=@Icon />
-		}
-	</Start>
+<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" Start=@_startSlot class=@(" dropdownup dropdown-menu-component" + ((IsRequired && Value.IsNull()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " ") Style=@Style>
 	<ChildContent>
 
 		@if (Columns.IsNotNull() && ValueTemplate.IsNotNull()) {
@@ -36,9 +29,9 @@
 									@IconTemplate((T)context)
 								}
 								@if (_hasColorProperty == false) {
-									@((context as IDinaupRow).Label)
+									@ResolveText(context)
 								} else {
-									<DnzBadgetAutoColor Color="@ResolveColor(context)" Value=@((context as IDinaupRow).Label) />
+									<DnzBadgetAutoColor Color="@ResolveColor(context)" Value=@ResolveText(context) />
 								}
 							</div>
 						</Template>
@@ -47,9 +40,9 @@
 				<ValueTemplate>
 					<div class="d-flex gap-1 align-content-center align-items-center">
 						@if (_hasColorProperty == false) {
-							@((context as IDinaupRow).Label)
+							@ResolveText(context)
 						} else {
-							<DnzBadgetAutoColor Color="@ResolveColor(context)" Value=@((context as IDinaupRow).Label) />
+							<DnzBadgetAutoColor Color="@ResolveColor(context)" Value=@ResolveText(context) />
 						}
 					</div>
 				</ValueTemplate>
@@ -139,9 +132,15 @@
 
 	// ── Selection ──
 
+	private RenderFragment _startSlot =>
+		(IconTemplate != null && Value.IsNotNull()) ? (RenderFragment)(b => IconTemplate(Value)(b)) :
+		Icon.IsNotEmpty() ? (RenderFragment)(b => { b.OpenComponent<Radzen.Blazor.RadzenIcon>(0); b.AddAttribute(1, "Icon", Icon); b.CloseComponent(); }) :
+		null;
+
 	private Guid _selectedId;
 	private bool _hasColorProperty;
 	private System.Reflection.PropertyInfo _colorPropertyInfo;
+	private System.Reflection.PropertyInfo _textPropertyInfo;
 
 	private T _value;
 	[Parameter]
@@ -175,10 +174,27 @@
 			_colorPropertyInfo = null;
 		}
 
+		try {
+			_textPropertyInfo = TextProperty.IsNotEmpty()
+				? typeof(T).GetProperty(TextProperty)
+				: null;
+		} catch (Exception) {
+			_textPropertyInfo = null;
+		}
+
 		_hasColorProperty = ColorProperty.IsNotEmpty() && _colorPropertyInfo.IsNotNull();
 	}
 
 	// ── Helpers ──
+
+	private string ResolveText(dynamic context) {
+		try {
+			if (_textPropertyInfo.IsNotNull())
+				return _textPropertyInfo.GetValue(context, null)?.ToString() ?? "";
+		} catch (Exception) {
+		}
+		return (context as IDinaupRow)?.Label ?? "";
+	}
 
 	private EnumTextoEstiloE ResolveColor(dynamic context) {
 		try {

@@ -24,7 +24,7 @@
 				<div class="d-flex align-items-center gap-2 ms-auto">
 
 
-					<RadzenButton Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Text" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
+					<RadzenButton Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
 					<RadzenTextBox Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
 					<RadzenButton Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV" />
 					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
@@ -77,7 +77,9 @@
 										<DnzSpanMoney Amount="@row.GetDec(col.Keyword)" AutoColorRed=true />
 									</Template>
 									<FooterTemplate>
-										Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b>
+										@if (_rows.Count > 1) {
+											<span>Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b></span>
+										}
 									</FooterTemplate>
 								</RadzenDataGridColumn>
 								break;
@@ -96,7 +98,9 @@
 										}
 									</Template>
 									<FooterTemplate>
-										Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b>
+										@if (_rows.Count > 1) {
+											<span>Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b></span>
+										}
 									</FooterTemplate>
 								</RadzenDataGridColumn>
 								break;
@@ -115,7 +119,9 @@
 										}
 									</Template>
 									<FooterTemplate>
-										Suma: <b>@_rows.Sum(o => o.GetInt(col.Keyword))</b>
+										@if (_rows.Count > 1) {
+											<span>Suma: <b>@_rows.Sum(o => o.GetInt(col.Keyword))</b></span>
+										}
 									</FooterTemplate>
 								</RadzenDataGridColumn>
 								break;

@@ -1,68 +1,76 @@
 @namespace DinaZen.Components.DinaupFlex.DynamicDocuments
 @using DinaZen.Components.DinaupFlex.DnzResponseQuestions
 
-<DnzDialogLayout Icon="description" Title="@(_docInfo?.Name ?? "Documento")">
+<DnzDialogLayout>
 	<TitleContent>
-		<div class="d-flex align-items-center justify-content-between w-100">
-			<div class="d-flex align-items-center gap-2">
-				<RadzenIcon Icon="description" Style="color:var(--rz-primary); font-size:20px" />
-				<span style="font-weight:600">@(_docInfo?.Name ?? "Documento")</span>
+		@(_docInfo?.Name ?? "Documento")
+	</TitleContent>
+	<BodyContent>
+		<div style="display:flex; flex-direction:column; height:100%; overflow:hidden">
+			@if (CompatibleDocuments.IsNotEmpty())
+			{
+				<div class="d-flex align-items-center gap-2 p-2" style="border-bottom:1px solid var(--rz-base-300); flex-shrink:0">
+					<RadzenIcon Icon="description" Style="color:var(--rz-primary); font-size:18px" />
+					<RadzenDropDown AllowFiltering="true"
+									FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+									FilterOperator="StringFilterOperator.Contains"
+									@bind-Value="@DocId"
+									@bind-Value:after="@UpdateAsync"
+									TValue="string"
+									ValueProperty="@nameof(DinaupDynamicDocumentDTO.IDSTR)"
+									TextProperty="@nameof(DinaupDynamicDocumentDTO.Title)"
+									Data="@CompatibleDocuments"
+									Style="flex:1; max-width:400px"
+									Placeholder="Seleccionar plantilla..." />
+				</div>
+			}
+
+			<div style="flex:1; overflow:auto; display:flex; justify-content:center">
+				@if (_isLoading)
+				{
+					<div style="display:flex; align-items:center; justify-content:center; width:100%">
+						<DnzLoader />
+					</div>
+				}
+				else if (_requiresVariables && _docInfo?.Questions?.Variables != null)
+				{
+					<DnzResponseQuestions Variables="@_docInfo.Questions.Variables"
+									  VariableValues="@VariableValues"
+									  OnConfirm="@HandleVariableConfirm" />
+				}
+				else if (_documentContent.IsNotEmpty())
+				{
+					<iframe id="@_iframeId" style="width:100%; max-width:900px; height:100%; border:none; border-radius:6px" />
+				}
+				else if (_errorMessage.IsNotEmpty())
+				{
+					<div class="p-3" style="width:100%">
+						<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+							@_errorMessage
+						</RadzenAlert>
+					</div>
+				}
 			</div>
-			<div class="d-flex align-items-center gap-1">
+		</div>
+	</BodyContent>
+	<FooterContent>
+		<div class="d-flex justify-content-between w-100">
+			<div class="d-flex gap-2">
 				@if (_documentContent.IsNotEmpty())
 				{
-					<RadzenButton Icon="print" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+					<RadzenButton Icon="print" Text="Imprimir" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
 								  Click="@PrintDocument" />
 					@if (OnSendEmail.HasDelegate)
 					{
-						<RadzenButton Icon="send" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+						<RadzenButton Icon="send" Text="Enviar" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
 									  Click="@HandleSendEmail" />
 					}
 				}
-				@if (CompatibleDocuments.IsNotEmpty())
-				{
-					<RadzenDropDown AllowFiltering="true"
-								   FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-								   FilterOperator="StringFilterOperator.Contains"
-								   @bind-Value="@DocId"
-								   @bind-Value:after="@UpdateAsync"
-								   TValue="string"
-								   ValueProperty="@nameof(DinaupDynamicDocumentDTO.IDSTR)"
-								   TextProperty="@nameof(DinaupDynamicDocumentDTO.Title)"
-								   Data="@CompatibleDocuments"
-								   Style="max-width:250px" />
-				}
-				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
-							  Click="@(() => DialogService.Close())" Style="opacity:0.6" />
 			</div>
+			<RadzenButton Icon="close" Text="Cerrar" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+						  Click="@(() => DialogService.Close())" />
 		</div>
-	</TitleContent>
-	<BodyContent>
-		@if (_isLoading)
-		{
-			<div style="display:flex; align-items:center; justify-content:center; height:100%">
-				<DnzLoader />
-			</div>
-		}
-		else if (_requiresVariables && _docInfo?.Questions?.Variables != null)
-		{
-			<DnzResponseQuestions Variables="@_docInfo.Questions.Variables"
-							  VariableValues="@VariableValues"
-							  OnConfirm="@HandleVariableConfirm" />
-		}
-		else if (_documentContent.IsNotEmpty())
-		{
-			<iframe id="@_iframeId" style="width:100%; height:100%; border:none; border-radius:6px" />
-		}
-		else if (_errorMessage.IsNotEmpty())
-		{
-			<div style="padding:20px">
-				<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
-					@_errorMessage
-				</RadzenAlert>
-			</div>
-		}
-	</BodyContent>
+	</FooterContent>
 </DnzDialogLayout>
 
 @code {
