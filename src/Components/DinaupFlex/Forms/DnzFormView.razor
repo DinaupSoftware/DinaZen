@@ -71,6 +71,8 @@ else if (_virtualForm.IsNotNull())
 				<DnzFormTab @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-star")
 						  Tab="tab"
 						  OnTabChanged="HandleTabChange"
+						  OnButtonClick="HandleButtonClick"
+						  OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
 						  OnAddItem="HandleAddItem"
 						  OnOpenListItem="HandleOpenListItem"
 						  OnDeleteItemPrimaryList="HandleDeleteListItem"
@@ -89,6 +91,8 @@ else if (_virtualForm.IsNotNull())
 							<DnzFormTab @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-tabu")
 									  Tab="tab"
 									  OnTabChanged="HandleTabChange"
+									  OnButtonClick="HandleButtonClick"
+									  OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
 									  OnAddItem="HandleAddItem"
 									  OnOpenListItem="HandleOpenListItem"
 									  OnDeleteItemPrimaryList="HandleDeleteListItem"
@@ -362,6 +366,30 @@ else if (_errorMessage.IsNotEmpty())
 		{
 			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
 		}
+	}
+
+	private async Task HandleButtonClick(string buttonId)
+	{
+		if (_sessionExpired || _virtualForm == null || Client == null) return;
+
+		try
+		{
+			await SyncForm(await Client.FormSendClick(_virtualForm, buttonId));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private void HandleRequiereGuardar(string mensaje)
+	{
+		NotificationService.Notify(new NotificationMessage
+		{
+			Severity = NotificationSeverity.Warning,
+			Duration = 5000,
+			Summary = mensaje
+		});
 	}
 
 	private async Task SyncForm(VirtualFormDTO vForm)

@@ -241,7 +241,7 @@
 	private Debouncer _searchDebouncer;
 	private string _lastQuerySearch = "";
 	private LoadDataReportC _lastFilter;
-	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500 };
+	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500, 1000, 3000 };
 	// ── Settings (persistencia columnas visibles) ──
 
 	private string SettingsKey => $"dnz-report-{new Uri(NavigationManager.Uri).AbsolutePath}-{ReportId}";
@@ -441,6 +441,43 @@
 		} catch { }
 	}
 
+	/// <summary>Genera el CSV y lo devuelve como string. Público para integraciones (ej: Yudo).</summary>
+	public async Task<(string Csv, string FileName, int RowCount)> GenerateCsvAsync() {
+		try {
+			var exportFilter = new LoadDataReportC { Skip = 0, Top = _totalResults > 0 ? _totalResults : 10000 };
+			if (_lastFilter != null) {
+				exportFilter.Filter = _lastFilter.Filter;
+				exportFilter.Filters = _lastFilter.Filters;
+				exportFilter.Sorts = _lastFilter.Sorts;
+				exportFilter.OrderBy = _lastFilter.OrderBy;
+			}
+			var p = new ReportRequestParameters(ReportId, exportFilter.Top ?? 10000) {
+				Variables = VariablesValues, QuerySearch = QuerySearch, Order = Orden, Expresion = AdvancedFilter, AdminMode = AdminMode
+			};
+			p.ApplyLoadingConfiguration(exportFilter);
+			var response = await Client.Report_GetAsync(p);
+			if (response?.DataList == null) return ("", "", 0);
+			var allRows = response.DataList.GetDynamicsRowsOBJ()?.ToList() ?? new();
+			var columns = response.DataList.Columns.Where(c => !c.isColumnHidden).ToList();
+			var sb = new System.Text.StringBuilder();
+			sb.AppendLine(string.Join(";", columns.Select(c => EscapeCsv(c.Label))));
+			foreach (var row in allRows) {
+				var values = columns.Select(col => col.Format switch {
+					FieldFormatE.DEC => row.GetDec(col.Keyword).ToString(System.Globalization.CultureInfo.InvariantCulture),
+					FieldFormatE.INT => row.GetInt(col.Keyword).ToString(),
+					FieldFormatE.BOOL => row.GetBool(col.Keyword) ? "Si" : "No",
+					FieldFormatE.DateAndTime => row.GetDateTime(col.Keyword) is DateTime dt && dt != default ? dt.ToString("yyyy-MM-dd HH:mm:ss") : "",
+					FieldFormatE.DATE => row.GetDateTime(col.Keyword) is DateTime d && d != default ? d.ToString("yyyy-MM-dd") : "",
+					FieldFormatE.TIME => row.GetDateTime(col.Keyword) is DateTime t2 && t2 != default ? t2.ToString("HH:mm") : "",
+					_ => row.GetLegible(col.Keyword) ?? ""
+				});
+				sb.AppendLine(string.Join(";", values.Select(v => EscapeCsv(v))));
+			}
+			var fileName = $"{Title.IfIsEmpty(_dataList?.Title).IfIsEmpty("export")}_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+			return (sb.ToString(), fileName, allRows.Count);
+		} catch { return ("", "", 0); }
+	}
+
 	private async Task ExportToCsvAsync(List<DinaupDynamicRowDTO> rows, List<DinaupFieldDTO> columns) {
 		var sb = new System.Text.StringBuilder();
 
@@ -540,7 +577,7 @@
 		try {
 			var values = new Dictionary<string, string> { { "id", _contextRow.ID }, { "eliminado", "1" } };
 			var wo = new WriteOperation(_contextRow.ID, values);
-			var result = await Client.RunWriteOperationAsync(_contextRow.SectionId.ToGUID(), wo, false, "");
+			var result = await Client.RunWriteOperationAsync(_contextRow.SectionId.ToGUID(), wo, false);
 			result.EnsureSuccess();
 			_rows.Remove(_contextRow);
 			_totalResults = Math.Max(0, _totalResults - 1);

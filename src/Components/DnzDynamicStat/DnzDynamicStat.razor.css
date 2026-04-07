@@ -1,0 +1,4 @@
+::deep .dnz-dynamic-stat {
+    display: flex;
+    flex-direction: column;
+}

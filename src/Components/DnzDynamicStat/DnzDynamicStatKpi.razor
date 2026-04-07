@@ -1,0 +1,64 @@
+@code {
+	[Parameter, EditorRequired] public DnzDynamicStatData Data { get; set; }
+	[Parameter] public string Title { get; set; } = "";
+	[Parameter] public string Icon { get; set; } = "";
+	[Parameter] public string Color { get; set; } = "";
+	[Parameter] public string Description { get; set; } = "";
+	[Parameter] public DnzKpiCard.HighlightColorType HighlightColor { get; set; }
+	[Parameter] public bool IsCompact { get; set; }
+	[Parameter] public EventCallback OnClick { get; set; }
+	[Parameter] public Func<DnzDynamicStatSeries, int, string> GetSeriesColor { get; set; }
+	[Parameter] public Func<decimal, DnzDynamicStatFormatE, string> FormatValue { get; set; }
+}
+
+@if (Data.Series.Count == 1)
+{
+	var s = Data.Series[0];
+	var color = GetSeriesColor(s, 0);
+	if (s.SingleValue.HasValue)
+	{
+		<DnzKpiCard
+			Title=@(s.Label.IsNotEmpty() ? s.Label : Title)
+			Icon=@Icon
+			Color=@color
+			Value=@FormatValue(s.SingleValue.Value, s.Format)
+			Description=@Description
+			HighlightColor=@HighlightColor
+			IsCompact=@IsCompact
+			OnClick=@OnClick />
+	}
+	else if (s.Items.IsNotEmpty() && s.Items.Count <= 2)
+	{
+		<div class="d-flex gap-2 flex-wrap">
+			@foreach (var item in s.Items)
+			{
+				<DnzKpiCard
+					Title=@item.Category
+					Icon=@Icon
+					Color=@color
+					Value=@FormatValue(item.Value, s.Format)
+					IsCompact=true />
+			}
+		</div>
+	}
+}
+else
+{
+	<div class="d-flex gap-2 flex-wrap">
+		@for (var i = 0; i < Data.Series.Count; i++)
+		{
+			var s = Data.Series[i];
+			var color = GetSeriesColor(s, i);
+			if (s.SingleValue.HasValue)
+			{
+				<DnzKpiCard
+					Title=@(s.Label.IsNotEmpty() ? s.Label : $"Stat {i + 1}")
+					Icon=@Icon
+					Color=@color
+					Value=@FormatValue(s.SingleValue.Value, s.Format)
+					HighlightColor=@HighlightColor
+					IsCompact=true />
+			}
+		}
+	</div>
+}

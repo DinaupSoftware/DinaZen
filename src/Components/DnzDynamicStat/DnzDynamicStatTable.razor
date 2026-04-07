@@ -1,0 +1,114 @@
+@using System.Globalization
+
+@code {
+	[Parameter, EditorRequired] public DnzDynamicStatData Data { get; set; }
+	[Parameter] public string Title { get; set; } = "";
+	[Parameter] public string Icon { get; set; } = "";
+	[Parameter] public bool AllowViewSwitch { get; set; }
+	[Parameter] public int PageSize { get; set; } = 10;
+	[Parameter] public Func<decimal, DnzDynamicStatFormatE, string> FormatValue { get; set; }
+
+	private static readonly string[] BarGradients = new[]
+	{
+		"linear-gradient(90deg, #667eea 0%, #764ba2 100%)",
+		"linear-gradient(90deg, #f093fb 0%, #f5576c 100%)",
+		"linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)",
+		"linear-gradient(90deg, #43e97b 0%, #38f9d7 100%)",
+		"linear-gradient(90deg, #fa709a 0%, #fee140 100%)",
+		"linear-gradient(90deg, #a8edea 0%, #fed6e3 100%)",
+		"linear-gradient(90deg, #d299c2 0%, #fef9d7 100%)",
+		"linear-gradient(90deg, #89f7fe 0%, #66a6ff 100%)",
+		"linear-gradient(90deg, #cd9cf2 0%, #f6f3ff 100%)",
+		"linear-gradient(90deg, #fddb92 0%, #d1fdff 100%)"
+	};
+
+	private string GetBarGradient(int rank) => BarGradients[(rank - 1) % BarGradients.Length];
+}
+
+<div class="d-flex flex-column gap-2">
+	@if (Title.IsNotEmpty() && AllowViewSwitch == false)
+	{
+		<DnzCardTitle Icon=@Icon Title=@Title />
+	}
+
+	@if (Data.RawRows.IsNotEmpty() && Data.Columns.IsNotEmpty())
+	{
+		@* Raw data mode — use DataGrid *@
+		<RadzenDataGrid TItem="Dictionary<string, string>" Data=@Data.RawRows
+			AllowSorting="true" AllowPaging="true" PageSize=@PageSize
+			Density="Density.Compact" AllowFiltering="true"
+			FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+			FilterMode="FilterMode.Simple">
+			<Columns>
+				@foreach (var col in Data.Columns)
+				{
+					var colLabel = Data.ColumnLabels.IsNotEmpty() && Data.ColumnLabels.ContainsKey(col) ? Data.ColumnLabels[col] : col;
+					<RadzenDataGridColumn TItem="Dictionary<string, string>" Title=@colLabel Sortable="true" Filterable="true">
+						<Template Context="row">@(row.GetM(col, ""))</Template>
+					</RadzenDataGridColumn>
+				}
+			</Columns>
+		</RadzenDataGrid>
+	}
+	else if (Data.HasGroupedData)
+	{
+		@* Grouped data — ranking style *@
+		var series = Data.Series.First(s => s.Items.IsNotEmpty());
+		var total = series.Items.Sum(i => i.Value);
+		var rank = 0;
+
+		<div class="dnz-stat-ranking">
+			@foreach (var item in series.Items)
+			{
+				rank++;
+				var percentage = total > 0 ? (item.Value / total * 100) : 0;
+				var isTop3 = rank <= 3;
+
+				<div class="dnz-stat-row @(isTop3 ? "top-rank" : "")" style="animation-delay:@(rank * 30)ms">
+					<div class="dnz-stat-rank @(isTop3 ? $"rank-{rank}" : "")">
+						@if (rank == 1)
+						{
+							<RadzenIcon Icon="emoji_events" Style="color:#FFD700; font-size:1.1rem;" />
+						}
+						else
+						{
+							<span>@rank</span>
+						}
+					</div>
+					<div class="dnz-stat-content">
+						<div class="dnz-stat-header">
+							<span class="dnz-stat-label" title=@item.Category>@item.Category</span>
+							<div class="dnz-stat-values">
+								<span class="dnz-stat-pct">@percentage.ToString("0.0")%</span>
+								<span class="dnz-stat-val">@FormatValue(item.Value, series.Format)</span>
+							</div>
+						</div>
+						<div class="dnz-stat-bar-bg">
+							<div class="dnz-stat-bar" style="width:@percentage.ToString("0.0", CultureInfo.InvariantCulture)%; background:@GetBarGradient(rank);"></div>
+						</div>
+					</div>
+				</div>
+			}
+
+			@* Total footer *@
+			<div class="dnz-stat-total">
+				<div class="dnz-stat-total-label">
+					<RadzenIcon Icon="functions" Style="font-size:1rem; opacity:0.7;" />
+					<span>Total</span>
+				</div>
+				<span class="dnz-stat-total-value">@FormatValue(total, series.Format)</span>
+			</div>
+		</div>
+	}
+
+	@if (Data.Total > 0)
+	{
+		<div class="d-flex justify-content-between align-items-center px-2" style="font-size:13px; color:var(--rz-text-secondary-color);">
+			<span>Total: @Data.Total filas</span>
+			@if (Data.TimeMs > 0)
+			{
+				<span>@Data.TimeMs ms</span>
+			}
+		</div>
+	}
+</div>

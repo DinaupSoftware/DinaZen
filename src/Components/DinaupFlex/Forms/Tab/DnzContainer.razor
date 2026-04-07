@@ -77,9 +77,9 @@
 		}
 	}
 
-	void HandleOnButtonClick(string id)
+	async Task HandleOnButtonClick(string id)
 	{
-		OnButtonClick.InvokeAsync(id);
+		await OnButtonClick.InvokeAsync(id);
 	}
 
 	private Task HandleOnDeleteItemPrimaryList(string deleteId)

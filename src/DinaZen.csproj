@@ -4,7 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>10.14.0.18</Version>
+		<Version>10.14.0.19</Version>
 		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
@@ -32,12 +32,21 @@
 		</Using>
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
+		<PackageReference Include="Radzen.Blazor" Version="10.2.*" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
+	</ItemGroup>
+
+	<!-- Local source (debug) -->
+	<ItemGroup Condition="'$(UseLocalProjects)' == 'true'">
+		<ProjectReference Include="..\..\..\DinaupSoftware\DemoUp.MyDinaup\src\DemoUp.MyDinaup.vbproj" />
+		<ProjectReference Include="..\..\..\DinaupSoftware\Dinaup\src\Dinaup.vbproj" />
+	</ItemGroup>
+
+	<!-- NuGet packages -->
+	<ItemGroup Condition="'$(UseLocalProjects)' != 'true'">
 		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.1.*" />
 		<PackageReference Include="Dinaup" Version="10.14.0.*" />
-
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
-		<PackageReference Include="Radzen.Blazor" Version="10.1.*" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="Components\DnzStatsDisplay.razor" />
@@ -46,7 +55,7 @@
 	  <None Include="Components\DnzTimeComparisonDisplay.razor" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.*" />
+	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.44" />
 	</ItemGroup>
 
 

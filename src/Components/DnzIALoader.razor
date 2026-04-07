@@ -1,0 +1,16 @@
+@* Preloader para operaciones de IA. Uso: <DnzIALoader Text="Analizando formato..." /> *@
+
+<div class="dnz-ia-loader">
+    <div class="dnz-ia-loader-icon">
+        <RadzenIcon Icon="auto_awesome" />
+    </div>
+    <span class="dnz-ia-loader-text">@Text</span>
+    <div class="dnz-ia-loader-bar">
+        <div class="dnz-ia-loader-bar-fill"></div>
+    </div>
+</div>
+
+@code {
+    /// <summary>Texto que se muestra debajo del icono. Default: "Analizando con IA..."</summary>
+    [Parameter] public string Text { get; set; } = "Analizando con IA...";
+}

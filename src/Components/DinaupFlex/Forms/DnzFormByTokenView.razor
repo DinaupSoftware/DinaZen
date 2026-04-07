@@ -31,6 +31,8 @@ else if (_form.IsNotNull())
 				<DnzFormTab @key=@($"fbt-{_form.MainForm.Token}-{tab.TabName}-star")
 						  Tab="tab"
 						  OnTabChanged="HandleTabChange"
+						  OnButtonClick="HandleButtonClick"
+						  OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
 						  OnAddItem="HandleAddItem"
 						  OnOpenListItem="HandleOpenListItem"
 						  OnDeleteItemPrimaryList="HandleDeleteListItem"
@@ -124,6 +126,30 @@ else if (_errorMessage.IsNotEmpty())
 		{
 			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
 		}
+	}
+
+	private async Task HandleButtonClick(string buttonId)
+	{
+		if (_form == null || Client == null) return;
+
+		try
+		{
+			await SyncForm(await Client.FormSendClick(_form, buttonId));
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private void HandleRequiereGuardar(string mensaje)
+	{
+		NotificationService.Notify(new NotificationMessage
+		{
+			Severity = NotificationSeverity.Warning,
+			Duration = 5000,
+			Summary = mensaje
+		});
 	}
 
 	private async Task SyncForm(VirtualFormDTO vForm)

@@ -1,0 +1,166 @@
+@implements IAsyncDisposable
+
+@code {
+	[Parameter, EditorRequired] public DnzDynamicStatData Data { get; set; }
+	[Parameter] public DnzDynamicStatChartTypeE ChartType { get; set; } = DnzDynamicStatChartTypeE.Column;
+	[Parameter] public string Title { get; set; } = "";
+	[Parameter] public string Icon { get; set; } = "";
+	[Parameter] public bool AllowViewSwitch { get; set; }
+	[Parameter] public int ChartHeight { get; set; } = 300;
+	[Parameter] public bool ShowLegend { get; set; } = true;
+	[Parameter] public bool ShowDataLabels { get; set; }
+	[Parameter] public EventCallback<DnzDynamicStatDataItem> OnItemClick { get; set; }
+	[Parameter] public Func<DnzDynamicStatSeries, int, string> GetSeriesColor { get; set; }
+	[Parameter] public Func<decimal, DnzDynamicStatFormatE, string> FormatValue { get; set; }
+
+	private string _canvasId = $"dnz-chart-{Guid.NewGuid():N}";
+	private bool _chartRendered;
+	private DnzDynamicStatChartTypeE _lastRenderedType;
+	private int _lastDataHash;
+	private DotNetObjectReference<DnzDynamicStatChart> _dotnetRef;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		var dataHash = ComputeDataHash();
+		if (_chartRendered && _lastRenderedType == ChartType && _lastDataHash == dataHash)
+			return;
+
+		await RenderChartAsync();
+		_chartRendered = true;
+		_lastRenderedType = ChartType;
+		_lastDataHash = dataHash;
+	}
+
+	[JSInvokable]
+	public async Task OnChartClick(int index, int datasetIndex, string category)
+	{
+		if (OnItemClick.HasDelegate && Data?.Series.IsNotEmpty() == true)
+		{
+			var series = datasetIndex < Data.Series.Count ? Data.Series[datasetIndex] : Data.Series[0];
+			var item = series.Items.FirstOrDefault(i => i.Category == category);
+			if (item.IsNotNull())
+				await OnItemClick.InvokeAsync(item);
+		}
+	}
+
+	private int ComputeDataHash()
+	{
+		var hash = Data.Series.Count + (int)ChartType * 1000;
+		foreach (var s in Data.Series)
+		{
+			hash = hash * 31 + s.Items.Count;
+			foreach (var item in s.Items)
+				hash = hash * 31 + item.Value.GetHashCode();
+		}
+		return hash;
+	}
+
+	private async Task RenderChartAsync()
+	{
+		if (Data?.Series.IsEmpty() != false) return;
+
+		var firstWithItems = Data.Series.First(s => s.Items.IsNotEmpty());
+		var labels = firstWithItems.Items.Select(i => i.Category).ToArray();
+
+		var datasets = new List<object>();
+		for (var i = 0; i < Data.Series.Count; i++)
+		{
+			var series = Data.Series[i];
+			var color = GetSeriesColor(series, i);
+			var grouped = series.Items
+				.GroupBy(item => item.Category)
+				.ToDictionary(g => g.Key, g => g.Sum(item => (double)item.Value));
+
+			var data = labels.Select(l => grouped.ContainsKey(l) ? grouped[l] : 0.0).ToArray();
+			var label = series.Label.IsNotEmpty() ? series.Label : $"Serie {i + 1}";
+
+			datasets.Add(new { label, data, color });
+		}
+
+		var chartJsType = ChartType switch
+		{
+			DnzDynamicStatChartTypeE.Column => "bar",
+			DnzDynamicStatChartTypeE.Bar => "bar",
+			DnzDynamicStatChartTypeE.Line => "line",
+			DnzDynamicStatChartTypeE.Donut => "doughnut",
+			DnzDynamicStatChartTypeE.Spider => "radar",
+			DnzDynamicStatChartTypeE.PolarArea => "polarArea",
+			DnzDynamicStatChartTypeE.StackedBar => "bar",
+			_ => "bar"
+		};
+
+		// Resolve tooltip format from first series
+		var fmt = firstWithItems.Format;
+		var formatType = fmt switch
+		{
+			DnzDynamicStatFormatE.Money => "money",
+			DnzDynamicStatFormatE.Integer => "integer",
+			DnzDynamicStatFormatE.Percent => "percent",
+			_ => "decimal"
+		};
+
+		_dotnetRef?.Dispose();
+		_dotnetRef = DotNetObjectReference.Create(this);
+
+		var options = new Dictionary<string, object>
+		{
+			["showLegend"] = ShowLegend && (Data.Series.Count > 1 || ChartType == DnzDynamicStatChartTypeE.Donut || ChartType == DnzDynamicStatChartTypeE.PolarArea),
+			["showDataLabels"] = ShowDataLabels,
+			["formatType"] = formatType,
+			["dotnetRef"] = _dotnetRef
+		};
+
+		if (ChartType == DnzDynamicStatChartTypeE.Bar)
+			options["indexAxis"] = "y";
+
+		if (ChartType == DnzDynamicStatChartTypeE.StackedBar)
+			options["stacked"] = true;
+
+		try
+		{
+			await JS.InvokeVoidAsync("DinaZen.Charts.renderChart", _canvasId, chartJsType, labels, datasets, options);
+		}
+		catch (JSDisconnectedException) { }
+		catch (ObjectDisposedException) { }
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		try
+		{
+			await JS.InvokeVoidAsync("DinaZen.Charts.destroyChart", _canvasId);
+		}
+		catch { }
+		_dotnetRef?.Dispose();
+	}
+}
+
+<div class="d-flex flex-column gap-2">
+	@if (Title.IsNotEmpty() && AllowViewSwitch == false)
+	{
+		<DnzCardTitle Icon=@Icon Title=@Title />
+	}
+
+	<div style=@($"position:relative; height:{ChartHeight}px;")>
+		<canvas id=@_canvasId></canvas>
+	</div>
+
+	@* Summary footer *@
+	@if (Data.HasGroupedData)
+	{
+		<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-2" style="font-size:13px; color:var(--rz-text-secondary-color);">
+			<span>@Data.MaxItemCount items</span>
+			<div class="d-flex gap-3">
+				@for (var i = 0; i < Data.Series.Count; i++)
+				{
+					var s = Data.Series[i];
+					var color = GetSeriesColor(s, i);
+					<span>
+						<span style=@($"color:{color}; font-weight:600;")>@(s.Label.IsNotEmpty() ? s.Label : $"Serie {i+1}"):</span>
+						@FormatValue(s.GroupedTotal, s.Format)
+					</span>
+				}
+			</div>
+		</div>
+	}
+</div>

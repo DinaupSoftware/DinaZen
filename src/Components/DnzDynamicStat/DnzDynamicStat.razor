@@ -1,0 +1,228 @@
+@if (IsLoading)
+{
+	<DnzSkeleton Height="80px" />
+}
+else if (Data.IsNull() || Data.IsLoaded == false)
+{
+	<DnzSkeleton Height="80px" />
+}
+else if (Data.ErrorMessage.IsNotEmpty())
+{
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" ShowIcon="true">
+		@Data.ErrorMessage
+	</RadzenAlert>
+}
+else if (Data.Series.IsEmpty() || (Data.Series.All(s => s.SingleValue.HasValue == false && s.Items.IsEmpty()) && Data.RawRows.IsEmpty()))
+{
+	<div class=@($"dnz-dynamic-stat {Class}") style=@Style>
+		<div class="d-flex flex-column align-items-center justify-content-center py-4 gap-2" style="color:var(--rz-text-tertiary-color);">
+			@if (Title.IsNotEmpty())
+			{
+				<DnzCardTitle Icon=@Icon Title=@Title />
+			}
+			<RadzenIcon Icon="insert_chart_outlined" Style="font-size:2.5rem; opacity:0.3;" />
+			<span style="font-size:0.85rem;">Sin datos para el periodo seleccionado</span>
+		</div>
+	</div>
+}
+else
+{
+	<div class=@($"dnz-dynamic-stat autofade {Class}") style=@Style>
+
+		@* ── View switcher toolbar ── *@
+		@if (AllowViewSwitch && Data.HasGroupedData)
+		{
+			<div class="d-flex justify-content-between align-items-center mb-2">
+				@if (Title.IsNotEmpty())
+				{
+					<DnzCardTitle Icon=@Icon Title=@Title />
+				}
+				else
+				{
+					<div></div>
+				}
+				<RadzenSelectBar TValue="int" Value=@_activeView Change=@OnViewChanged Size="ButtonSize.ExtraSmall">
+					<Items>
+						<RadzenSelectBarItem Value=0 Icon="bar_chart" title="Columnas" />
+						<RadzenSelectBarItem Value=1 Icon="show_chart" title="Lineas" />
+						<RadzenSelectBarItem Value=2 Icon="donut_large" title="Quesito" />
+						<RadzenSelectBarItem Value=6 Icon="format_list_bulleted" title="Tabla" />
+					</Items>
+				</RadzenSelectBar>
+			</div>
+		}
+
+		@switch (ActiveRender)
+		{
+			case DnzDynamicStatRenderE.Kpi:
+				<DnzDynamicStatKpi Data=@Data Title=@Title Icon=@Icon Color=@Color
+					Description=@Description HighlightColor=@HighlightColor IsCompact=@IsCompact
+					OnClick=@OnClick GetSeriesColor=@GetSeriesColor FormatValue=@FormatValue />
+				break;
+			case DnzDynamicStatRenderE.Chart:
+				<DnzDynamicStatChart Data=@Data ChartType=@ActiveChartType Title=@Title Icon=@Icon
+					AllowViewSwitch=@AllowViewSwitch ChartHeight=@ChartHeight
+					ShowLegend=@ShowLegend ShowDataLabels=@ShowDataLabels
+					GetSeriesColor=@GetSeriesColor FormatValue=@FormatValue />
+				break;
+			case DnzDynamicStatRenderE.Table:
+				<DnzDynamicStatTable Data=@Data Title=@Title Icon=@Icon
+					AllowViewSwitch=@AllowViewSwitch PageSize=@PageSize
+					FormatValue=@FormatValue />
+				break;
+		}
+	</div>
+}
+
+@code {
+
+	#region Parameters
+
+	[Parameter, EditorRequired] public DnzDynamicStatData Data { get; set; }
+	[Parameter] public bool IsLoading { get; set; }
+
+	[Parameter] public string Title { get; set; } = "";
+	[Parameter] public string Icon { get; set; } = "";
+	[Parameter] public string Color { get; set; } = "";
+
+	[Parameter] public DnzDynamicStatRenderE Render { get; set; } = DnzDynamicStatRenderE.Auto;
+	[Parameter] public DnzDynamicStatChartTypeE ChartType { get; set; } = DnzDynamicStatChartTypeE.Column;
+
+	[Parameter] public DnzKpiCard.HighlightColorType HighlightColor { get; set; } = DnzKpiCard.HighlightColorType.Undefined;
+	[Parameter] public bool IsCompact { get; set; }
+	[Parameter] public string Description { get; set; } = "";
+
+	[Parameter] public int ChartHeight { get; set; } = 300;
+	[Parameter] public bool ShowLegend { get; set; } = true;
+	[Parameter] public bool ShowDataLabels { get; set; }
+
+	[Parameter] public int PageSize { get; set; } = 10;
+
+	[Parameter] public bool AllowViewSwitch { get; set; }
+
+	[Parameter] public EventCallback OnClick { get; set; }
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+
+	#endregion
+
+	#region Constants
+
+	private static readonly string[] DefaultColors = new[]
+	{
+		"#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6",
+		"#EC4899", "#06B6D4", "#F97316", "#6366F1", "#14B8A6"
+	};
+
+	#endregion
+
+	#region State
+
+	private int _activeView = -1;
+	private DnzDynamicStatRenderE ResolvedRender => ResolveRender();
+
+	private DnzDynamicStatRenderE ActiveRender
+	{
+		get
+		{
+			if (AllowViewSwitch == false || _activeView < 0)
+				return ResolvedRender;
+
+			return _activeView switch
+			{
+				0 => DnzDynamicStatRenderE.Chart,
+				1 => DnzDynamicStatRenderE.Chart,
+				2 => DnzDynamicStatRenderE.Chart,
+				3 => DnzDynamicStatRenderE.Chart,
+				4 => DnzDynamicStatRenderE.Chart,
+				5 => DnzDynamicStatRenderE.Chart,
+				6 => DnzDynamicStatRenderE.Table,
+				_ => ResolvedRender
+			};
+		}
+	}
+
+	private DnzDynamicStatChartTypeE ActiveChartType
+	{
+		get
+		{
+			if (AllowViewSwitch == false || _activeView < 0)
+				return ChartType;
+
+			return _activeView switch
+			{
+				0 => DnzDynamicStatChartTypeE.Column,
+				1 => DnzDynamicStatChartTypeE.Line,
+				2 => DnzDynamicStatChartTypeE.Donut,
+				3 => DnzDynamicStatChartTypeE.StackedBar,
+				4 => DnzDynamicStatChartTypeE.Spider,
+				5 => DnzDynamicStatChartTypeE.PolarArea,
+				_ => ChartType
+			};
+		}
+	}
+
+	private void OnViewChanged(int view)
+	{
+		_activeView = view;
+		StateHasChanged();
+	}
+
+	#endregion
+
+	#region Auto-detection
+
+	private DnzDynamicStatRenderE ResolveRender()
+	{
+		if (Render != DnzDynamicStatRenderE.Auto)
+			return Render;
+
+		if (Data.IsNull() || Data.Series.IsEmpty())
+			return DnzDynamicStatRenderE.Kpi;
+
+		if (Data.IsMultiKpi)
+			return DnzDynamicStatRenderE.Kpi;
+
+		if (Data.HasGroupedData)
+		{
+			if (Data.MaxItemCount <= 20)
+				return DnzDynamicStatRenderE.Chart;
+			return DnzDynamicStatRenderE.Table;
+		}
+
+		if (Data.RawRows.IsNotEmpty())
+			return DnzDynamicStatRenderE.Table;
+
+		return DnzDynamicStatRenderE.Kpi;
+	}
+
+	#endregion
+
+	#region Formatting
+
+	private string FormatValue(decimal value, DnzDynamicStatFormatE format)
+	{
+		var fmt = format;
+		if (fmt == DnzDynamicStatFormatE.Auto)
+			fmt = DnzDynamicStatFormatE.Decimal;
+
+		return fmt switch
+		{
+			DnzDynamicStatFormatE.Money => RegionService.ToStringMoney(value),
+			DnzDynamicStatFormatE.Decimal => RegionService.ToStringDecimal(value),
+			DnzDynamicStatFormatE.Integer => ((int)value).ToString(),
+			DnzDynamicStatFormatE.Percent => $"{value:0.##}%",
+			DnzDynamicStatFormatE.Raw => value.STR(),
+			_ => RegionService.ToStringDecimal(value)
+		};
+	}
+
+	private string GetSeriesColor(DnzDynamicStatSeries series, int index)
+	{
+		if (series.Color.IsNotEmpty()) return series.Color;
+		if (Color.IsNotEmpty() && Data.Series.Count == 1) return Color;
+		return DefaultColors[index % DefaultColors.Length];
+	}
+
+	#endregion
+}
