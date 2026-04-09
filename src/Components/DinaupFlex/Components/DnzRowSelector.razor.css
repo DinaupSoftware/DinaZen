@@ -52,8 +52,6 @@
 
 /* Actions (end slot) */
 ::deep .dnz-rs-actions {
-    position: relative;
-    top: -5px;
     display: flex;
     gap: 4px;
     align-items: center;
