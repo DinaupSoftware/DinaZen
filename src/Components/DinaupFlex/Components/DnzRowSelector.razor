@@ -4,7 +4,7 @@
 
 
 <ErrorBoundary>
-	<div class="dnz-rs-wrap">
+	<div class=@(_isCompact ? "dnz-rs-wrap" : "dnz-rs-wrap dnz-rs-has-label")>
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
@@ -63,6 +63,8 @@
 	.dnz-rs-end { display: flex; align-items: center; gap: 2px; }
 	.dnz-rs-hover-action { opacity: 0; width: 0; overflow: hidden; transition: opacity .15s, width .15s; }
 	.dnz-rs-wrap:hover .dnz-rs-hover-action { opacity: 1; width: 20px; }
+	.dnz-rs-has-label .dnz-rs-hover-action { opacity: 0.3; width: 20px; }
+	.dnz-rs-has-label .dnz-rs-hover-action:hover { opacity: 1; }
 	.dnz-rs-content { display:flex; align-items:center; padding:4px 10px; border-radius:6px; flex:1; cursor:pointer; min-height:36px; }
 	.dnz-rs-with-label { padding-top:20px; min-height:54px; }
 	.dnz-rs-required label { color: red !important; }
