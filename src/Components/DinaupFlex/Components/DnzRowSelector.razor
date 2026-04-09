@@ -20,7 +20,7 @@
 				} else {
 
 					<div @ref=containerRef @onclick=@(args => ToggleAsync()) class=@(_isCompact ? "dnz-rs-content" : "dnz-rs-content dnz-rs-with-label")>
-						<span class="dnz-rs-text">
+						<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;display:block;">
 							@if (SelectedRow.IsNotEmpty()) {
 								@SelectedRow.Label
 							} else if (Placeholder.IsNotEmpty()) {
