@@ -35,10 +35,8 @@
 			<End>
 				@if (Disabled == false) {
 					@if (_isCompact) {
-						@* Compact: solo arrow, toolbar aparece en hover *@
 						<RadzenIcon Icon="arrow_drop_down" Style="font-size:20px; cursor:pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
 					} else {
-						@* Con label: iconos siempre visibles *@
 						<div class="dnz-rs-actions">
 							<RadzenIcon Icon="arrow_drop_down" Style="font-size:20px; cursor:pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
 							@if (SelectedRow.IsNotEmpty()) {
@@ -57,21 +55,21 @@
 			</End>
 		</RadzenFormField>
 
-		@* Mini toolbar flotante (solo compact) *@
-		@if (_isCompact && Disabled == false) {
-			<div class="dnz-rs-toolbar">
+		@* Mini toolbar flotante (solo compact) — usa CSS global porque scoped no llega fuera del FormField *@
+		@if (_isCompact && Disabled == false && (SelectedRow.IsNotEmpty() || OnAdd.HasDelegate)) {
+			<div class="dnz-rs-toolbar" style="position:absolute;bottom:calc(100% + 4px);right:0;display:flex;gap:2px;padding:3px 4px;border-radius:6px;background:var(--rz-panel-background-color,#fff);border:1px solid var(--rz-border-color,#ddd);box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:10;opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .15s,transform .15s;">
 				@if (SelectedRow.IsNotEmpty()) {
-					<div class="dnz-rs-toolbar-btn dnz-rs-toolbar-danger" onclick=@(() => OnClearClick()) title="Quitar">
-						<RadzenIcon Icon="close" Style="font-size:14px" />
+					<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnClearClick()) title="Quitar">
+						<RadzenIcon Icon="close" Style="font-size:14px;color:var(--rz-danger)" />
 					</div>
 					@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-						<div class="dnz-rs-toolbar-btn" onclick=@(() => OnOpenClick()) title="Abrir">
+						<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnOpenClick()) title="Abrir">
 							<RadzenIcon Icon="open_in_new" Style="font-size:14px" />
 						</div>
 					}
 				} else if (OnAdd.HasDelegate) {
-					<div class="dnz-rs-toolbar-btn dnz-rs-toolbar-success" onclick=@(() => OnAddClick()) title="Agregar">
-						<RadzenIcon Icon="add" Style="font-size:14px" />
+					<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnAddClick()) title="Agregar">
+						<RadzenIcon Icon="add" Style="font-size:14px;color:var(--rz-success)" />
 					</div>
 				}
 			</div>
@@ -86,6 +84,11 @@
 	</ErrorBoundary>
 </Popup>
 
+<style>
+	.dnz-rs-compact { position: relative; }
+	.dnz-rs-compact:hover .dnz-rs-toolbar { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
+	.dnz-rs-toolbar-btn:hover { background: var(--rz-base-200); }
+</style>
 
 
 @code {
