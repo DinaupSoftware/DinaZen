@@ -1,10 +1,11 @@
 @namespace DinaZen.Components.DinaupFlex.Components
 @using Radzen.Blazor.Rendering
 @inject DnzWindowManagerService _windowManager
+@inject IJSRuntime JS
 
 
 <ErrorBoundary>
-	<div class="dnz-rs-wrap">
+	<div class="dnz-rs-wrap" @onmouseenter=@OnMouseEnter @onmouseleave=@OnMouseLeave>
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
@@ -33,33 +34,34 @@
 
 			</ChildContent>
 			<End>
-				<RadzenIcon Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
+				<RadzenIcon @ref=_arrowRef Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
 			</End>
 		</RadzenFormField>
+	</div>
+</ErrorBoundary>
 
-		@* Toolbar flotante on hover *@
-		@if (SelectedRow.IsNotEmpty() || (Disabled == false && OnAdd.HasDelegate)) {
-			<div class="dnz-rs-toolbar" style="position:absolute;top:calc(100% + 4px);right:0;display:flex;gap:2px;padding:3px 4px;border-radius:6px;background:var(--rz-panel-background-color,#fff);border:1px solid var(--rz-border-color,#ddd);box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:10;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s;">
-				@if (SelectedRow.IsNotEmpty()) {
-					@if (Disabled == false) {
-						<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnClearClick()) title="Quitar">
-							<RadzenIcon Icon="close" Style="font-size:14px;color:var(--rz-danger)" />
-						</div>
-					}
-					@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-						<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnOpenClick()) title="Abrir">
-							<RadzenIcon Icon="open_in_new" Style="font-size:14px" />
-						</div>
-					}
-				} else if (Disabled == false && OnAdd.HasDelegate) {
-					<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnAddClick()) title="Agregar">
-						<RadzenIcon Icon="add" Style="font-size:14px;color:var(--rz-success)" />
-					</div>
-				}
+@* Toolbar flotante — renderizada fuera del flujo con position:fixed *@
+@if (_showToolbar && (SelectedRow.IsNotEmpty() || (Disabled == false && OnAdd.HasDelegate))) {
+	<div style="position:fixed;top:@(_toolbarTop)px;left:@(_toolbarLeft)px;display:flex;gap:2px;padding:3px 4px;border-radius:6px;background:var(--rz-panel-background-color,#fff);border:1px solid var(--rz-border-color,#ddd);box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:9999;"
+		 @onmouseenter=@(() => _hoveringToolbar = true) @onmouseleave=@OnToolbarMouseLeave>
+		@if (SelectedRow.IsNotEmpty()) {
+			@if (Disabled == false) {
+				<div class="dnz-rs-tbtn" onclick=@(() => OnClearClick()) title="Quitar">
+					<RadzenIcon Icon="close" Style="font-size:14px;color:var(--rz-danger)" />
+				</div>
+			}
+			@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
+				<div class="dnz-rs-tbtn" onclick=@(() => OnOpenClick()) title="Abrir">
+					<RadzenIcon Icon="open_in_new" Style="font-size:14px" />
+				</div>
+			}
+		} else if (Disabled == false && OnAdd.HasDelegate) {
+			<div class="dnz-rs-tbtn" onclick=@(() => OnAddClick()) title="Agregar">
+				<RadzenIcon Icon="add" Style="font-size:14px;color:var(--rz-success)" />
 			</div>
 		}
 	</div>
-</ErrorBoundary>
+}
 
 <Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);" class="dnz-rs-popup">
 	<ErrorBoundary>
@@ -70,8 +72,8 @@
 
 <style>
 	.dnz-rs-wrap { position: relative; }
-	.dnz-rs-wrap:hover .dnz-rs-toolbar { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
-	.dnz-rs-toolbar-btn:hover { background: var(--rz-base-200); }
+	.dnz-rs-tbtn { display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s; }
+	.dnz-rs-tbtn:hover { background: var(--rz-base-200); }
 	.dnz-rs-content { display:flex; align-items:center; padding:4px 10px; border-radius:6px; flex:1; cursor:pointer; min-height:36px; }
 	.dnz-rs-with-label { padding-top:20px; min-height:54px; }
 	.dnz-rs-required label { color: red !important; }
@@ -86,6 +88,11 @@
 
 	string _searchText = "";
 	bool _isCompact => Label.IsEmpty();
+	bool _showToolbar;
+	bool _hoveringToolbar;
+	double _toolbarTop;
+	double _toolbarLeft;
+	RadzenIcon _arrowRef;
 
 	[Parameter] public string Icon { get; set; }
 	[Parameter] public bool AdminMode { get; set; } = false;
@@ -138,6 +145,40 @@
 	}
 
 	protected override Task OnParametersSetAsync() => base.OnParametersSetAsync();
+
+	// ── Toolbar hover ──
+
+	async Task OnMouseEnter() {
+		try {
+			var rect = await JS.InvokeAsync<BoundingRect>("eval", $"(function(){{ var el=document.querySelector('[_bl_{_arrowRef?.Element.Id}]')?.closest('.dnz-rs-wrap'); if(!el) return {{top:0,left:0,width:0,height:0}}; var r=el.getBoundingClientRect(); return {{top:r.top,left:r.left,width:r.width,height:r.height}}; }})()");
+			_toolbarTop = rect.Top + rect.Height + 4;
+			_toolbarLeft = rect.Left + rect.Width - 80;
+			if (_toolbarLeft < 8) _toolbarLeft = 8;
+		} catch {
+			_toolbarTop = 0;
+			_toolbarLeft = 0;
+		}
+		_showToolbar = true;
+	}
+
+	void OnMouseLeave() {
+		_ = Task.Run(async () => {
+			await Task.Delay(150);
+			if (_hoveringToolbar == false) {
+				_showToolbar = false;
+				await InvokeAsync(StateHasChanged);
+			}
+		});
+	}
+
+	void OnToolbarMouseLeave() {
+		_hoveringToolbar = false;
+		_showToolbar = false;
+	}
+
+	class BoundingRect { public double Top { get; set; } public double Left { get; set; } public double Width { get; set; } public double Height { get; set; } }
+
+	// ── Select ──
 
 	public async Task SelectAsync(Dinaup.DinaupBasicInformation data) => await SelectAsync(data.ToDinaupDynamicRowDTO());
 	public async Task SelectAsync(DnzRowSelector source) => await SelectAsync(source.SelectedRow);
