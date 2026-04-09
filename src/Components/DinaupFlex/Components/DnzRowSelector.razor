@@ -34,7 +34,6 @@
 			</ChildContent>
 			<End>
 				<div class="dnz-rs-end">
-					<RadzenIcon Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
 					@if (SelectedRow.IsNotEmpty()) {
 						@if (Disabled == false) {
 							<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover dnz-rs-hover-action" onclick=@(() => OnClearClick()) />
@@ -45,6 +44,7 @@
 					} else if (Disabled == false && OnAdd.HasDelegate) {
 						<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover dnz-rs-hover-action" onclick=@(() => OnAddClick()) />
 					}
+					<RadzenIcon Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
 				</div>
 			</End>
 		</RadzenFormField>
