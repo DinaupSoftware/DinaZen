@@ -1,5 +1,11 @@
 /* ─── DnzRowSelector — scoped styles ─── */
 
+/* Wrapper */
+::deep .dnz-rs-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
 /* Required state */
 ::deep .dnz-rs-required label {
     color: red !important;
@@ -50,11 +56,61 @@
     align-items: center;
 }
 
-/* Actions (end slot) */
+/* Actions — con label (siempre visibles) */
 ::deep .dnz-rs-actions {
     display: flex;
     gap: 4px;
     align-items: center;
+}
+
+/* ═══ Compact: toolbar flotante on hover ═══ */
+
+::deep .dnz-rs-toolbar {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    right: 0;
+    display: flex;
+    gap: 2px;
+    padding: 3px 4px;
+    border-radius: 6px;
+    background: var(--rz-panel-background-color, #fff);
+    border: 1px solid var(--rz-border-color, #ddd);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+::deep .dnz-rs-compact:hover .dnz-rs-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+::deep .dnz-rs-toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--rz-text-secondary-color);
+    transition: background 0.12s, color 0.12s;
+}
+::deep .dnz-rs-toolbar-btn:hover {
+    background: var(--rz-base-200);
+    color: var(--rz-text-color);
+}
+::deep .dnz-rs-toolbar-danger:hover {
+    background: color-mix(in srgb, var(--rz-danger) 12%, transparent);
+    color: var(--rz-danger);
+}
+::deep .dnz-rs-toolbar-success:hover {
+    background: color-mix(in srgb, var(--rz-success) 12%, transparent);
+    color: var(--rz-success);
 }
 
 /* Popup */
@@ -62,7 +118,7 @@
     width: min(600px, 92vw);
 }
 
-/* Icon hover */
+/* Icon hover (shared) */
 ::deep .dnz-icon-hover {
     border-radius: 50%;
     padding: 2px;
