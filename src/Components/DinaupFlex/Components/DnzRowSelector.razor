@@ -2,26 +2,9 @@
 @using Radzen.Blazor.Rendering
 @inject DnzWindowManagerService _windowManager
 
-<style>
-	.obli label {
-		color: red !important
-	}
-
-		.obli label::after {
-			content: "*";
-			font-size: 0.8em;
-			margin-left: 4px;
-		}
-
-	.obli .rz-form-field-content {
-		background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
-		border-bottom: 2px solid #ffb0b0;
-	}
-</style>
-
 
 <ErrorBoundary>
-	<RadzenFormField Text=@Label Variant="Variant.Flat" class=@("dropdown-menu-component" + ((IsRequired && SelectedRow.IsEmpty()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " " + Class) Style=@Style>
+	<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
 		<Start>
 			@if (Icon.IsNotEmpty()) {
 				<RadzenIcon Icon=@Icon />
@@ -30,40 +13,41 @@
 		<ChildContent>
 
 			@if (isInitializing && DefaultID.IsNotEmpty()) {
-				<div style="width:100%; margin-top: 13px" class=" d-flex  justify-content-center align-items-center align-content-center">
+				<div class="dnz-rs-loading">
 					<DnzSkeleton Lines="1" MaxWidth="80%" />
 				</div>
 			} else {
 
-				<div @ref=containerRef @onclick=@(args => ToggleAsync()) class="d-flex align-items-center" style=" min-height:54.6px; padding-right:4px; border-radius:6px;flex:1; padding: 4px 10px">
-					<span class="d-flex justify-content-between flex-grow-1 dropdown-menu-text" style="cursor:pointer;padding-top: 20px">
-						<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 200px;" class="dropdown-menu-text flex-grow-1">
-							@SelectedRow?.Label
-						</span>
+				<div @ref=containerRef @onclick=@(args => ToggleAsync()) class=@(Label.IsNotEmpty() ? "dnz-rs-content dnz-rs-with-label" : "dnz-rs-content")>
+					<span class="dnz-rs-text">
+						@if (SelectedRow.IsNotEmpty()) {
+							@SelectedRow.Label
+						} else if (Placeholder.IsNotEmpty()) {
+							<span class="dnz-rs-placeholder">@Placeholder</span>
+						}
 					</span>
 				</div>
 
 			}
 
-
 		</ChildContent>
 		<End>
 			@if (Disabled == false) {
-				<div style="position:relative; top: -5px" class="d-flex gap-1 align-content-center align-items-center">
+				<div class="dnz-rs-actions">
 
-					<RadzenIcon Icon="arrow_drop_down" IconColor="#000000" Style="font-size:20px; cursor: pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
+					<RadzenIcon Icon="arrow_drop_down" Style="font-size:20px; cursor:pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
 
 					@if (SelectedRow.IsNotEmpty()) {
 						<div class="d-flex flex-column gap-1">
-							<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" onclick=@(() => OnClearClick()) />
+							<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnClearClick()) />
 
 							@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-								<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" onclick=@(() => OnOpenClick()) />
+								<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnOpenClick()) />
 							}
 						</div>
 					} else {
 
-						<RadzenButton Visible=@OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle=" ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
+						<RadzenButton Visible=@OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
 					}
 				</div>
 			}
@@ -71,10 +55,10 @@
 	</RadzenFormField>
 </ErrorBoundary>
 
-<Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;width:600px;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);">
+<Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);" class="dnz-rs-popup">
 	<ErrorBoundary>
-		<DnzSearchInput  BounceValueChanged=@OnDebouncedSearch Class="w-100" />
-		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false  Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
+		<DnzSearchInput BounceValueChanged=@OnDebouncedSearch Class="w-100" />
+		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
 	</ErrorBoundary>
 </Popup>
 
@@ -108,7 +92,7 @@
 	private async Task OnDebouncedSearch(string value) {
 		if (Disabled) return;
 		this._searchText = value;
-	await	reportControl.UpdateSearchAsync(value ?? string.Empty);
+		await reportControl.UpdateSearchAsync(value ?? string.Empty);
 	}
 
 
@@ -146,6 +130,11 @@
 	[Parameter] public bool OpenInWindow { get; set; } = true;
 
 	[Parameter] public Guid DefaultID { get; set; }
+
+	string _rootClass => "dropdown-menu-component"
+		+ ((IsRequired && SelectedRow.IsEmpty()) ? " dnz-rs-required" : "")
+		+ (Disabled ? " dropdown-menu-component-disabled" : "")
+		+ " " + Class;
 
 
 	bool isInitializing = true;

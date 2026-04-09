@@ -1,0 +1,76 @@
+/* ─── DnzRowSelector — scoped styles ─── */
+
+/* Required state */
+::deep .dnz-rs-required label {
+    color: red !important;
+}
+::deep .dnz-rs-required label::after {
+    content: "*";
+    font-size: 0.8em;
+    margin-left: 4px;
+}
+::deep .dnz-rs-required .rz-form-field-content {
+    background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
+    border-bottom: 2px solid #ffb0b0;
+}
+
+/* Content area */
+::deep .dnz-rs-content {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    flex: 1;
+    cursor: pointer;
+    min-height: 36px;
+}
+::deep .dnz-rs-with-label {
+    padding-top: 20px;
+    min-height: 54px;
+}
+
+/* Text */
+::deep .dnz-rs-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
+::deep .dnz-rs-placeholder {
+    color: var(--rz-input-placeholder-color, #999);
+}
+
+/* Loading */
+::deep .dnz-rs-loading {
+    width: 100%;
+    margin-top: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Actions (end slot) */
+::deep .dnz-rs-actions {
+    position: relative;
+    top: -5px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+/* Popup */
+::deep .dnz-rs-popup {
+    width: min(600px, 92vw);
+}
+
+/* Icon hover */
+::deep .dnz-icon-hover {
+    border-radius: 50%;
+    padding: 2px;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+::deep .dnz-icon-hover:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    transform: scale(1.2);
+}
