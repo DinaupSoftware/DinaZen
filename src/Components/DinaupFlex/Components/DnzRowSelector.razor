@@ -42,7 +42,7 @@
 
 @* Toolbar flotante — renderizada fuera del flujo con position:fixed *@
 @if (_showToolbar && (SelectedRow.IsNotEmpty() || (Disabled == false && OnAdd.HasDelegate))) {
-	<div style="position:fixed;top:@(_toolbarTop)px;left:@(_toolbarLeft)px;display:flex;gap:2px;padding:3px 4px;border-radius:6px;background:var(--rz-panel-background-color,#fff);border:1px solid var(--rz-border-color,#ddd);box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:9999;"
+	<div style="position:fixed;top:@(_toolbarTop)px;left:@(_toolbarLeft)px;display:flex;gap:2px;padding:3px 4px;border-radius:6px;background:var(--rz-panel-background-color,#fff);border:1px solid var(--rz-border-color,#ddd);box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2147483647;"
 		 @onmouseenter=@(() => _hoveringToolbar = true) @onmouseleave=@OnToolbarMouseLeave>
 		@if (SelectedRow.IsNotEmpty()) {
 			@if (Disabled == false) {
