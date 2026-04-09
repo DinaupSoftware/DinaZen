@@ -4,7 +4,7 @@
 
 
 <ErrorBoundary>
-	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap")>
+	<div class="dnz-rs-wrap">
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
@@ -14,7 +14,7 @@
 			<ChildContent>
 
 				@if (isInitializing && DefaultID.IsNotEmpty()) {
-					<div class="dnz-rs-loading">
+					<div style="width:100%;margin-top:13px;display:flex;justify-content:center;align-items:center;">
 						<DnzSkeleton Lines="1" MaxWidth="80%" />
 					</div>
 				} else {
@@ -24,7 +24,7 @@
 							@if (SelectedRow.IsNotEmpty()) {
 								@SelectedRow.Label
 							} else if (Placeholder.IsNotEmpty()) {
-								<span class="dnz-rs-placeholder">@Placeholder</span>
+								<span style="color:var(--rz-input-placeholder-color,#999)">@Placeholder</span>
 							}
 						</span>
 					</div>
@@ -34,29 +34,13 @@
 			</ChildContent>
 			<End>
 				@if (Disabled == false) {
-					@if (_isCompact) {
-						<RadzenIcon Icon="arrow_drop_down" Style="font-size:20px; cursor:pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
-					} else {
-						<div class="dnz-rs-actions">
-							<RadzenIcon Icon="arrow_drop_down" Style="font-size:20px; cursor:pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
-							@if (SelectedRow.IsNotEmpty()) {
-								<div class="d-flex flex-column gap-1">
-									<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnClearClick()) />
-									@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-										<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnOpenClick()) />
-									}
-								</div>
-							} else {
-								<RadzenButton Visible=@OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
-							}
-						</div>
-					}
+					<RadzenIcon Icon="arrow_drop_down" Style="font-size:20px; cursor:pointer" class="dnz-icon-hover" @onclick=@(args => ToggleAsync()) />
 				}
 			</End>
 		</RadzenFormField>
 
-		@* Mini toolbar flotante (solo compact) — usa CSS global porque scoped no llega fuera del FormField *@
-		@if (_isCompact && Disabled == false && (SelectedRow.IsNotEmpty() || OnAdd.HasDelegate)) {
+		@* Toolbar flotante on hover *@
+		@if (Disabled == false && (SelectedRow.IsNotEmpty() || OnAdd.HasDelegate)) {
 			<div class="dnz-rs-toolbar" style="position:absolute;bottom:calc(100% + 4px);right:0;display:flex;gap:2px;padding:3px 4px;border-radius:6px;background:var(--rz-panel-background-color,#fff);border:1px solid var(--rz-border-color,#ddd);box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:10;opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .15s,transform .15s;">
 				@if (SelectedRow.IsNotEmpty()) {
 					<div class="dnz-rs-toolbar-btn" style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;cursor:pointer;transition:background .12s;" onclick=@(() => OnClearClick()) title="Quitar">
@@ -85,9 +69,16 @@
 </Popup>
 
 <style>
-	.dnz-rs-compact { position: relative; }
-	.dnz-rs-compact:hover .dnz-rs-toolbar { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
+	.dnz-rs-wrap { position: relative; }
+	.dnz-rs-wrap:hover .dnz-rs-toolbar { opacity: 1 !important; pointer-events: auto !important; transform: translateY(0) !important; }
 	.dnz-rs-toolbar-btn:hover { background: var(--rz-base-200); }
+	.dnz-rs-content { display:flex; align-items:center; padding:4px 10px; border-radius:6px; flex:1; cursor:pointer; min-height:36px; }
+	.dnz-rs-with-label { padding-top:20px; min-height:54px; }
+	.dnz-rs-required label { color: red !important; }
+	.dnz-rs-required label::after { content: "*"; font-size: 0.8em; margin-left: 4px; }
+	.dnz-rs-required .rz-form-field-content { background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%); border-bottom: 2px solid #ffb0b0; }
+	.dnz-icon-hover { border-radius: 50%; padding: 2px; transition: background-color 0.15s ease, transform 0.15s ease; }
+	.dnz-icon-hover:hover { background-color: rgba(0, 0, 0, 0.08); transform: scale(1.2); }
 </style>
 
 
