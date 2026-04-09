@@ -10,6 +10,7 @@
 	return;
 }
 
+<div class="dnz-ddgd-wrap">
 <RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" Start=@_startSlot class=@(" dropdownup dropdown-menu-component" + ((IsRequired && Value.IsNull()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " ") Style=@Style>
 	<ChildContent>
 
@@ -51,24 +52,20 @@
 
 	</ChildContent>
 	<End>
-		<div style="position:relative; top: -5px" class="d-flex gap-1 align-content-center align-items-center">
-			<RadzenIcon Icon="arrow_drop_down" IconColor="#000000" Style="font-size:20px; cursor: pointer " class="dnz-icon-hover" />
-			@if (Disabled) {
-			} else if (Value != null) {
-				<div class="d-flex flex-column gap-1 align-items-end justify-content-center h-100">
-					<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" class="dnz-icon-hover" onclick=@(() => HandleRemoveClick()) />
-					@if (OnOpen.HasDelegate || (OpenInWindow && Client.IsNotNull() && Value.SectionID.IsNotEmpty())) {
-						<RadzenIcon Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" class="dnz-icon-hover" onclick=@(() => HandleOpenClick()) />
-					}
-				</div>
-			} else {
-				@if (OnAdd.HasDelegate) {
-					<RadzenButton Icon="add" Style="font-size:13px;" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@HandleAddClick />
+		<div class="d-flex gap-1 align-items-center">
+			@if (Disabled == false && Value != null) {
+				<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover dnz-ddgd-hover-action" onclick=@(() => HandleRemoveClick()) />
+				@if (OnOpen.HasDelegate || (OpenInWindow && Client.IsNotNull() && Value.SectionID.IsNotEmpty())) {
+					<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover dnz-ddgd-hover-action" onclick=@(() => HandleOpenClick()) />
 				}
+			} else if (Disabled == false && OnAdd.HasDelegate) {
+				<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover dnz-ddgd-hover-action" onclick=@(() => HandleAddClick()) />
 			}
+			<RadzenIcon Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") />
 		</div>
 	</End>
 </RadzenFormField>
+</div>
 
 <style>
 	.dropdownup .rz-dropdown-trigger {
@@ -91,6 +88,10 @@
 		background-color: rgba(0, 0, 0, 0.08);
 		transform: scale(1.2);
 	}
+
+	.dnz-ddgd-hover-action { opacity: 0; width: 0; overflow: hidden; transition: opacity .15s, width .15s; }
+	.dnz-ddgd-wrap:hover .dnz-ddgd-hover-action { opacity: 0.7; width: 20px; }
+	.dnz-ddgd-wrap:hover .dnz-ddgd-hover-action:hover { opacity: 1; }
 </style>
 
 @code {
