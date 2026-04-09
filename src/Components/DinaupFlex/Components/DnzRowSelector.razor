@@ -5,7 +5,7 @@
 
 
 <ErrorBoundary>
-	<div class="dnz-rs-wrap" @onmouseenter=@OnMouseEnter @onmouseleave=@OnMouseLeave>
+	<div class="dnz-rs-wrap" @ref=_wrapRef @onmouseenter=@OnMouseEnter @onmouseleave=@OnMouseLeave>
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
@@ -34,7 +34,7 @@
 
 			</ChildContent>
 			<End>
-				<RadzenIcon @ref=_arrowRef Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
+				<RadzenIcon Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
 			</End>
 		</RadzenFormField>
 	</div>
@@ -92,7 +92,7 @@
 	bool _hoveringToolbar;
 	double _toolbarTop;
 	double _toolbarLeft;
-	RadzenIcon _arrowRef;
+	ElementReference _wrapRef;
 
 	[Parameter] public string Icon { get; set; }
 	[Parameter] public bool AdminMode { get; set; } = false;
@@ -150,13 +150,14 @@
 
 	async Task OnMouseEnter() {
 		try {
-			var rect = await JS.InvokeAsync<BoundingRect>("eval", $"(function(){{ var el=document.querySelector('[_bl_{_arrowRef?.Element.Id}]')?.closest('.dnz-rs-wrap'); if(!el) return {{top:0,left:0,width:0,height:0}}; var r=el.getBoundingClientRect(); return {{top:r.top,left:r.left,width:r.width,height:r.height}}; }})()");
-			_toolbarTop = rect.Top + rect.Height + 4;
-			_toolbarLeft = rect.Left + rect.Width - 80;
+			var rect = await JS.InvokeAsync<BoundingRect>("eval", "(function(el){ var r=el.getBoundingClientRect(); return {top:r.top,left:r.left,width:r.width,height:r.height}; })(arguments[0])", _wrapRef);
+			_toolbarTop = rect.Top - 34;
+			_toolbarLeft = rect.Left + rect.Width - 60;
 			if (_toolbarLeft < 8) _toolbarLeft = 8;
+			if (_toolbarTop < 8) _toolbarTop = rect.Top + rect.Height + 4;
 		} catch {
-			_toolbarTop = 0;
-			_toolbarLeft = 0;
+			_showToolbar = false;
+			return;
 		}
 		_showToolbar = true;
 	}
