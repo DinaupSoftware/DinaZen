@@ -57,6 +57,7 @@ else
 			case DnzDynamicStatRenderE.Kpi:
 				<DnzDynamicStatKpi Data=@Data Title=@Title Icon=@Icon Color=@Color
 					Description=@Description HighlightColor=@HighlightColor IsCompact=@IsCompact
+					Variant=@Variant
 					OnClick=@OnClick GetSeriesColor=@GetSeriesColor FormatValue=@FormatValue />
 				break;
 			case DnzDynamicStatRenderE.Chart:
@@ -90,6 +91,7 @@ else
 
 	[Parameter] public DnzKpiCard.HighlightColorType HighlightColor { get; set; } = DnzKpiCard.HighlightColorType.Undefined;
 	[Parameter] public bool IsCompact { get; set; }
+	[Parameter] public Radzen.Variant Variant { get; set; } = Radzen.Variant.Filled;
 	[Parameter] public string Description { get; set; } = "";
 
 	[Parameter] public int ChartHeight { get; set; } = 300;

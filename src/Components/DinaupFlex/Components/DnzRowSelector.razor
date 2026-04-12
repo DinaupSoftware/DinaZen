@@ -4,7 +4,7 @@
 
 
 <ErrorBoundary>
-	<div class=@(_isCompact ? "dnz-rs-wrap" : "dnz-rs-wrap dnz-rs-has-label")>
+	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap dnz-rs-has-label")>
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
 			<Start>
 				@if (Icon.IsNotEmpty()) {

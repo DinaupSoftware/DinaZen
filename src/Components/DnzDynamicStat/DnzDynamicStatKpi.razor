@@ -6,6 +6,7 @@
 	[Parameter] public string Description { get; set; } = "";
 	[Parameter] public DnzKpiCard.HighlightColorType HighlightColor { get; set; }
 	[Parameter] public bool IsCompact { get; set; }
+	[Parameter] public Radzen.Variant Variant { get; set; } = Radzen.Variant.Filled;
 	[Parameter] public EventCallback OnClick { get; set; }
 	[Parameter] public Func<DnzDynamicStatSeries, int, string> GetSeriesColor { get; set; }
 	[Parameter] public Func<decimal, DnzDynamicStatFormatE, string> FormatValue { get; set; }
@@ -25,6 +26,7 @@
 			Description=@Description
 			HighlightColor=@HighlightColor
 			IsCompact=@IsCompact
+			Variant=@Variant
 			OnClick=@OnClick />
 	}
 	else if (s.Items.IsNotEmpty() && s.Items.Count <= 2)
@@ -37,6 +39,7 @@
 					Icon=@Icon
 					Color=@color
 					Value=@FormatValue(item.Value, s.Format)
+					Variant=@Variant
 					IsCompact=true />
 			}
 		</div>
@@ -57,6 +60,7 @@ else
 					Color=@color
 					Value=@FormatValue(s.SingleValue.Value, s.Format)
 					HighlightColor=@HighlightColor
+					Variant=@Variant
 					IsCompact=true />
 			}
 		}
