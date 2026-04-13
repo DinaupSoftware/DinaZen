@@ -167,6 +167,7 @@
 		await base.OnInitializedAsync();
 		HistoryList = await Client.GetHistoryChanges(SectionId, Id, Field);
 		cargando = false;
+		StateHasChanged();
 	}
 
 	private string GetDateGroupLabel(DateTime date)
