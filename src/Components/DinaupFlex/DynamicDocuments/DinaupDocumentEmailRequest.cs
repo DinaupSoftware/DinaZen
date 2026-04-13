@@ -14,4 +14,5 @@ public class DinaupDocumentEmailRequest
     public string Subject { get; set; } = "";
     public string DnzFileName { get; set; } = "";
     public string DocumentTitle { get; set; } = "";
+    public string EmailBody { get; set; } = "";
 }

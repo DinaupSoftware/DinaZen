@@ -60,10 +60,15 @@
 				{
 					<RadzenButton Icon="print" Text="Imprimir" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
 								  Click="@PrintDocument" />
+					@if (OnSendEmailWithAttachment.HasDelegate)
+					{
+						<RadzenButton Icon="attach_email" Text="Adjuntar y enviar por email" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
+									  IsBusy=@_isSendingEmail Click="@HandleSendEmailWithAttachment" />
+					}
 					@if (OnSendEmail.HasDelegate)
 					{
-						<RadzenButton Icon="send" Text="Enviar" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
-									  Click="@HandleSendEmail" />
+						<RadzenButton Icon="send" Text="Enviar por email" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
+									  IsBusy=@_isSendingEmail Click="@HandleSendEmail" />
 					}
 				}
 			</div>
@@ -106,21 +111,29 @@
 	[Parameter] public bool AutoPrint { get; set; }
 
 	/// <summary>
-	/// Evento para enviar el documento por email.
+	/// Evento para enviar el documento por email (HTML como cuerpo).
 	/// </summary>
 	[Parameter] public EventCallback<DinaupDocumentEmailRequest> OnSendEmail { get; set; }
 
+	/// <summary>
+	/// Evento para enviar el documento por email con PDF adjunto.
+	/// </summary>
+	[Parameter] public EventCallback<DinaupDocumentEmailRequest> OnSendEmailWithAttachment { get; set; }
+
+	private DynamicDocumentsGetResponse _lastResponse;
 	private DynamicDocumentsGetResponse.DDocumentC _docInfo;
 	private string _documentContent = "";
 	private bool _requiresVariables = false;
 	private bool _isLoading = true;
 	private string _errorMessage = "";
+	private bool _isSendingEmail = false;
 	private string _iframeId = $"dnz-doc-{Guid.NewGuid():N}";
 
 	protected override async Task OnInitializedAsync()
 	{
 		if (PreloadedResult != null)
 		{
+			_lastResponse = PreloadedResult;
 			_docInfo = PreloadedResult.DynamicDocument;
 			_documentContent = PreloadedResult.Content ?? "";
 			_isLoading = false;
@@ -180,6 +193,7 @@
 				? await Client.DynamicDocuments_ExecuteAsync(DocId, sendVar)
 				: await Client.DynamicDocuments_ExecuteAsync(DocId);
 
+			_lastResponse = response;
 			_docInfo = response.DynamicDocument;
 			_documentContent = response.Content ?? "";
 
@@ -223,17 +237,56 @@
 		}
 	}
 
-	private async Task HandleSendEmail()
+	private DinaupDocumentEmailRequest BuildEmailRequest()
 	{
-		if (_docInfo == null || _documentContent.IsEmpty() || !OnSendEmail.HasDelegate) return;
-
 		var request = new DinaupDocumentEmailRequest
 		{
 			DocumentHtml = _documentContent,
-			DocumentTitle = _docInfo.Name ?? ""
+			DocumentTitle = _docInfo?.Name ?? ""
 		};
 
-		await OnSendEmail.InvokeAsync(request);
+		if (_lastResponse != null)
+		{
+			request.FromName = _lastResponse.Email_FromName;
+			request.FromEmail = _lastResponse.Email_From;
+			request.ToEmail = _lastResponse.Email_Destinatario;
+			request.ToName = _lastResponse.Email_Destinatario_Nombre;
+			request.Subject = _lastResponse.Email_Asunto;
+			request.EmailBody = _lastResponse.Email_Body;
+			request.DnzFileName = _lastResponse.FileName;
+		}
+
+		return request;
+	}
+
+	private async Task HandleSendEmail()
+	{
+		if (_docInfo == null || _documentContent.IsEmpty() || !OnSendEmail.HasDelegate || _isSendingEmail) return;
+
+		_isSendingEmail = true;
+		try
+		{
+			await OnSendEmail.InvokeAsync(BuildEmailRequest());
+		}
+		finally
+		{
+			_isSendingEmail = false;
+		}
+	}
+
+	private async Task HandleSendEmailWithAttachment()
+	{
+		if (_docInfo == null || _documentContent.IsEmpty() || !OnSendEmailWithAttachment.HasDelegate || _isSendingEmail) return;
+
+		_isSendingEmail = true;
+		try
+		{
+			await OnSendEmailWithAttachment.InvokeAsync(BuildEmailRequest());
+		}
+		finally
+		{
+			_isSendingEmail = false;
+		}
 	}
 
 	// ── Static helper para abrir como modal ──
@@ -244,6 +297,8 @@
 		string docId,
 		Dictionary<string, string> variableValues = null,
 		List<DinaupDynamicDocumentDTO> compatibleDocuments = null,
+		EventCallback<DinaupDocumentEmailRequest>? onSendEmail = null,
+		EventCallback<DinaupDocumentEmailRequest>? onSendEmailWithAttachment = null,
 		string width = "85%",
 		string height = "80%")
 	{
@@ -257,6 +312,10 @@
 			parameters.Add(nameof(VariableValues), variableValues);
 		if (compatibleDocuments != null)
 			parameters.Add(nameof(CompatibleDocuments), compatibleDocuments);
+		if (onSendEmail.HasValue)
+			parameters.Add(nameof(OnSendEmail), onSendEmail.Value);
+		if (onSendEmailWithAttachment.HasValue)
+			parameters.Add(nameof(OnSendEmailWithAttachment), onSendEmailWithAttachment.Value);
 
 		var options = new DialogOptions
 		{

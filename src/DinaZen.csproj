@@ -46,7 +46,7 @@
 	<!-- NuGet packages -->
 	<ItemGroup Condition="'$(UseLocalProjects)' != 'true'">
 		<PackageReference Include="DemoUp.MyDinaup" Version="10.14.1.*" />
-		<PackageReference Include="Dinaup" Version="10.14.0.*" />
+		<PackageReference Include="Dinaup" Version="[10.14.0.16,)" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="Components\DnzStatsDisplay.razor" />
