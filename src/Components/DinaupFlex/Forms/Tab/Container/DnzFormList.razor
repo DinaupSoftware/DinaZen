@@ -17,7 +17,7 @@
 			{
 				@if (tab.TabName == "*")
 				{
-					<DnzFormTab Tab=tab OnTabChanged=@HandleTabChange Client=Client ReportTemplate=ReportTemplate OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-14")></DnzFormTab>
+					<DnzFormTab Tab=tab OnTabChanged=@HandleTabChange Client=Client OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-14")></DnzFormTab>
 				}
 			}
 		</div>
@@ -29,7 +29,7 @@
 					{
 						<RadzenTabsItem class="h-100" Text="@tab.TabName" @key=@(tab.TabToken + "-93")>
 							<div style="height: 100%;overflow:scroll">
-								<DnzFormTab OnTabChanged=@HandleTabChange Client=Client ReportTemplate=ReportTemplate OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-94") Tab=tab></DnzFormTab>
+								<DnzFormTab OnTabChanged=@HandleTabChange Client=Client OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-94") Tab=tab></DnzFormTab>
 							</div>
 						</RadzenTabsItem>
 					}
@@ -73,7 +73,6 @@
 	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.FormDetail FormList { get; set; }
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
-	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
 	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 	/// <summary>

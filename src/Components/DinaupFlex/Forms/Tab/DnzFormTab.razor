@@ -14,7 +14,7 @@ else
 
 		@foreach (var control in Tab.Containers.Values)
 		{
-			<DnzContainer @key=@control.Token OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client ReportTemplate=ReportTemplate />
+			<DnzContainer @key=@control.Token OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client />
 		}
 
 		@foreach (var currentControl in Tab.Controls ?? new())
@@ -43,7 +43,6 @@ else
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.FormDetail> OnOpenListItem { get; set; }
 
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
-	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
 	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 

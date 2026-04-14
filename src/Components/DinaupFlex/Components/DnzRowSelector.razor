@@ -5,7 +5,7 @@
 
 <ErrorBoundary>
 	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap dnz-rs-has-label")>
-		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@Style>
+		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@($"width:{Width};" + Style)>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
 					<RadzenIcon Icon=@Icon />
@@ -34,20 +34,22 @@
 			</ChildContent>
 			<End>
 				<div class="dnz-rs-end">
-					@if (SelectedRow.IsNotEmpty()) {
-						@if (Disabled == false) {
-							<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover dnz-rs-hover-action" onclick=@(() => OnClearClick()) />
-						}
-						@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-							<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover dnz-rs-hover-action" onclick=@(() => OnOpenClick()) />
-						}
-					} else if (Disabled == false && OnAdd.HasDelegate) {
-						<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover dnz-rs-hover-action" onclick=@(() => OnAddClick()) />
-					}
 					<RadzenIcon Icon="arrow_drop_down" Style=@($"font-size:20px;{(Disabled ? "opacity:0.4;" : "cursor:pointer;")}") class=@(Disabled ? "" : "dnz-icon-hover") @onclick=@(args => ToggleAsync()) />
 				</div>
 			</End>
 		</RadzenFormField>
+		<div class="dnz-rs-actions-overlay">
+			@if (SelectedRow.IsNotEmpty()) {
+				@if (Disabled == false) {
+					<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" onclick=@(() => OnClearClick()) />
+				}
+				@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
+					<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnOpenClick()) />
+				}
+			} else if (Disabled == false && OnAdd.HasDelegate) {
+				<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" onclick=@(() => OnAddClick()) />
+			}
+		</div>
 	</div>
 </ErrorBoundary>
 
@@ -60,14 +62,30 @@
 
 <style>
 	.dnz-rs-wrap { position: relative; overflow: hidden; min-width: 0; }
-	.dnz-rs-compact .rz-form-field-end { padding: 0 !important; }
+	.dnz-rs-wrap .dropdown-menu-component .rz-form-field-end { padding: 0 4px 0 0 !important; }
 	.dnz-rs-wrap .rz-form-field { overflow: hidden; min-width: 0; }
 	.dnz-rs-wrap .rz-form-field-content { overflow: hidden; min-width: 0; }
 	.dnz-rs-wrap .dropdown-menu-component { overflow: hidden; min-width: 0; }
-	.dnz-rs-end { display: flex; align-items: center; gap: 2px; height: 100%; }
-	.dnz-rs-hover-action { opacity: 0; width: 0; overflow: hidden; transition: opacity .15s, width .15s; display: flex; align-items: center; }
-	.dnz-rs-wrap:hover .dnz-rs-hover-action { opacity: 0.7; width: 20px; }
-	.dnz-rs-wrap:hover .dnz-rs-hover-action:hover { opacity: 1; }
+	.dnz-rs-end { display: flex; align-items: center; height: 100%; }
+	.dnz-rs-actions-overlay {
+		position: absolute;
+		right: 24px;
+		top: 4px;
+		bottom: 4px;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		padding-left: 20px;
+		background: linear-gradient(90deg, transparent 0%, var(--rz-panel-background-color, #fff) 30%);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity .15s;
+		z-index: 1;
+	}
+	.dnz-rs-wrap:hover .dnz-rs-actions-overlay {
+		opacity: 1;
+		pointer-events: auto;
+	}
 	.dnz-rs-content { display:flex; align-items:center; padding:4px 10px; border-radius:6px; flex:1; cursor:pointer; min-height:36px; overflow:hidden; min-width:0; }
 	.dnz-rs-with-label { padding-top:20px; min-height:54px; }
 	.dnz-rs-required label { color: red !important; }
@@ -106,6 +124,7 @@
 	ElementReference containerRef;
 	Popup popup;
 
+	[Parameter] public string Width { get; set; } = "280px";
 	[Parameter] public string Style { get; set; } = "flex:1";
 	[Parameter] public string Placeholder { get; set; }
 	[Parameter] public EventCallback<IDinaupRow> SelectedRowChanged { get; set; }

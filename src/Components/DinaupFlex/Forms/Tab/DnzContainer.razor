@@ -12,10 +12,7 @@
 		@if (Container.Botones.IsNotEmpty())
 		{
 			<div style="height:calc(100% - 40px)">
-				@if (ReportTemplate != null)
-				{
-					@ReportTemplate(Container.TokenList)
-				}
+				<DnzReportView ShowAdd=false Client=Client ReportId=@Container.TokenList />
 			</div>
 
 			<div class="pt-2">
@@ -27,10 +24,7 @@
 		}
 		else
 		{
-			@if (ReportTemplate != null)
-			{
-				@ReportTemplate(Container.TokenList)
-			}
+			<DnzReportView Client=Client ReportId=@Container.TokenList />
 		}
 	}
 	else if (Container.IsPrimaryList)
@@ -49,7 +43,6 @@
 
 	[Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
-	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
 	[Parameter] public EventCallback<string> OnButtonClick { get; set; }
 	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.Container Container { get; set; }
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }

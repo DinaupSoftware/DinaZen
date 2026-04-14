@@ -247,13 +247,18 @@
 	private string SettingsKey => $"dnz-report-{new Uri(NavigationManager.Uri).AbsolutePath}-{ReportId}";
 
 	private DataGridSettings _settings;
+	private bool _settingsLoaded;
 
 
 	private async Task LoadSettingsAsync() {
+		if (_settingsLoaded) return;
+		_settingsLoaded = true;
 		try {
 			var json = await JS.InvokeAsync<string>("localStorage.getItem", SettingsKey);
-			if (json.IsNotEmpty())
+			if (json.IsNotEmpty()) {
 				_settings = System.Text.Json.JsonSerializer.Deserialize<DataGridSettings>(json);
+				if (_settings.IsNotNull()) _settings.CurrentPage = 0;
+			}
 		} catch { }
 	}
 

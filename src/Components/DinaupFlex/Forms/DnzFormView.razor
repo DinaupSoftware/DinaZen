@@ -76,7 +76,7 @@ else if (_virtualForm.IsNotNull())
 						  OnAddItem="HandleAddItem"
 						  OnOpenListItem="HandleOpenListItem"
 						  OnDeleteItemPrimaryList="HandleDeleteListItem"
-						  Client="Client" ReportTemplate="ReportTemplate" OnFormatearCodigo="OnFormatearCodigo" />
+						  Client="Client" OnFormatearCodigo="OnFormatearCodigo" />
 			}
 		</div>
 
@@ -96,7 +96,7 @@ else if (_virtualForm.IsNotNull())
 									  OnAddItem="HandleAddItem"
 									  OnOpenListItem="HandleOpenListItem"
 									  OnDeleteItemPrimaryList="HandleDeleteListItem"
-									  Client="Client" ReportTemplate="ReportTemplate" OnFormatearCodigo="OnFormatearCodigo" />
+									  Client="Client" OnFormatearCodigo="OnFormatearCodigo" />
 						</RadzenTabsItem>
 					}
 				</Tabs>
@@ -193,11 +193,6 @@ else if (_errorMessage.IsNotEmpty())
 	/// ID del usuario (opcional).
 	/// </summary>
 	[Parameter] public string UserId { get; set; } = "";
-
-	/// <summary>
-	/// Template para renderizar reportes embebidos en containers.
-	/// </summary>
-	[Parameter] public RenderFragment<string> ReportTemplate { get; set; }
 
 	/// <summary>
 	/// Callback para formatear codigos contables (subcuenta).
@@ -694,7 +689,6 @@ else if (_errorMessage.IsNotEmpty())
 				{ nameof(DnzFormList.FormList), formList },
 				{ nameof(DnzFormList.OnTabChanged), tabCallback },
 				{ nameof(DnzFormList.Client), Client },
-				{ nameof(DnzFormList.ReportTemplate), ReportTemplate },
 			};
 			if (OnFormatearCodigo != null)
 				parameters.Add(nameof(DnzFormList.OnFormatearCodigo), OnFormatearCodigo);
@@ -781,7 +775,6 @@ else if (_errorMessage.IsNotEmpty())
 		DinaupClientC client,
 		string sectionId,
 		string datoId = "",
-		RenderFragment<string> reportTemplate = null,
 		string title = "",
 		string width = "1000px",
 		string height = "85%")
@@ -792,9 +785,6 @@ else if (_errorMessage.IsNotEmpty())
 			{ nameof(SectionId), sectionId },
 			{ nameof(DatoId), datoId ?? "" }
 		};
-
-		if (reportTemplate != null)
-			parameters.Add(nameof(ReportTemplate), reportTemplate);
 
 		var options = new DialogOptions
 		{
