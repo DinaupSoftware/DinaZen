@@ -800,10 +800,6 @@ textarea.rz-textarea {
     box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
 }
 
-.dnp-form-tab .rz-button:active {
-    transform: scale(.97);
-}
-
 
 /* ================================================================
    15. FILE UPLOAD CARDS
