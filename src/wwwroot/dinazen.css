@@ -357,3 +357,23 @@ header:has(+ .dnz-card-body) {
 .dnz-imged-crop-bar { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px; padding:5px 8px; background:var(--rz-base-100); border:1px solid var(--rz-base-300); border-radius:6px; box-shadow:0 4px 16px rgba(0,0,0,.15); z-index:10; }
 .dnz-imged-side-panel { width:200px; background:var(--rz-base-100); border-left:1px solid var(--rz-base-300); flex-shrink:0; overflow-y:auto; }
 .dnz-imged-footer { display:flex; align-items:center; padding:4px 10px; background:var(--rz-base-100); border-top:1px solid var(--rz-base-300); font:10px/1 monospace; color:var(--rz-text-tertiary-color); min-height:24px; flex-shrink:0; }
+
+/* DnzConfirmDialog — evita que se corte cuando se abre encima de otros diálogos */
+.rz-dialog.dnz-confirm-dialog,
+.rz-dialog-wrapper.dnz-confirm-dialog {
+    min-height: 260px;
+    max-height: 90vh;
+}
+.rz-dialog.dnz-confirm-dialog .rz-dialog-content,
+.rz-dialog-wrapper.dnz-confirm-dialog .rz-dialog-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+    max-height: 90vh;
+}
+.rz-dialog.dnz-confirm-dialog .dnz-confirm-root,
+.rz-dialog-wrapper.dnz-confirm-dialog .dnz-confirm-root {
+    flex: 1;
+    min-height: 260px;
+}

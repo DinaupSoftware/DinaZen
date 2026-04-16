@@ -1,17 +1,16 @@
-<div class="d-flex flex-column">
-	<div class="d-flex align-items-center gap-2 px-3 py-2" style="border-bottom:1px solid var(--rz-border-color, #e0e0e0);">
+<div class="dnz-confirm-root d-flex flex-column">
+	<div class="d-flex align-items-center gap-2 px-3 py-2" style="border-bottom:1px solid var(--rz-border-color, #e0e0e0); flex-shrink:0;">
 		<RadzenIcon Icon=@_headerIcon Style=@($"color:{_accentColor}; font-size:20px") />
-		<span style="font-weight:600; font-size:0.95em;">@Title</span>
-		<div style="flex:1"></div>
-		<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small" Click="@(() => DialogService.Close(false))" Style="opacity:0.6" />
+		<span style="font-weight:600; font-size:0.95em; flex:1; min-width:0;">@Title</span>
+		<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small" Click="@(() => DialogService.Close(false))" Style="opacity:0.6; flex-shrink:0;" />
 	</div>
-	<div class="d-flex flex-column align-items-center gap-3 py-4 px-4" style="text-align:center;">
-		<div class="d-flex align-items-center justify-content-center" style="width:56px; height:56px; border-radius:50%; background:@_accentBg;">
+	<div class="d-flex flex-column align-items-center gap-3 py-4 px-4" style="text-align:center; flex:1; min-height:0; overflow-y:auto;">
+		<div class="d-flex align-items-center justify-content-center" style="width:56px; height:56px; border-radius:50%; background:@_accentBg; flex-shrink:0;">
 			<RadzenIcon Icon=@_bodyIcon Style=@($"font-size:28px; color:{_accentColor};") />
 		</div>
-		<span style="font-size:0.92em; color:var(--rz-text-secondary-color); max-width:380px; line-height:1.5;">@Message</span>
+		<span style="font-size:0.95em; color:var(--rz-text-color); line-height:1.55;">@Message</span>
 	</div>
-	<div class="d-flex justify-content-end gap-2 align-items-center px-3 py-2" style="border-top:1px solid var(--rz-border-color, #e0e0e0);">
+	<div class="d-flex justify-content-end gap-2 align-items-center px-3 py-2" style="border-top:1px solid var(--rz-border-color, #e0e0e0); flex-shrink:0;">
 		<RadzenButton Click="@(() => DialogService.Close(false))" ButtonStyle="ButtonStyle.Secondary" Text=@CancelText Variant="Variant.Text" Style="opacity:0.8" />
 		<RadzenButton Click="@(() => DialogService.Close(true))" ButtonStyle=@_okButtonStyle Text=@OkText Icon=@_headerIcon Variant="Variant.Flat" />
 	</div>
@@ -71,11 +70,13 @@
 			{ nameof(Severity), severity },
 		};
 		var options = new DialogOptions() {
-			Width = "420px",
+			Width = "min(520px, 92vw)",
+			Height = "auto",
 			ShowClose = false,
 			ShowTitle = false,
 			CloseDialogOnOverlayClick = true,
-			CloseDialogOnEsc = true
+			CloseDialogOnEsc = true,
+			CssClass = "dnz-confirm-dialog"
 		};
 
 		var result = await dialogService.OpenAsync<DnzConfirmDialog>("Confirm", parameters, options);
