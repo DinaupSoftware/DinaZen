@@ -14,16 +14,15 @@
 	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
 	<div class="dnz-report-view">
-		@if (ShowTitle) {
+		@if (ShowTitle || ShowSearch) {
 			<div class="dnz-report-header">
-				@if (_dataList.Section.IsNotNull()) {
+				@if (ShowTitle && _dataList.Section.IsNotNull()) {
 					<img onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src="@($"https://dinaupcdn.com/public/{_dataList.Section.IconoID.STR()}.png")" width="33" height="33" style="border-radius:4px" />
 				}
-				<span>@Title.IfIsEmpty(_dataList.Title)</span>
-
+				@if (ShowTitle) {
+					<span>@Title.IfIsEmpty(_dataList.Title)</span>
+				}
 				<div class="d-flex align-items-center gap-2 ms-auto">
-
-
 					<RadzenButton Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
 					<RadzenTextBox Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
 					<RadzenButton Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV" />
