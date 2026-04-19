@@ -25,6 +25,15 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Setup NuGet source (DinaupSoftware GitHub Packages)
+        run: |
+          dotnet nuget add source \
+            --username ${{ github.actor }} \
+            --password ${{ secrets.GITHUB_TOKEN }} \
+            --store-password-in-clear-text \
+            --name github-dsl \
+            "https://nuget.pkg.github.com/DinaupSoftware/index.json"
+
       - name: Restore dependencies
         run: dotnet restore src/DinaZen.csproj
 
