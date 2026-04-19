@@ -45,3 +45,48 @@
 .dnz-filename-compact-action:hover {
     opacity: 0.7;
 }
+
+/* Horizontal variant */
+.dnz-filename-horizontal {
+    font-size: 13px;
+}
+
+.dnz-filename-horizontal__name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dnz-filename-horizontal__size {
+    color: var(--rz-text-secondary-color);
+    white-space: nowrap;
+}
+
+.dnz-filename-horizontal__link {
+    display: inline-flex;
+    color: var(--rz-primary);
+    text-decoration: none;
+}
+
+.dnz-filename-horizontal__btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: inline-flex;
+    color: var(--rz-primary);
+    padding: 0;
+}
+
+/* Badge variant */
+.dnz-filename-badge {
+    width: fit-content;
+    margin: 10px;
+}
+
+.dnz-filename-badge__inner {
+    width: fit-content;
+}
+
+.dnz-filename-badge__action {
+    margin-left: 13px;
+}

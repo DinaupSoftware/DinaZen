@@ -1,0 +1,6 @@
+.dz-kpi-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(var(--dz-kpi-min, 220px), 1fr));
+	gap: 1rem;
+	width: 100%;
+}

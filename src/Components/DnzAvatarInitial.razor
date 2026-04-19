@@ -4,7 +4,12 @@
 	var colors = ColorMap.TryGetValue(key, out var c) ? c : ("#607d8b", "#455a64");
 }
 
-<div @onclick=Click class="dz-avatar-initial @(OnClick.HasDelegate ? "cursor-pointer" : "")" style="width: @Size; height: @Size; background: linear-gradient(135deg, @colors.Item1, @colors.Item2); @Style">
+<div @onclick=Click
+	 class="dz-avatar-initial @(OnClick.HasDelegate ? "cursor-pointer" : "")"
+	 style="width: @Size; height: @Size; background: linear-gradient(135deg, @colors.Item1, @colors.Item2); @Style"
+	 role=@(OnClick.HasDelegate ? "button" : "img")
+	 aria-label=@($"Avatar: {(Data.IsNotEmpty() ? Data : "sin datos")}")
+	 title=@Data>
 	@initial
 </div>
 

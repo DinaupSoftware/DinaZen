@@ -3,7 +3,7 @@
 
 <div class="d-flex gap-2 align-items-center flex-wrap">
 
-	<RadzenFormField Text="Range" Variant="Variant.Flat" class="min-w-[240px]">
+	<RadzenFormField Text="Range" Variant="Variant.Flat" Style="min-width:240px">
 		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" />
 	</RadzenFormField>
 

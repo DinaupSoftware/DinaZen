@@ -20,9 +20,9 @@
 		string _color = "";
 
 		if (AutoColor && Value.HasValue && Value.Value > 100)
-			_color = "color:#6A0808";
+			_color = "color:var(--dnz-danger-color-dark, #6A0808);";
 		else if (AutoColor && Value.HasValue && Value.Value > 50)
-			_color = "color:#B45309";
+			_color = "color:var(--dnz-warning-color-dark, #B45309);";
 
 		_class = Class + " numspan";
 		_style = $"font-size:{FontSize}; width: fit-content; word-break: keep-all; white-space: nowrap;{_color}";

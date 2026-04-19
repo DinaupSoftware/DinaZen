@@ -5,7 +5,7 @@
 
 .dz-progress-track {
 	height: 8px;
-	background-color: #f0f0f0;
+	background-color: var(--rz-base-200, #f0f0f0);
 	border-radius: 3px;
 	position: relative;
 }
@@ -15,7 +15,7 @@
 	top: -2px;
 	bottom: -2px;
 	width: 2px;
-	background-color: #666;
+	background-color: var(--dnz-neutral-color-dark, #666);
 	z-index: 2;
 }
 

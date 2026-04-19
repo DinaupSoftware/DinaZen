@@ -26,9 +26,9 @@
 		string _color = "";
 
 		if (AutoColor && Value.HasValue && Value.Value > 0)
-			_color = "color:#086F0C";
+			_color = "color:var(--dnz-success-color-dark, #086F0C);";
 		else if (AutoColor && Value.HasValue && Value.Value < 0)
-			_color = "color:#6A0808";
+			_color = "color:var(--dnz-danger-color-dark, #6A0808);";
 
 		_class = Class + " numspan";
 		_style = $"font-size:{FontSize};     width: fit-content;word-break: keep-all; white-space: nowrap;{_color}";

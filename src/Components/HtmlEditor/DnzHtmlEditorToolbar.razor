@@ -3,11 +3,11 @@
 <div class="dnz-het d-flex align-items-center gap-1 flex-wrap @Class" style="@Style">
 	@if (_tools.IsNotNull() && _tools.Any())
 	{
-		<span style="font-size:11px; opacity:0.5; margin-right:2px;">IA:</span>
+		<span class="dnz-het__label">IA:</span>
 		@foreach (var tool in _tools.OrderBy(t => t.Order))
 		{
 			var t = tool;
-			<RadzenButton Icon=@t.Icon Text=@t.Name Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@(() => RunTool(t)) Disabled=@_isBusy title=@t.Description ButtonStyle="ButtonStyle.Light" />
+			<RadzenButton @key="t" Icon=@t.Icon Text=@t.Name Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@(() => RunTool(t)) Disabled=@_isBusy title=@t.Description ButtonStyle="ButtonStyle.Light" />
 		}
 		@if (_isBusy)
 		{

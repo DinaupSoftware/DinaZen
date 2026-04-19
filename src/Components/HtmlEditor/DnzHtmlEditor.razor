@@ -2,7 +2,7 @@
 
 <div class="d-flex flex-column @Class" style="@Style">
 	<RadzenHtmlEditor @bind-Value=@Value @bind-Value:after=@OnValueChanged Style=@EditorStyle UploadUrl=@UploadUrl />
-	<DnzHtmlEditorToolbar @bind-Value=@Value @bind-Value:after=@OnValueChanged Context=@Context Style="padding:4px 8px; border:1px solid var(--rz-border-color); border-top:none; border-radius:0 0 4px 4px; background:var(--rz-base-100);" />
+	<DnzHtmlEditorToolbar @bind-Value=@Value @bind-Value:after=@OnValueChanged Context=@Context Class="dnz-html-editor-toolbar" />
 </div>
 
 @code {

@@ -17,8 +17,8 @@
 		overflow-y: auto;
 	}
 
-	.dialog-estandar-layout--styled{
-		background:gray
+	.dialog-estandar-layout--styled {
+		background: var(--dnz-tab-content-bg, #f0f1f3);
 	}
 </style>
 
@@ -36,7 +36,7 @@
 					{
 						<RadzenIcon Icon="@Icon" Style="color:var(--rz-primary); font-size:20px" />
 					}
-					<span style="font-weight:600">@Title</span>
+					<span class="fw-semibold">@Title</span>
 				</div>
 				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
 							  Click="@Cerrar" Style="opacity:0.6" />
@@ -55,7 +55,7 @@
 		}
 		else
 		{
-			<div class="d-flex justify-content-end gap-1 align-items-center" style="margin-right:20px">
+			<div class="d-flex justify-content-end gap-1 align-items-center me-4">
 				<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" />
 			</div>
 		}

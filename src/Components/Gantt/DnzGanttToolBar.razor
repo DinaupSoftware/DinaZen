@@ -49,9 +49,10 @@
 		<div class="modes-container">
 			@foreach (var mode in Modes)
 			{
-				<button type="button" class=@($"mode-btn {(mode == Viewport.ViewMode ? "active" : "")}") @onclick="() => SetMode(mode)" title="@GetModeText(mode)">
-					@GetModeIcon(mode)
-					<span>@GetModeText(mode)</span>
+				var currentMode = mode;
+				<button type="button" class=@($"mode-btn {(currentMode == Viewport.ViewMode ? "active" : "")}") @onclick="() => SetMode(currentMode)" title="@GetModeText(currentMode)" @key="currentMode">
+					@GetModeIcon(currentMode)
+					<span>@GetModeText(currentMode)</span>
 				</button>
 			}
 		</div>

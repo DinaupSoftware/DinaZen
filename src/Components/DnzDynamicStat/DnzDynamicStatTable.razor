@@ -64,7 +64,7 @@
 				var percentage = total > 0 ? (item.Value / total * 100) : 0;
 				var isTop3 = rank <= 3;
 
-				<div class="dnz-stat-row @(isTop3 ? "top-rank" : "")" style="animation-delay:@(rank * 30)ms">
+				<div class="dnz-stat-row @(isTop3 ? "top-rank" : "")" style="animation-delay:@(rank * 30)ms" @key="item.Category">
 					<div class="dnz-stat-rank @(isTop3 ? $"rank-{rank}" : "")">
 						@if (rank == 1)
 						{

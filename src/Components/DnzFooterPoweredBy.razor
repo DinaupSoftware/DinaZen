@@ -1,32 +1,29 @@
 @using Dinaup
 @using Microsoft.AspNetCore.Components
 
-<footer class="@GetFooterClass()" style="@GetFooterStyle()">
+<footer class="@GetFooterClass()">
     @if (Style == FooterStyleType.Compact)
     {
-        <p style="margin: 0; text-align: right; color: #999; font-family: Arial, sans-serif; font-size: 13px;">
+        <p class="dnz-footer-powered__compact-text">
             <i>Powered by</i>
             <a href="https://dinaup.com"
                target="_blank"
                rel="noopener noreferrer"
                title="Dinaup"
-               style="display: inline-block; vertical-align: middle; margin-left:10px">
-                <img src="https://dinaupcdn.com/logo.png"
-                     alt="Logo Dinaup"
-                     style="height: 24px; position: relative; top: -1px;">
+               class="dnz-footer-powered__compact-logo">
+                <img src="https://dinaupcdn.com/logo.png" alt="Logo Dinaup" />
             </a>
         </p>
     }
     else
     {
-        <div style="display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
-            <span style="color: #6b7280; font-size: 0.9rem;">Powered by</span>
+        <div class="dnz-footer-powered__modern-row">
+            <span class="dnz-footer-powered__modern-label">Powered by</span>
             <a href="https://dinaup.com"
                target="_blank"
-               style="text-decoration: none; color: #9ca3af;">
-                <img src="https://dinaupcdn.com/logo.png"
-                     alt="Dinaup"
-                     style="height: 32px; vertical-align: middle;">
+               rel="noopener noreferrer"
+               class="dnz-footer-powered__modern-link">
+                <img src="https://dinaupcdn.com/logo.png" alt="Dinaup" />
             </a>
         </div>
     }
@@ -38,20 +35,11 @@
 
     private string GetFooterClass() => Style switch
     {
-        FooterStyleType.Compact => "",
-        FooterStyleType.Modern => "",
-        _ => ""
+        FooterStyleType.Compact => "dnz-footer-powered",
+        FooterStyleType.Modern => "dnz-footer-powered dnz-footer-powered--modern",
+        _ => "dnz-footer-powered"
     };
 
-    private string GetFooterStyle() => Style switch
-    {
-        FooterStyleType.Compact => "padding: 20px 25px;",
-        FooterStyleType.Modern => "background: #ffffff; padding: 0.1rem 0.1rem; text-align: center;;",
-        _ => ""
-    };
-}
-
-@code {
     public enum FooterStyleType
     {
         Compact,

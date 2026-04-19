@@ -1,0 +1,49 @@
+@* DnzKpiInline - Compact horizontal KPI strip for footers, card summaries or meta lines (GitHub-style). *@
+
+<span class="dz-kpi-inline @Class" style="@Style">
+	@for (int i = 0; i < Items.Count; i++)
+	{
+		var item = Items[i];
+		if (i > 0 && Separator != SeparatorType.None)
+		{
+			<span class="dz-kpi-inline-sep">@_separatorChar</span>
+		}
+		<span class="dz-kpi-inline-item" title="@item.Tooltip">
+			@if (string.IsNullOrEmpty(item.Icon) == false)
+			{
+				var iconColor = string.IsNullOrEmpty(item.IconColor) ? item.ValueColor : item.IconColor;
+				<RadzenIcon Icon="@item.Icon" Style="@($"font-size: 15px; opacity: 0.75; color: {iconColor};")" />
+			}
+			@if (string.IsNullOrEmpty(item.Label) == false)
+			{
+				<span class="dz-kpi-inline-label">@item.Label</span>
+			}
+			<span class="dz-kpi-inline-value" style="@($"color: {item.ValueColor};")">@item.Value</span>
+		</span>
+	}
+</span>
+
+@code {
+	[Parameter] public List<ItemModel> Items { get; set; } = new();
+	[Parameter] public SeparatorType Separator { get; set; } = SeparatorType.MiddleDot;
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+
+	private string _separatorChar => Separator switch
+	{
+		SeparatorType.MiddleDot => "·",
+		SeparatorType.Pipe => "|",
+		SeparatorType.Slash => "/",
+		_ => ""
+	};
+
+	public enum SeparatorType { None, MiddleDot, Pipe, Slash }
+
+	public record ItemModel(
+		string Label,
+		string Value,
+		string Icon = "",
+		string ValueColor = "",
+		string IconColor = "",
+		string Tooltip = "");
+}

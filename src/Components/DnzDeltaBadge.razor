@@ -1,0 +1,37 @@
+@if (Value.HasValue)
+{
+	var v = Value.Value;
+	var isZero = v == 0m;
+	var isPositive = v > 0m;
+	var isGood = isZero ? (bool?)null : (isPositive != InvertColors);
+
+	var bgColor = isZero ? "#eceff1" : (isGood == true ? "#d4f4dd" : "#fde2e1");
+	var textColor = isZero ? "#546e7a" : (isGood == true ? "#1b5e20" : "#b71c1c");
+	var icon = isZero ? "trending_flat" : (isPositive ? "trending_up" : "trending_down");
+
+	var sign = isZero ? "" : (isPositive ? "+" : "-");
+	var format = IsPercent ? "0.#" : "N0";
+	var display = $"{sign}{Math.Abs(v).ToString(format, System.Globalization.CultureInfo.InvariantCulture)}{(IsPercent ? "%" : "")}";
+
+	var fontSize = Size == SizeType.Small ? "0.72rem" : "0.85rem";
+	var paddingY = Size == SizeType.Small ? "2px" : "3px";
+	var paddingX = Size == SizeType.Small ? "6px" : "9px";
+	var iconSize = Size == SizeType.Small ? "14px" : "16px";
+
+	<span class="d-inline-flex align-items-center gap-1"
+		  style="@($"background: {bgColor}; color: {textColor}; padding: {paddingY} {paddingX}; border-radius: 999px; font-size: {fontSize}; font-weight: 600; line-height: 1;")"
+		  title="@Tooltip">
+		<RadzenIcon Icon="@icon" Style="@($"font-size: {iconSize};")" />
+		<span>@display</span>
+	</span>
+}
+
+@code {
+	[Parameter] public decimal? Value { get; set; }
+	[Parameter] public bool IsPercent { get; set; } = true;
+	[Parameter] public bool InvertColors { get; set; } = false;
+	[Parameter] public SizeType Size { get; set; } = SizeType.Normal;
+	[Parameter] public string Tooltip { get; set; } = "";
+
+	public enum SizeType { Small, Normal }
+}

@@ -53,7 +53,7 @@
             @foreach (var item in items)
             {
                 var current = item;
-                <div class="dz-taglist-tag">
+                <div class="dz-taglist-tag" @key="current">
                     <span class="dz-taglist-tag-text">@current</span>
                     @if (ReadOnly == false)
                     {

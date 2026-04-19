@@ -1,0 +1,16 @@
+<div class="dz-kpi-row @Class" style="@GetComputedStyle()">
+	@ChildContent
+</div>
+
+@code {
+	[Parameter] public RenderFragment ChildContent { get; set; }
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string Style { get; set; } = "";
+	[Parameter] public int MinCardWidth { get; set; } = 220;
+
+	private string GetComputedStyle()
+	{
+		var baseStyle = $"--dz-kpi-min: {MinCardWidth}px;";
+		return string.IsNullOrEmpty(Style) ? baseStyle : $"{baseStyle} {Style}";
+	}
+}

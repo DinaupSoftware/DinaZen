@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Radzen;
 
 namespace DinaZen.Components.WindowManager;
 
@@ -6,17 +7,60 @@ namespace DinaZen.Components.WindowManager;
 /// Servicio scoped que gestiona ventanas flotantes tipo macOS.
 /// Un instancia por circuito Blazor.
 /// </summary>
-public class DnzWindowManagerService
+public class DnzWindowManagerService : IDisposable
 {
 	private readonly List<WindowState> _windows = new();
 	private readonly List<string> _pendingReposition = new();
+	private readonly DialogService _dialogService;
 	private int _zCounter = 100;
 	private int _openCount = 0;
+	private int _activeModals = 0;
 
 	public const int MaxWindows = 6;
 	public IReadOnlyList<WindowState> Windows => _windows;
 	public event Action OnChanged;
 	public event Action OnMaxWindowsReached;
+
+	public DnzWindowManagerService(DialogService dialogService)
+	{
+		_dialogService = dialogService;
+		if (_dialogService != null)
+		{
+			_dialogService.OnOpen += HandleDialogOpen;
+			_dialogService.OnClose += HandleDialogClose;
+		}
+	}
+
+	private void HandleDialogOpen(string title, Type type, Dictionary<string, object> parameters, DialogOptions options)
+	{
+		_activeModals++;
+	}
+
+	private void HandleDialogClose(dynamic result)
+	{
+		if (_activeModals > 0) _activeModals--;
+		// Al cerrar el ultimo modal, las ventanas que estaban encima ya no necesitan estarlo:
+		// si luego aparece otro modal, debe tapar a esas ventanas preexistentes.
+		if (_activeModals == 0)
+		{
+			var reseted = false;
+			foreach (var win in _windows)
+			{
+				if (win.AboveModal) { win.AboveModal = false; reseted = true; }
+			}
+			if (reseted) NotifyChanged();
+		}
+	}
+
+	public void Dispose()
+	{
+		if (_dialogService != null)
+		{
+			_dialogService.OnOpen -= HandleDialogOpen;
+			_dialogService.OnClose -= HandleDialogClose;
+		}
+		GC.SuppressFinalize(this);
+	}
 
 	// Viewport dimensions (updated from JS via SetViewport)
 	// Defaults conservadores: si JS no llega a tiempo, usamos valores seguros
@@ -177,6 +221,7 @@ public class DnzWindowManagerService
 			Y = Math.Round(y),
 			ZIndex = ++_zCounter,
 			IsActive = true,
+			AboveModal = _activeModals > 0,
 			Content = content
 		};
 

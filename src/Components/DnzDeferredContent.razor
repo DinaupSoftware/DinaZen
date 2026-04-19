@@ -10,6 +10,7 @@ else
 	}
 	else
 	{
+
 		<div class="@Class">
 			<DnzSkeleton />
 		</div>
@@ -37,7 +38,11 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		await Task.Delay(DelayMs);
-		IsLoaded = true;
+		_=Task.Delay(DelayMs).ContinueWith((e) =>
+		{
+			IsLoaded = true;
+			InvokeAsync(StateHasChanged);
+		});
+		
 	}
 }

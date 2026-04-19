@@ -1,0 +1,12 @@
+.dnz-search-input {
+    border-radius: 6px;
+    border: 1px solid var(--rz-input-border);
+}
+
+.dnz-search-input__field {
+    border: none;
+    outline: none;
+    flex: 1;
+    width: 100%;
+    background: transparent;
+}

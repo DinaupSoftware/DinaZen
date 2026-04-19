@@ -4,16 +4,24 @@
 @inject IJSRuntime JS
 @inject Radzen.NotificationService NotificationService
 
-<div class="dnz-window-host">
+<div class="dnz-window-host dnz-window-host-normal">
 	@foreach (var win in WM.Windows)
 	{
+		if (win.AboveModal) continue;
 		<DnzWindow @key="win.Id" State="win" OnCloseRequest="HandleClose" OnMinimizeRequest="HandleMinimize" OnMaximizeRequest="HandleMaximize" OnFocusRequest="HandleFocus" />
 	}
-	@if (WM.Windows.Any())
+</div>
+<div class="dnz-window-host dnz-window-host-above-modal">
+	@foreach (var win in WM.Windows)
 	{
-		<DnzTaskbar />
+		if (win.AboveModal == false) continue;
+		<DnzWindow @key="win.Id" State="win" OnCloseRequest="HandleClose" OnMinimizeRequest="HandleMinimize" OnMaximizeRequest="HandleMaximize" OnFocusRequest="HandleFocus" />
 	}
 </div>
+@if (WM.Windows.Any())
+{
+	<DnzTaskbar />
+}
 
 @code {
 	private IJSObjectReference _jsModule;

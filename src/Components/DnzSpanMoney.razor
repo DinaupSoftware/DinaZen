@@ -57,9 +57,9 @@
         var color = "";
 
         if ((AutoColor || AutoColorGreen) && Amount > 0)
-            color = "color:#086F0C";
+            color = "color:var(--dnz-success-color-dark, #086F0C);";
         else if ((AutoColor || AutoColorRed) && Amount < 0)
-            color = "color:#ff444b";
+            color = "color:var(--dnz-danger-color-alt, #ff444b);";
 
         _cssClass = $"{CssClass} numspan";
         _style = $"font-size:{FontSize}; width:fit-content; word-break:keep-all; white-space:nowrap; {color}";

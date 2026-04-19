@@ -1,16 +1,16 @@
 @namespace DinaZen.Components
 @implements IAsyncDisposable
 
-<span id="@_selector" style="display:inline-flex; align-items:center; gap:6px">
+<span id="@_selector" class="dnz-upload-wrapper">
 	@if (UseDashboard == false && _isUploading)
 	{
 		<RadzenProgressBarCircular Value="@_uploadProgress"  Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="@(_uploadProgress > 0 ? ProgressBarMode.Determinate : ProgressBarMode.Indeterminate)" />
-		<span style="font-size:12px; white-space:nowrap">Subiendo @(_uploadProgress)%</span>
+		<span class="dnz-upload-status">Subiendo @(_uploadProgress)%</span>
 	}
 	else if (UseDashboard == false && _isRegistering)
 	{
 		<RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" ProgressBarStyle="ProgressBarStyle.Success" />
-		<span style="font-size:12px">Confirmando...</span>
+		<span class="dnz-upload-status">Confirmando...</span>
 	}
 	else
 	{

@@ -49,14 +49,19 @@
 
 	private bool GoalAchieved => CurrentProgress >= 100;
 
-	private string GetProgressColor() => GoalAchieved ? "#4CAF50" : "#666";
+	private const string SuccessColor = "var(--dnz-success-color-soft, #4CAF50)";
+	private const string WarningColor = "var(--dnz-warning-color-alt, #FF9800)";
+	private const string DangerColor = "var(--dnz-danger-color-soft, #FF5722)";
+	private const string NeutralColor = "var(--dnz-neutral-color-dark, #666)";
+
+	private string GetProgressColor() => GoalAchieved ? SuccessColor : NeutralColor;
 
 	private string GetBarColor()
 	{
-		if (GoalAchieved) return "#4CAF50";
-		if (CurrentProgress >= ExpectedProgress) return "#4CAF50";
-		if (CurrentProgress >= ExpectedProgress * 0.8m) return "#FF9800";
-		return "#FF5722";
+		if (GoalAchieved) return SuccessColor;
+		if (CurrentProgress >= ExpectedProgress) return SuccessColor;
+		if (CurrentProgress >= ExpectedProgress * 0.8m) return WarningColor;
+		return DangerColor;
 	}
 
 	private string GetRhythmIcon()
@@ -69,10 +74,10 @@
 
 	private string GetRhythmColor()
 	{
-		if (GoalAchieved) return "#4CAF50";
+		if (GoalAchieved) return SuccessColor;
 		var diff = CurrentProgress - ExpectedProgress;
-		if (Math.Abs(diff) < 5m) return "#666";
-		return diff > 0 ? "#4CAF50" : "#FF5722";
+		if (Math.Abs(diff) < 5m) return NeutralColor;
+		return diff > 0 ? SuccessColor : DangerColor;
 	}
 
 	private string GetRhythmText()

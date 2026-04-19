@@ -33,10 +33,13 @@
 
 		string _color = "";
 
-		if (AutoColor && Value.HasValue && Value.Value > 1000)
-			_color = "color:#052547";
-		else  
-			_color = "color:#390B0E";
+		if (AutoColor && Value.HasValue)
+		{
+			if (Value.Value > 1000)
+				_color = "color:var(--dnz-info-color, #052547);";
+			else
+				_color = "color:var(--dnz-danger-color, #390B0E);";
+		}
 
 		_class = Class + " numspan";
 		_style = $"font-size:{FontSize}; width: fit-content;word-break: keep-all; white-space: nowrap;{_color}";

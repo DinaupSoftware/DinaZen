@@ -7,7 +7,7 @@
 @if (Horizontal)
 {
 
-	<div class="@ContainerClass">
+	<div class="@ContainerClass" role="group" aria-label="@Key">
 		<RadzenIcon Icon=@Icon IconColor=@IconColor Style="font-size: 14px;" />
 		<small class="text-muted">@Key:</small>
 		<span class="fw-medium" style="@ValueStyle">@if (ChildContent.IsNotNull()) { @ChildContent } else { @Value }</span>
@@ -18,12 +18,12 @@ else
 {
 
 
-	<div class="@ContainerClass">
+	<div class="@ContainerClass" role="group" aria-label="@Key">
 
 
 		@if (Icon.IsNotEmpty() && (Icon.StartsWith("/") || Icon.StartsWith("http")))
 		{
-			<img src=@Icon style="width:24px;height:24px" />
+			<img src=@Icon alt="" class="dnz-spankv__img" />
 		}
 		else if (Icon.IsNotEmpty())
 		{

@@ -1,0 +1,10 @@
+.dnz-upload-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dnz-upload-status {
+    font-size: 12px;
+    white-space: nowrap;
+}

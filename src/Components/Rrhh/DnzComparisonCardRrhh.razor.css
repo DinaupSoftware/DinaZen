@@ -18,9 +18,9 @@
 
 /* ═══════════ Status accent ═══════════ */
 
-.comparison-status-match  { border-left: 3px solid #4caf50; }
-.comparison-status-absent { border-left: 3px solid #ef4444; }
-.comparison-status-warning { border-left: 3px solid #f59e0b; }
+.comparison-status-match  { border-left: 3px solid var(--dnz-success-color-soft, #4caf50); }
+.comparison-status-absent { border-left: 3px solid var(--dnz-danger-color-alt, #ef4444); }
+.comparison-status-warning { border-left: 3px solid var(--dnz-warning-color, #f59e0b); }
 .comparison-status-unknown { border-left: 3px solid var(--dnz-header-border, #ddd); }
 
 /* ═══════════ Header ═══════════ */
@@ -56,9 +56,9 @@
     flex-shrink: 0;
 }
 
-.comparison-status-match  .comparison-status-dot { background: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,.15); }
-.comparison-status-absent .comparison-status-dot { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
-.comparison-status-warning .comparison-status-dot { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+.comparison-status-match  .comparison-status-dot { background: var(--dnz-success-color-soft, #4caf50); box-shadow: 0 0 0 3px rgba(76,175,80,.15); }
+.comparison-status-absent .comparison-status-dot { background: var(--dnz-danger-color-alt, #ef4444); box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
+.comparison-status-warning .comparison-status-dot { background: var(--dnz-warning-color, #f59e0b); box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
 .comparison-status-unknown .comparison-status-dot { background: #cbd5e1; }
 
 .comparison-title {

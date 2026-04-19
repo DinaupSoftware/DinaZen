@@ -53,7 +53,8 @@
                 {
                     var index = i;
                     var entry = entries[index];
-                    <div class="dz-jsonkv-row">
+                    <div class="dz-jsonkv-row" @key="entry">
+
                         <input type="text" class="dz-jsonkv-key" placeholder="key"
                                value="@entry.Key"
                                @onchange="(e => OnKeyChanged(index, e))" />

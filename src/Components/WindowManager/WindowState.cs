@@ -13,6 +13,7 @@ public class WindowState
 	public bool IsMinimized { get; set; }
 	public bool IsMaximized { get; set; }
 	public bool IsActive { get; set; }
+	public bool AboveModal { get; set; }
 	public double X { get; set; } = 80;
 	public double Y { get; set; } = 40;
 	public double Width { get; set; } = 1020;

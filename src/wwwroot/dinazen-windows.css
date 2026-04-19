@@ -29,9 +29,19 @@
 .dnz-window-host {
 	position: fixed;
 	inset: 0;
-	z-index: 1200;
 	pointer-events: none;
 	overflow: hidden;
+}
+
+/* Ventanas normales — debajo de modales Radzen (1250) */
+.dnz-window-host-normal {
+	z-index: 1200;
+}
+
+/* Ventanas abiertas desde DENTRO de un modal — encima del modal activo.
+   Al cerrarse el ultimo modal, AboveModal se resetea y la ventana vuelve al host normal. */
+.dnz-window-host-above-modal {
+	z-index: 1260;
 }
 
 
