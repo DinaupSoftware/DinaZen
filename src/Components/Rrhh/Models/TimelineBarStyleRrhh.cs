@@ -24,9 +24,12 @@ public enum TimelineBarStyleRrhh
     /// <summary>Actual / worked shift — green.</summary>
     ActualShift,
 
-    /// <summary>Absence (unjustified or generic) — amber.</summary>
+    /// <summary>Absence (unjustified or generic) — dark slate.</summary>
     Absence,
 
     /// <summary>Vacation / paid time off — teal.</summary>
-    Vacation
+    Vacation,
+
+    /// <summary>Punch / clock-in record (read-only source of truth) — orange.</summary>
+    Punch
 }

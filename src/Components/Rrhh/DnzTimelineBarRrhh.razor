@@ -86,6 +86,7 @@
         TimelineBarStyleRrhh.ActualShift => "check_circle",
         TimelineBarStyleRrhh.Absence => "person_off",
         TimelineBarStyleRrhh.Vacation => "beach_access",
+        TimelineBarStyleRrhh.Punch => "fingerprint",
         _ => "schedule"
     };
 
@@ -98,6 +99,7 @@
         TimelineBarStyleRrhh.ActualShift => "Turno realizado",
         TimelineBarStyleRrhh.Absence => "Ausencia",
         TimelineBarStyleRrhh.Vacation => "Vacaciones",
+        TimelineBarStyleRrhh.Punch => "Fichaje",
         _ => ""
     };
 
@@ -116,6 +118,7 @@
                 TimelineBarStyleRrhh.ActualShift => "tlbar-actual-shift",
                 TimelineBarStyleRrhh.Absence => "tlbar-absence",
                 TimelineBarStyleRrhh.Vacation => "tlbar-vacation",
+                TimelineBarStyleRrhh.Punch => "tlbar-punch",
                 _ => ""
             };
             return $"{baseClass} {styleClass} {phantomClass} {Class}".Trim();
