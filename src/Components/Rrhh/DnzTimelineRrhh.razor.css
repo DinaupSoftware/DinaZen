@@ -2,6 +2,9 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    flex: 1;
+    min-width: 0;
+    position: relative;
 }
 
 /* ── Hour axis ── */
@@ -40,7 +43,6 @@
 /* ── Track (bar container) ── */
 .timeline-rrhh-track {
     position: relative;
-    min-height: 32px;
     background: var(--dnz-tab-content-bg, #f0f1f3);
     border-radius: 6px;
     overflow: hidden;
@@ -56,4 +58,16 @@
     background: var(--dnz-header-border, #e2e8f0);
     opacity: 0.4;
     pointer-events: none;
+}
+
+/* ── "Now" vertical line ── */
+.timeline-rrhh-now {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    background: #ef4444;
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
 }

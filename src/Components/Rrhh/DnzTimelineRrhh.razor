@@ -26,6 +26,12 @@
                 <span class="timeline-rrhh-gridline" style="left:@(HourToPercent(h))%"></span>
             }
         }
+        @if (NowMarker.HasValue && _nowPct >= 0 && _nowPct <= 100)
+        {
+            <span class="timeline-rrhh-now"
+                  style="left:@(_nowPct.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))%"
+                  title="Ahora @NowMarker.Value.ToString("HH:mm")"></span>
+        }
         @ChildContent
     </div>
 </div>
@@ -52,7 +58,12 @@
     [Parameter]
     public bool ShowAxis { get; set; } = true;
 
+    /// <summary>If set, draws a vertical "now" line at the given time.</summary>
+    [Parameter]
+    public TimeOnly? NowMarker { get; set; }
+
     private List<int> _axisHours = new();
+    private double _nowPct = -1;
 
     protected override void OnParametersSet()
     {
@@ -64,6 +75,18 @@
         _axisHours = new();
         for (int h = start; h <= end; h += step)
             _axisHours.Add(h);
+
+        if (NowMarker.HasValue)
+        {
+            double startM = start * 60d;
+            double endM = end * 60d;
+            double nowM = NowMarker.Value.Hour * 60 + NowMarker.Value.Minute;
+            _nowPct = ((nowM - startM) / (endM - startM)) * 100d;
+        }
+        else
+        {
+            _nowPct = -1;
+        }
     }
 
     private string HourToPercent(int hour)

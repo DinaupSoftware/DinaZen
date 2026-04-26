@@ -164,7 +164,7 @@
 
 @code {
 
-    [Parameter] public string Title { get; set; } = "Shift";
+    [Parameter] public string Title { get; set; } = "Turno";
     [Parameter] public string CategoryBadge { get; set; }
 
     [Parameter] public TimeOnly? ExpectedStart { get; set; }
@@ -172,19 +172,19 @@
     [Parameter] public TimeOnly? ActualStart { get; set; }
     [Parameter] public TimeOnly? ActualEnd { get; set; }
 
-    [Parameter] public string ExpectedLabel { get; set; } = "Expected";
-    [Parameter] public string ActualLabel { get; set; } = "Actual";
-    [Parameter] public string ExpectedEmptyText { get; set; } = "No expected shift";
-    [Parameter] public string ActualEmptyText { get; set; } = "Not worked";
-    [Parameter] public string OnTimeText { get; set; } = "On time";
-    [Parameter] public string EarlyText { get; set; } = "early";
-    [Parameter] public string LateText { get; set; } = "late";
-    [Parameter] public string AbsenceText { get; set; } = "Absence";
+    [Parameter] public string ExpectedLabel { get; set; } = "Esperado";
+    [Parameter] public string ActualLabel { get; set; } = "Realizado";
+    [Parameter] public string ExpectedEmptyText { get; set; } = "Sin turno esperado";
+    [Parameter] public string ActualEmptyText { get; set; } = "No trabajado";
+    [Parameter] public string OnTimeText { get; set; } = "A tiempo";
+    [Parameter] public string EarlyText { get; set; } = "antes";
+    [Parameter] public string LateText { get; set; } = "tarde";
+    [Parameter] public string AbsenceText { get; set; } = "Ausencia";
 
     [Parameter] public bool ShowAbsenceBadge { get; set; }
 
-    [Parameter] public string AlertExpectedNoActual { get; set; } = "Expected shift with no work record";
-    [Parameter] public string AlertActualNoExpected { get; set; } = "Work performed outside expected schedule";
+    [Parameter] public string AlertExpectedNoActual { get; set; } = "Turno esperado sin registro de trabajo";
+    [Parameter] public string AlertActualNoExpected { get; set; } = "Trabajo fuera del horario previsto";
 
     // ── Status logic ──
 
@@ -212,8 +212,8 @@
         {
             ComparisonStatus.Match => GetMatchBadge(),
             ComparisonStatus.Absent => @<span class="comparison-badge comparison-badge-danger">@AbsenceText</span>,
-            ComparisonStatus.OutOfSchedule => @<span class="comparison-badge comparison-badge-warning">Out of schedule</span>,
-            _ => @<span class="comparison-badge comparison-badge-neutral">Unknown</span>
+            ComparisonStatus.OutOfSchedule => @<span class="comparison-badge comparison-badge-warning">Fuera de horario</span>,
+            _ => @<span class="comparison-badge comparison-badge-neutral">Desconocido</span>
         };
     }
 
@@ -223,8 +223,8 @@
         if (Math.Abs(diff) <= 5)
             return @<span class="comparison-badge comparison-badge-success">@OnTimeText</span>;
         if (diff < 0)
-            return @<span class="comparison-badge comparison-badge-info">Early</span>;
-        return @<span class="comparison-badge comparison-badge-warning">Late</span>;
+            return @<span class="comparison-badge comparison-badge-info">Antes</span>;
+        return @<span class="comparison-badge comparison-badge-warning">Tarde</span>;
     }
 
     // ── Time calculations ──

@@ -18,7 +18,7 @@
             @if (AllowAdd)
             {
                 <div class="tie-toolbar-group">
-                    <button type="button" class="tie-toolbar-btn tie-toolbar-btn-dropdown @(_showTemplates ? "active" : "")" @onclick="ToggleTemplates" title="Templates">
+                    <button type="button" class="tie-toolbar-btn tie-toolbar-btn-dropdown @(_showTemplates ? "active" : "")" @onclick="ToggleTemplates" title="Plantillas">
                         <RadzenIcon Icon="event_note" />
                         <RadzenIcon Icon="@(_showTemplates ? "arrow_drop_up" : "arrow_drop_down")" />
                     </button>
@@ -39,13 +39,13 @@
             }
 
             <button type="button" class="tie-toolbar-btn @(_copied ? "copied" : "")"
-                    @onclick="CopyToClipboardAsync" title="@(_copied ? "Copied" : "Copy")">
+                    @onclick="CopyToClipboardAsync" title="@(_copied ? "Copiado" : "Copiar")">
                 <RadzenIcon Icon="@(_copied ? "check" : "content_copy")" />
             </button>
 
             @if (AllowAdd)
             {
-                <button type="button" class="tie-toolbar-btn" @onclick="PasteFromClipboardAsync" title="Paste">
+                <button type="button" class="tie-toolbar-btn" @onclick="PasteFromClipboardAsync" title="Pegar">
                     <RadzenIcon Icon="content_paste" />
                 </button>
             }
@@ -53,14 +53,14 @@
             @if (AllowRemove && Intervals.Count > 0)
             {
                 <span class="tie-toolbar-sep"></span>
-                <button type="button" class="tie-toolbar-btn" @onclick="ClearAllAsync" title="Clear">
+                <button type="button" class="tie-toolbar-btn" @onclick="ClearAllAsync" title="Vaciar">
                     <RadzenIcon Icon="delete_sweep" />
                 </button>
             }
 
             @if (AutoSort == false && AllowSort)
             {
-                <button type="button" class="tie-toolbar-btn" @onclick="SortIntervalsAsync" title="Sort">
+                <button type="button" class="tie-toolbar-btn" @onclick="SortIntervalsAsync" title="Ordenar">
                     <RadzenIcon Icon="sort" />
                 </button>
             }
@@ -77,7 +77,7 @@
     <div class="tie-rows">
         @if (Intervals.Count == 0 && AllowAdd == false)
         {
-            <div class="tie-empty">No intervals</div>
+            <div class="tie-empty">Sin intervalos</div>
         }
 
         @for (int i = 0; i < Intervals.Count; i++)
@@ -120,18 +120,40 @@
                     @if (ReadOnly)
                     {
                         <span class="tie-category-chip tie-category-chip-readonly @GetCategoryClass(interval.Category)">
-                            @(string.IsNullOrEmpty(interval.Category) ? "Untyped" : interval.Category)
+                            @(string.IsNullOrEmpty(interval.Category) ? "Sin tipo" : interval.Category)
                         </span>
                     }
                     else
                     {
-                        <button type="button"
-                                class="tie-category-chip @GetCategoryClass(interval.Category)"
-                                @onclick="() => CycleCategory(interval)"
-                                title="Click to change type">
-                            @(string.IsNullOrEmpty(interval.Category) ? "Untyped" : interval.Category)
-                            <RadzenIcon Icon="unfold_more" />
-                        </button>
+                        <span class="tie-category-wrap">
+                            <button type="button"
+                                    class="tie-category-chip @GetCategoryClass(interval.Category)"
+                                    @onclick="() => ToggleCategoryPopover(idx)"
+                                    title="Cambiar tipo">
+                                @(string.IsNullOrEmpty(interval.Category) ? "Sin tipo" : interval.Category)
+                                <RadzenIcon Icon="@(_openCategoryRowIdx == idx ? "arrow_drop_up" : "arrow_drop_down")" />
+                            </button>
+                            @if (_openCategoryRowIdx == idx)
+                            {
+                                <div class="tie-backdrop" @onclick="() => _openCategoryRowIdx = null"></div>
+                                <div class="tie-category-popover">
+                                    @foreach (var cat in Categories)
+                                    {
+                                        var isActive = cat == interval.Category;
+                                        <button type="button"
+                                                class="tie-category-item @(isActive ? "active" : "")"
+                                                @onclick="() => SetCategoryAsync(interval, cat)">
+                                            <span class="tie-category-dot @GetCategoryClass(cat)"></span>
+                                            <span class="tie-category-item-label">@cat</span>
+                                            @if (isActive)
+                                            {
+                                                <RadzenIcon Icon="check" />
+                                            }
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </span>
                     }
                 }
                 else if (IntervalTypeTemplate != null)
@@ -142,7 +164,7 @@
 
                 @if (AllowRemove)
                 {
-                    <button type="button" class="tie-btn-remove" @onclick="() => RemoveIntervalAsync(idx)" title="Remove">
+                    <button type="button" class="tie-btn-remove" @onclick="() => RemoveIntervalAsync(idx)" title="Eliminar">
                         <RadzenIcon Icon="close" />
                     </button>
                 }
@@ -154,11 +176,30 @@
                 var gap = GetGap(Intervals[idx], Intervals[idx + 1]);
                 @if (gap > TimeSpan.Zero)
                 {
-                    <div class="tie-gap">
-                        <div class="tie-gap-line"></div>
-                        <span class="tie-gap-label">&#9208; @FormatGap(gap) @GapLabel</span>
-                        <div class="tie-gap-line"></div>
-                    </div>
+                    var gapIdx = idx;
+                    var canFill = ReadOnly == false
+                                  && AllowAdd
+                                  && string.IsNullOrEmpty(GapFillCategory) == false
+                                  && (Categories == null || Categories.Contains(GapFillCategory));
+                    @if (canFill)
+                    {
+                        <div class="tie-gap tie-gap-clickable"
+                             @onclick="() => FillGapAsync(gapIdx)"
+                             title="@($"Rellenar con {GapFillCategory}")">
+                            <div class="tie-gap-line"></div>
+                            <span class="tie-gap-label">&#9208; @FormatGap(gap) @GapLabel</span>
+                            <RadzenIcon Icon="add_circle" />
+                            <div class="tie-gap-line"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="tie-gap">
+                            <div class="tie-gap-line"></div>
+                            <span class="tie-gap-label">&#9208; @FormatGap(gap) @GapLabel</span>
+                            <div class="tie-gap-line"></div>
+                        </div>
+                    }
                 }
             }
         }
@@ -231,7 +272,14 @@
     [Parameter] public bool ShowToolbar { get; set; } = true;
     [Parameter] public bool ShowGapIndicator { get; set; } = true;
     [Parameter] public bool AutoSort { get; set; } = true;
-    [Parameter] public string GapLabel { get; set; } = "rest";
+    [Parameter] public string GapLabel { get; set; } = "descanso";
+
+    /// <summary>
+    /// If set to a category present in <see cref="Categories"/>, the gap indicator becomes
+    /// clickable and clicking it fills the gap with a new interval of that category.
+    /// Typical use: pass "Descanso" / "Rest" so the user can convert idle time into a rest interval in one click.
+    /// </summary>
+    [Parameter] public string GapFillCategory { get; set; } = "";
 
     // ── Internal state ──
 
@@ -252,10 +300,10 @@
 
     private static readonly List<TimeIntervalTemplateRrhh> _defaultTemplates = new()
     {
-        new("Full shift", "work", (8, 0, 13, 0, ""), (14, 0, 17, 0, "")),
-        new("Intensive shift", "bolt", (7, 0, 15, 0, "")),
-        new("Morning half", "wb_sunny", (8, 0, 14, 0, "")),
-        new("Afternoon half", "nights_stay", (14, 0, 20, 0, ""))
+        new("Jornada partida", "work", (8, 0, 13, 0, ""), (14, 0, 17, 0, "")),
+        new("Jornada intensiva", "bolt", (7, 0, 15, 0, "")),
+        new("Solo mañana", "wb_sunny", (8, 0, 14, 0, "")),
+        new("Solo tarde", "nights_stay", (14, 0, 20, 0, ""))
     };
 
     // ── Lifecycle ──
@@ -388,6 +436,21 @@
         }
     }
 
+    private async Task FillGapAsync(int gapIdx)
+    {
+        if (string.IsNullOrEmpty(GapFillCategory)) return;
+        if (gapIdx < 0 || gapIdx >= Intervals.Count - 1) return;
+
+        var prev = Intervals[gapIdx];
+        var next = Intervals[gapIdx + 1];
+        if (next.Start <= prev.End) return;
+
+        var rest = new TimeIntervalRrhh(prev.End, next.Start, GapFillCategory);
+        Intervals.Insert(gapIdx + 1, rest);
+        await OnIntervalChangedAsync();
+        StateHasChanged();
+    }
+
     private async Task SortIntervalsAsync()
     {
         Intervals.Sort((a, b) => a.Start.TimeOfDay.CompareTo(b.Start.TimeOfDay));
@@ -457,17 +520,22 @@
 
     // ── Category chip ──
 
-    private async void CycleCategory(TimeIntervalRrhh interval)
+    private int? _openCategoryRowIdx;
+
+    private void ToggleCategoryPopover(int idx)
     {
-        if (Categories == null || Categories.Count == 0) return;
+        _openCategoryRowIdx = (_openCategoryRowIdx == idx) ? null : idx;
+    }
 
-        var currentIndex = string.IsNullOrEmpty(interval.Category)
-            ? -1
-            : Categories.IndexOf(interval.Category);
-
-        var nextIndex = (currentIndex + 1) % Categories.Count;
-        interval.Category = Categories[nextIndex];
-
+    private async Task SetCategoryAsync(TimeIntervalRrhh interval, string category)
+    {
+        if (interval.Category == category)
+        {
+            _openCategoryRowIdx = null;
+            return;
+        }
+        interval.Category = category;
+        _openCategoryRowIdx = null;
         await OnIntervalChangedAsync();
         StateHasChanged();
     }

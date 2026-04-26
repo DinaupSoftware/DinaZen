@@ -3,21 +3,21 @@
 
 <div class="d-flex gap-2 align-items-center flex-wrap">
 
-	<RadzenFormField Text="Range" Variant="Variant.Flat" Style="min-width:240px">
+	<RadzenFormField Text="Rango" Variant="Variant.Flat" Style="min-width:240px">
 		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" />
 	</RadzenFormField>
 
 	@if (SelectedPreset == DateRangePreset.Custom)
 	{
 		<div class="d-flex gap-3 justify-content-start w-100">
-			<RadzenFormField Text="From" class="flex-grow-1" Variant="Variant.Flat">
+			<RadzenFormField Text="Desde" class="flex-grow-1" Variant="Variant.Flat">
 				<RadzenDatePicker TValue="DateTime?"
 								  Value="@_fromDateTime"
 								  DateFormat="dd/MM/yyyy"
 								  ShowTime="false"
 								  Change="@OnFromChanged" />
 			</RadzenFormField>
-			<RadzenFormField Text="To" class="flex-grow-1" Variant="Variant.Flat">
+			<RadzenFormField Text="Hasta" class="flex-grow-1" Variant="Variant.Flat">
 				<RadzenDatePicker TValue="DateTime?"
 								  Value="@_toDateTime"
 								  DateFormat="dd/MM/yyyy"
@@ -159,27 +159,27 @@
 
 	public enum DateRangePreset
 	{
-		[Display(Name = "Today")]
+		[Display(Name = "Hoy")]
 		Today,
-		[Display(Name = "Yesterday")]
+		[Display(Name = "Ayer")]
 		Yesterday,
-		[Display(Name = "Last 7 days")]
+		[Display(Name = "Últimos 7 días")]
 		Last7Days,
-		[Display(Name = "Last 30 days")]
+		[Display(Name = "Últimos 30 días")]
 		Last30Days,
-		[Display(Name = "This month")]
+		[Display(Name = "Este mes")]
 		ThisMonth,
-		[Display(Name = "Last month")]
+		[Display(Name = "Mes pasado")]
 		LastMonth,
-		[Display(Name = "This quarter")]
+		[Display(Name = "Este trimestre")]
 		ThisQuarter,
-		[Display(Name = "Last quarter")]
+		[Display(Name = "Trimestre pasado")]
 		LastQuarter,
-		[Display(Name = "This year")]
+		[Display(Name = "Este año")]
 		ThisYear,
-		[Display(Name = "Last year")]
+		[Display(Name = "Año pasado")]
 		LastYear,
-		[Display(Name = "Custom")]
+		[Display(Name = "Personalizado")]
 		Custom
 	}
 }
