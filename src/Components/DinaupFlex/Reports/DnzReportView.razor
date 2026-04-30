@@ -119,7 +119,7 @@
 									</Template>
 									<FooterTemplate>
 										@if (_rows.Count > 1) {
-											<span>Suma: <b>@_rows.Sum(o => o.GetInt(col.Keyword))</b></span>
+											<span>Suma: <b>@_rows.Sum(o => (long)o.GetInt(col.Keyword))</b></span>
 										}
 									</FooterTemplate>
 								</RadzenDataGridColumn>
