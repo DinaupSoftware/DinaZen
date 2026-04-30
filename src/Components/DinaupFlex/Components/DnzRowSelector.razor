@@ -145,14 +145,24 @@
 		+ " " + Class;
 
 	bool isInitializing = true;
+	Guid _lastProcessedDefaultID = Guid.Empty;
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		if (DefaultID.IsNotEmpty()) await SelectByIdAsync(DefaultID);
+		if (DefaultID.IsNotEmpty()) {
+			_lastProcessedDefaultID = DefaultID;
+			await SelectByIdAsync(DefaultID);
+		}
 		isInitializing = false;
 	}
 
-	protected override Task OnParametersSetAsync() => base.OnParametersSetAsync();
+	protected override async Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
+		if (DefaultID != _lastProcessedDefaultID && DefaultID.IsNotEmpty() && SelectedRow.IsEmpty()) {
+			_lastProcessedDefaultID = DefaultID;
+			await SelectByIdAsync(DefaultID);
+		}
+	}
 
 	public async Task SelectAsync(Dinaup.DinaupBasicInformation data) => await SelectAsync(data.ToDinaupDynamicRowDTO());
 	public async Task SelectAsync(DnzRowSelector source) => await SelectAsync(source.SelectedRow);
