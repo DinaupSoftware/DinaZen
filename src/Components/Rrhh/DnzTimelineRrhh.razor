@@ -14,7 +14,7 @@
                 var isLast = i == _axisHours.Count - 1;
                 var align = isFirst ? "left" : isLast ? "right" : "center";
                 <span class="timeline-rrhh-axis-label timeline-rrhh-axis-@align"
-                      style="left:@(HourToPercent(h))%">@h.ToString("00"):00</span>
+                      style="left:@(HourToPercent(h))%">@((h % 24).ToString("00")):00</span>
             }
         </div>
     }
@@ -68,7 +68,8 @@
     protected override void OnParametersSet()
     {
         int start = Math.Clamp(StartHour, 0, 23);
-        int end = Math.Clamp(EndHour, start + 1, 24);
+        int rawEnd = Math.Clamp(EndHour, 0, 24);
+        int end = rawEnd <= start ? rawEnd + 24 : rawEnd;
         int span = end - start;
         int step = Step > 0 ? Step : (span <= 8 ? 1 : span <= 14 ? 2 : 3);
 
@@ -81,6 +82,7 @@
             double startM = start * 60d;
             double endM = end * 60d;
             double nowM = NowMarker.Value.Hour * 60 + NowMarker.Value.Minute;
+            if (end > 24 && nowM < startM) nowM += 1440d;
             _nowPct = ((nowM - startM) / (endM - startM)) * 100d;
         }
         else
@@ -92,7 +94,8 @@
     private string HourToPercent(int hour)
     {
         int start = Math.Clamp(StartHour, 0, 23);
-        int end = Math.Clamp(EndHour, start + 1, 24);
+        int rawEnd = Math.Clamp(EndHour, 0, 24);
+        int end = rawEnd <= start ? rawEnd + 24 : rawEnd;
         if (end == start) return "0";
         double pct = (double)(hour - start) / (end - start) * 100.0;
         return pct.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);

@@ -77,7 +77,7 @@
     private double _leftPct;
     private double _widthPct;
 
-    private string StyleIcon => Style switch
+    private string StyleIcon => _isPhantom ? "hourglass_empty" : Style switch
     {
         TimelineBarStyleRrhh.Holiday => "celebration",
         TimelineBarStyleRrhh.SickLeave => "local_hospital",
@@ -154,12 +154,18 @@
         }
 
         double axisStart = Math.Clamp(AxisStartHour, 0, 23) * 60d;
-        double axisEnd = Math.Clamp(AxisEndHour, (int)(axisStart / 60d) + 1, 24) * 60d;
+        double axisEndRaw = Math.Clamp(AxisEndHour, 0, 24) * 60d;
+        bool axisCrossesMidnight = axisEndRaw <= axisStart;
+        double axisEnd = axisCrossesMidnight ? axisEndRaw + 1440d : axisEndRaw;
         double axisSpan = axisEnd - axisStart;
         if (axisSpan <= 0) axisSpan = 1440d;
 
         double startMinutes = Start.Value.Hour * 60 + Start.Value.Minute;
         double endMinutes = effectiveEnd.Hour * 60 + effectiveEnd.Minute;
+
+        if (axisCrossesMidnight && startMinutes < axisStart) startMinutes += 1440d;
+        if (endMinutes < startMinutes) endMinutes += 1440d;
+
         double duration = Math.Max(_isPhantom ? 10d : 30d, endMinutes - startMinutes);
 
         _leftPct = ((startMinutes - axisStart) / axisSpan) * 100d;

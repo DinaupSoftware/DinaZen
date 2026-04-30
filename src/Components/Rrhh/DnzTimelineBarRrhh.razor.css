@@ -89,3 +89,14 @@
 .timeline-bar-rrhh.tlbar-punch {
     background: #fb8c00;
 }
+
+/* ── Phantom (in-progress): hourglass spin ── */
+@keyframes tlbar-phantom-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.timeline-bar-rrhh.tlbar-phantom ::deep .tlbar-icon {
+    animation: tlbar-phantom-spin 2s linear infinite;
+    transform-origin: 50% 50%;
+}
