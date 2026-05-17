@@ -33,7 +33,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
-		<PackageReference Include="Radzen.Blazor" Version="10.3.2" /> 
+		<PackageReference Include="Radzen.Blazor" Version="10.4.3" /> 
 	</ItemGroup>
 
 	<!-- Local source (debug) -->
@@ -57,7 +57,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.74" />
+	  <PackageReference Update="Meziantou.Analyzer" Version="3.0.85" />
 	</ItemGroup>
 
 
