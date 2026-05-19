@@ -3,6 +3,7 @@
 	@if (Tab.ParentForm.MainTextGenerateOnSave == false && Tab.Controls.IsNotEmpty())
 	{
 		<RadzenTextBox Placeholder="Título" Disabled=Tab.Controls.First().IsLocked Change=@(args => HandleControlChanged(Tab.Controls.First().WithValue(args)))
+					   data-fieldid="title"
 					   @key=@(Tab.ParentForm.Token + Tab.Controls.First().Token + "-valor") Style="font-size:22px; width:90%;" Value=@Tab.Controls.First().Value class="w-100  obli" />
 	}
 
