@@ -9,6 +9,8 @@
 	 data-IsBig=@DataControl.IsGiant.STR()
 	 data-IsRequired=@DataControl.IsRequired.STR()
 	 data-IncorrectValueStatus=@DataControl.IncorrectValueStatus
+	 data-token=@DataControl.Token
+	 data-field=@(DataControl.Token.GetLastSegments("."))
 	 class="controlu"
 	 style="@(  (ModoCelda ? $"": $"position: absolute; left: {DataControl.X}px; top: {DataControl.Y}px; width: {DataControl.Width}px; height: {DataControl.Height}px;" ))">
 
