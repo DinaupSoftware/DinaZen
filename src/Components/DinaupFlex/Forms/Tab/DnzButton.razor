@@ -1,4 +1,4 @@
-<RadzenButton Click=OnClick Text=@ButtonData.Label @key=ButtonData.Token  style="@ButtonStyle">
+<RadzenButton data-fieldid=@ButtonData.FieldId Click=OnClick Text=@ButtonData.Label @key=ButtonData.Token style="@ButtonStyle">
 </RadzenButton>
 
 @code {
@@ -16,11 +16,9 @@
 
     protected override void OnParametersSet()
     {
-        ButtonStyle = $"position: absolute;     padding: 1px;font-size: 11px;   letter-spacing: 0.5px;" +
+        ButtonStyle = $"position: absolute;padding: 1px;font-size: 11px;letter-spacing: 0.5px;" +
                       $"left: {ButtonData.X}px; " +
-                      $"top: {ButtonData.Y}px; " +
-                      $"width: {ButtonData.Width}px; " +
-                      $"height: {ButtonData.Height}px;";
+                      $"top: {ButtonData.Y}px;width: {ButtonData.Width}px;height: {ButtonData.Height}px;";
     }
 
 
