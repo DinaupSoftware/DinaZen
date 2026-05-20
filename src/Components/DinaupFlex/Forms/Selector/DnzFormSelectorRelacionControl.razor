@@ -75,7 +75,7 @@
 
 
 		@if (DataControl.IsLabelLeft) {
-			<div @ref=elDivX @onclick=@(args => OpenPopup()) style="cursor:pointer" class="dup_input  justify-content-between  dup_input_estandar d-flex align-items-center  align-content-center gap-2 flex-grow-1">
+			<div @ref=elDivX @onclick=@(args => OpenPopup()) data-token=@DataControl.Token style="cursor:pointer" class="dup_input  justify-content-between  dup_input_estandar d-flex align-items-center  align-content-center gap-2 flex-grow-1">
 				@if (ModoCelda == false) {
 					<RadzenLabel ContextMenu=ContextMenuAction key=@(DataControl.Token + "-eti") style=@($"width:{DataControl.LabelWidth}px") class="labelinput" for="@DataControl.Token">
 						@DataControl.Label
@@ -94,7 +94,7 @@
 				<DnzDynamicRowPreviewIMG Style="margin-right:12px;zoom:0.9" Class="opacity-75" @key=@(DataControl.Token + "-1343499") Data=DataControl></DnzDynamicRowPreviewIMG>
 			}
 
-			<div Style=" cursor:pointer" @key=@(DataControl.Token + "-2") @ref=elDivX @onclick=@(args => OpenPopup()) class="dup_input  dup_input_estandar d-flex flex-column w-100">
+			<div Style=" cursor:pointer" @key=@(DataControl.Token + "-2") @ref=elDivX @onclick=@(args => OpenPopup()) data-token=@DataControl.Token class="dup_input  dup_input_estandar d-flex flex-column w-100">
 				@if (ModoCelda == false) {
 					<RadzenLabel ContextMenu=ContextMenuAction class="labelinput" for="@DataControl.Token">
 						@DataControl.Label
@@ -168,7 +168,7 @@
 		}
 	</style>
 
-	<div class="desplegablecontent" style="background:white">
+	<div class="desplegablecontent" data-testid=@($"dnz-selector-popup-{DataControl.Token}") style="background:white">
 
 		<div class="d-flex gap-2">
 			@if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) {
