@@ -78,7 +78,7 @@ else
 
 	private Task HandleControlChanged(Dinaup.VirtualFormDTO.Control updatedControl)
 	{
-		return OnTabChanged.InvokeAsync(Tab.WithUpdatedControl(updatedControl));
+		return OnTabChanged.InvokeAsync(Tab.WithUpdatedControl(updatedControl));	
 	}
 
 	private Task HandleTabChanged(Dinaup.VirtualFormDTO.Tab updateTab)
