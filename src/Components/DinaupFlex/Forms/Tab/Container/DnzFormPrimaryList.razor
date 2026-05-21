@@ -6,22 +6,24 @@
 
 
 
-<div class="d-flex gap-3 mb-2">
+<div class="d-flex flex-column h-100" tabindex="-1" @onkeydown=HandleKeyDown @onkeydown:preventDefault=preventDefaultKey>
+
+	<div class="d-flex gap-3 mb-2">
 
 
-	<RadzenButton ButtonStyle="ButtonStyle.Success" class="rz-border-radius-10 rz-shadow-6 d-flex" Click="@OnAddNewItem" Size="ButtonSize.Small">
-		<RadzenIcon Icon="add_circle" />
-		<RadzenLabel Text="Agregar" Style="color:white" />
-		<RadzenBadge Text="F2" BadgeStyle="BadgeStyle.Secondary" />
-	</RadzenButton>
+		<RadzenButton ButtonStyle="ButtonStyle.Success" class="rz-border-radius-10 rz-shadow-6 d-flex" Click="@OnAddNewItem" Size="ButtonSize.Small">
+			<RadzenIcon Icon="add_circle" />
+			<RadzenLabel Text="Agregar" Style="color:white" />
+			<RadzenBadge Text="F2" BadgeStyle="BadgeStyle.Secondary" />
+		</RadzenButton>
 
-	<RadzenTextBox Change=@(async (x) => { 	_ =  this.UpdateSearchAsync(x); }) Placeholder="Buscar..." Style="width: 400px" id="search" />
-
-
-</div>
+		<RadzenTextBox Change=@(async (x) => { _ = this.UpdateSearchAsync(x); }) Placeholder="Buscar..." Style="width: 400px" id="search" />
 
 
-<div class="d-flex flex-grow-1 flex-column  justify-content-between dnp-rz-table-density-0" style=" height: calc(100% - 40px); ">
+	</div>
+
+
+	<div class="d-flex flex-grow-1 flex-column  justify-content-between dnp-rz-table-density-0" style=" height: calc(100% - 40px); ">
 	<RadzenTable class=" d-flex flex-grow-1" style="min-width: 100% !important;">
 		<RadzenTableHeader>
 			<RadzenTableHeaderRow>
@@ -108,9 +110,27 @@
 
 </div>
 
+</div>
 
 
 @code {
+
+	private bool preventDefaultKey = false;
+
+	async Task HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "F2")
+		{
+			preventDefaultKey = true;
+			await OnAddNewItem();
+		}
+		else
+		{
+			preventDefaultKey = false;
+		}
+	}
+
+
 
 
 
@@ -238,28 +258,20 @@
 
 	async Task UpdateSearchAsync(string query)
 	{
-		try
+		if (query.IsEmpty())
+			MatchedRows = List.Rows;
+		else
+			MatchedRows = List.Rows.Where((e) => string.Join(" ", e.Values.Values).ContainsWebSearchMode(query));
+
+		if (querybusqueda != query)
 		{
-
-			if (query.IsEmpty())
-				MatchedRows = List.Rows;
-			else
-				MatchedRows = List.Rows.Where((e) => string.Join(" ", e.Values.Values).ContainsWebSearchMode(querybusqueda));
-
-			if (querybusqueda != query)
-			{
-				querybusqueda = query;
-				PagerX?.GoToPage(0);
-			}
-
-			PagedRows = MatchedRows.Skip(currentPage * pageSize).Take(pageSize);
-
-			_ = InvokeAsync(StateHasChanged);
+			querybusqueda = query;
+			PagerX?.GoToPage(0);
 		}
-		catch (Exception)
-		{
 
-		}
+		PagedRows = MatchedRows.Skip(currentPage * pageSize).Take(pageSize);
+
+		await InvokeAsync(StateHasChanged);
 	}
 
 

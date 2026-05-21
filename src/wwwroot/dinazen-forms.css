@@ -890,6 +890,16 @@ textarea.rz-textarea {
     border-bottom-color: var(--dnz-focus-border) !important;
 }
 
+/* Selector popup body — kill inner card chrome and report group headers */
+.desplegablecontent .rz-card {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.desplegablecontent .rz-group-header {
+    display: none !important;
+}
+
 /* Badge selector within dropdown controls */
 .controlu .rz-badge {
     font-size: 11px;

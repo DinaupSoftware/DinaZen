@@ -185,22 +185,51 @@ else if (_errorMessage.IsNotEmpty())
 		if (formList == null) return;
 		try
 		{
-			var tabCallback = EventCallback.Factory.Create<VirtualFormDTO.Tab>(this, HandleTabChange);
+			var syncListTab = new Func<VirtualFormDTO.Tab, Task<VirtualFormDTO.FormDetail>>(SyncListFormTab);
+
 			var parameters = new Dictionary<string, object>
 			{
 				{ nameof(DnzFormList.FormList), formList },
-				{ nameof(DnzFormList.OnTabChanged), tabCallback },
+				{ nameof(DnzFormList.OnTabChangedAsync), syncListTab },
 				{ nameof(DnzFormList.Client), Client }
 			};
+
 			await DialogService.OpenAsync<DnzFormList>("", parameters, new DialogOptions
 			{
-				ShowClose = false, ShowTitle = false, Width = "70%", Height = "70%",
-				CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false
+				WrapperCssClass = "dinaupdialogform",
+				Width = "1003px",
+				Height = "92vh",
+				ShowClose = false,
+				ShowTitle = false,
+				CloseDialogOnEsc = true,
+				Resizable = true,
+				Draggable = true,
+				CloseDialogOnOverlayClick = false
 			});
 		}
 		catch (Exception ex)
 		{
 			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private async Task<VirtualFormDTO.FormDetail> SyncListFormTab(VirtualFormDTO.Tab newTab)
+	{
+		if (_form == null || Client == null) return null;
+		try
+		{
+			_hasChanges = true;
+			var updatedVForm = _form.WithUpdatedForm(_form.GetFormByTabToken(newTab.TabToken).WithTab(newTab));
+			var result = await Client.FormUpdate(updatedVForm);
+			_form = result.NewForm;
+			await InvokeAsync(StateHasChanged);
+			return _form.GetFormByTabToken(newTab.TabToken);
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = "Sesion caducada: " + ex.Message;
+			await InvokeAsync(StateHasChanged);
+			return null;
 		}
 	}
 

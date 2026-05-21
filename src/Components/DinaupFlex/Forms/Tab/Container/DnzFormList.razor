@@ -1,135 +1,105 @@
 @namespace DinaZen.Components.DinaupFlex.Forms
-@using System;
-@using System.Collections.Generic;
-@using System.Reflection;
-@using System.Linq;
-@using Radzen.Blazor
-
+@implements IDisposable
+@using static Dinaup.VirtualFormDTO
 
 
 @if (FormList.IsNotNull())
 {
+	<div class="dnz-form-view dnz-form-mode-edit">
 
-	<div class="h-100 d-flex flex-column">
-		<div>
-
-			@foreach (var tab in FormList.Tabs)
-			{
-				@if (tab.TabName == "*")
+		<div class="dnz-form-header">
+			<div class="dnz-form-header-info">
+				@if (FormList.Section.IsNotNull() && FormList.Section.IconoID.IsNotEmpty())
 				{
-					<DnzFormTab Tab=tab OnTabChanged=@HandleTabChange Client=Client OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-14")></DnzFormTab>
+					<img src=@($"https://dinaupcdn.com/public/{FormList.Section.IconoID.STR()}.png") width="20px" height="20px" />
 				}
+				<span>@(FormList.Section.IsNotNull() ? FormList.Section.Label : "")</span>
+				<RadzenBadge BadgeStyle="BadgeStyle.Info" Variant="Variant.Flat" Text="Editando" />
+			</div>
+			<div class="d-flex align-items-center gap-1">
+				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Text" Size="ButtonSize.Small" Click="Cerrar" Style="margin-left:12px; opacity:0.6" />
+			</div>
+		</div>
+
+		<div class="dnz-form-mode-strip dnz-mode-edit"></div>
+
+		<div class="dnz-form-title">
+			@foreach (var tab in FormList.Tabs.Where(x => x.TabName == "*"))
+			{
+				<DnzFormTab @key=@($"dfl-{FormList.Token}-{tab.TabToken}-star")
+							Tab="tab"
+							OnTabChanged="HandleTabChange"
+							Client="Client"
+							OnFormatearCodigo="OnFormatearCodigo" />
 			}
 		</div>
 
-		<div style="flex:1">
-			<RadzenTabs class="h-100" TabPosition="@tabPosition" RenderMode="TabRenderMode.Server">
+		<div class="dnz-form-body">
+			<RadzenTabs RenderMode="TabRenderMode.Server">
 				<Tabs>
 					@foreach (var tab in FormList.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
 					{
-						<RadzenTabsItem class="h-100" Text="@tab.TabName" @key=@(tab.TabToken + "-93")>
-							<div style="height: 100%;overflow:scroll">
-								<DnzFormTab OnTabChanged=@HandleTabChange Client=Client OnFormatearCodigo=OnFormatearCodigo @key=@(tab.TabToken + "-94") Tab=tab></DnzFormTab>
-							</div>
+						<RadzenTabsItem @key=@($"dfl-{FormList.Token}-{tab.TabToken}") Text="@tab.TabName">
+							<DnzFormTab @key=@($"dfl-{FormList.Token}-{tab.TabToken}-tab")
+										Tab="tab"
+										OnTabChanged="HandleTabChange"
+										Client="Client"
+										OnFormatearCodigo="OnFormatearCodigo" />
 						</RadzenTabsItem>
 					}
 				</Tabs>
 			</RadzenTabs>
 		</div>
 
-		<div class="d-flex justify-content-end">
-			<RadzenButton Click=Cerrar Text="Cerrar" Icon="close" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger"></RadzenButton>
+		<div class="dnz-form-footer">
+			<div></div>
+			<div class="d-flex align-items-center gap-2">
+				<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aceptar" Click="Cerrar" />
+			</div>
 		</div>
-
 	</div>
-
-
 }
 
 
-<style>
-	.rz-tabview-panel {
-		padding: 0px !important
-	}
-</style>
 @code {
 
+	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.FormDetail FormList { get; set; }
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+	[Parameter] public Func<Dinaup.VirtualFormDTO.Tab, Task<Dinaup.VirtualFormDTO.FormDetail>> OnTabChangedAsync { get; set; }
+	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 	private bool isClosed = false;
 
 	void Cerrar()
 	{
-		if (!isClosed)
+		if (isClosed == false)
 		{
 			isClosed = true;
 			DialogService.Close();
 		}
 	}
 
-
-	TabPosition tabPosition = TabPosition.Top;
-
-
-	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.FormDetail FormList { get; set; }
-	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
-	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
-	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
-
-	/// <summary>
-	/// Subscribe to external form change events. The host app should call the provided Action
-	/// when the form is updated externally (e.g., via EventsNotifier).
-	/// </summary>
-	[Parameter] public Action<Action<Dinaup.VirtualFormDTO.FormDetail>> SubscribeFormChanged { get; set; }
-	[Parameter] public Action<Action<Dinaup.VirtualFormDTO.FormDetail>> UnsubscribeFormChanged { get; set; }
-
-
-
-
-	private void HandleFormChanged(Dinaup.VirtualFormDTO.FormDetail newValue)
+	async Task HandleTabChange(Dinaup.VirtualFormDTO.Tab newTab)
 	{
-		InvokeAsync(() =>
+		if (OnTabChangedAsync == null) return;
+		try
 		{
-			if (FormList.Token == newValue.Token)
+			var updatedFormDetail = await OnTabChangedAsync(newTab);
+			if (updatedFormDetail.IsNotNull())
 			{
-				FormList = newValue;
-				c_blnStopRendering = false;
-				StateHasChanged();
-				StateHasChanged();
-
+				FormList = updatedFormDetail;
+				await InvokeAsync(StateHasChanged);
 			}
-		});
-
-	}
-
-	private bool c_blnStopRendering = false;
-
-	protected override bool ShouldRender()
-	{
-		if (c_blnStopRendering == true) { return false; }
-		return base.ShouldRender();
-	}
-	void HandleTabChange(Dinaup.VirtualFormDTO.Tab newTab)
-	{
-
-		c_blnStopRendering = true;
-		OnTabChanged.InvokeAsync(newTab);
-
-	}
-
-
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		SubscribeFormChanged?.Invoke(HandleFormChanged);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
 	}
 
 	public void Dispose()
 	{
-		UnsubscribeFormChanged?.Invoke(HandleFormChanged);
 		if (DnzFormConfig.DeepDispose)
 			FormList = null;
-
 	}
-
-
 }
