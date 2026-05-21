@@ -131,13 +131,13 @@ else if (_virtualForm.IsNotNull())
 			<div class="d-flex align-items-center gap-2">
 				@if (_hasChanges || _virtualForm.HasChanged())
 				{
-					<RadzenButton IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
-					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" />
+					<RadzenButton data-testid="form-guardar" IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
+					<RadzenButton data-testid="form-cancelar" IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" />
 				}
 				else
 				{
-					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
-					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cerrar" Click="@CloseForm" />
+					<RadzenButton data-testid="form-guardar" IsBusy="@_isSaving" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" />
+					<RadzenButton data-testid="form-cerrar" IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cerrar" Click="@CloseForm" />
 				}
 			</div>
 		</div>

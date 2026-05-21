@@ -11,13 +11,13 @@
 	<div class="d-flex gap-3 mb-2">
 
 
-		<RadzenButton ButtonStyle="ButtonStyle.Success" class="rz-border-radius-10 rz-shadow-6 d-flex" Click="@OnAddNewItem" Size="ButtonSize.Small">
+		<RadzenButton data-testid="grid-add" ButtonStyle="ButtonStyle.Success" class="rz-border-radius-10 rz-shadow-6 d-flex" Click="@OnAddNewItem" Size="ButtonSize.Small">
 			<RadzenIcon Icon="add_circle" />
 			<RadzenLabel Text="Agregar" Style="color:white" />
 			<RadzenBadge Text="F2" BadgeStyle="BadgeStyle.Secondary" />
 		</RadzenButton>
 
-		<RadzenTextBox Change=@(async (x) => { _ = this.UpdateSearchAsync(x); }) Placeholder="Buscar..." Style="width: 400px" id="search" />
+		<RadzenTextBox data-testid="grid-search" Change=@(async (x) => { _ = this.UpdateSearchAsync(x); }) Placeholder="Buscar..." Style="width: 400px" id="search" />
 
 
 	</div>

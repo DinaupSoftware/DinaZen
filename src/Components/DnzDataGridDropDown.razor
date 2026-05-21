@@ -10,7 +10,7 @@
 	return;
 }
 
-<div class="dnz-ddgd-wrap">
+<div class="dnz-ddgd-wrap" data-testid=@TestId>
 <RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" Start=@_startSlot class=@(" dropdownup dropdown-menu-component" + ((IsRequired && Value.IsNull()) ? " obli" : "") + " " + (Disabled ? " dropdown-menu-component-disabled" : "") + " ") Style=@($"width:{Width};" + Style)>
 	<ChildContent>
 
@@ -118,6 +118,7 @@
 
 	// ── Display ──
 
+	[Parameter] public string TestId { get; set; }
 	[Parameter] public string Icon { get; set; }
 	[Parameter] public string Label { get; set; }
 	[Parameter] public string Style { get; set; }
