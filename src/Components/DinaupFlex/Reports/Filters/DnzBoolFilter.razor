@@ -3,7 +3,7 @@
 @if (Column.IsNull()) return;
 @if (DataColumn.IsNull()) return;
 
-<div class="d-flex gap-2 flex-wrap p-3 flex-column">
+<div class="d-flex gap-2 flex-wrap p-3 flex-column" data-testid="filter-bool">
 	<RadzenButton class="w-100" Text="Sí" Size="ButtonSize.Small" Click=@((x) => ApplyFilterAsync("1")) />
 	<RadzenButton class="w-100" Text="No" Size="ButtonSize.Small" Click=@((x) => ApplyFilterAsync("0")) />
 </div>

@@ -1,4 +1,4 @@
-﻿<RadzenCard Style=@Style class="d-flex gap-1 align-items-center align-content-center p-2" Variant=@Variant >
+﻿<RadzenCard Style=@Style class="d-flex gap-1 align-items-center align-content-center p-2" Variant=@Variant data-testid=@TestId>
 
 	<div>
 		<RadzenIcon Style="font-size: 32px; min-height: 56px; min-width: 56px" Icon=@Icon IconColor=@IconColor />
@@ -52,5 +52,8 @@
 	/// </summary>
 	[Parameter]
 	public string Style { get; set; } = string.Empty;
+
+	[Parameter]
+	public string TestId { get; set; }
 
 }

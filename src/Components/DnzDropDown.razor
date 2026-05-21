@@ -11,7 +11,7 @@
 
 
 
-<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat">
+<RadzenFormField Visible=@Visible Text=@Label Variant="Variant.Flat" data-testid=@TestId>
 	<Start>
 		@if (Icon.IsNotEmpty())
 		{
@@ -50,14 +50,14 @@
 		else if (Selected != null)
 		{
 			<div class="d-flex flex-column gap-1 align-items-end justify-content-center h-100">
-				<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" @onclick=@(() => OnRemoveClick()) />
-				<RadzenIcon Visible=@this.OnOpen.HasDelegate Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" @onclick=@(() => OnOpenClick()) />
+				<RadzenIcon Icon="close" IconColor="#8D0909" Style="font-size:13px; cursor: pointer" @onclick=@(() => OnRemoveClick()) data-testid="dropdown-remove" />
+				<RadzenIcon Visible=@this.OnOpen.HasDelegate Icon="open_in_new" IconColor="#002C92" Style="font-size:13px; cursor: pointer" @onclick=@(() => OnOpenClick()) data-testid="dropdown-open" />
 			</div>
 		}
 		else
 		{
 
-			<RadzenButton Visible=@this.OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle=" ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick />
+			<RadzenButton Visible=@this.OnAdd.HasDelegate Icon="add" Style="font-size:13px;" ButtonStyle=" ButtonStyle.Success" Size="ButtonSize.ExtraSmall" Variant="Variant.Text" Click=@OnAddClick data-testid="dropdown-add" />
 		}
 
 	</End>
@@ -77,6 +77,7 @@
 	[Parameter] public bool Visible { get; set; } = true;
 	[Parameter] public string Label { get; set; }
 	[Parameter] public bool Disabled { get; set; }
+	[Parameter] public string TestId { get; set; }
 	[Parameter] public IEnumerable<T> Data { get; set; } = new List<T>();
 
 	[Parameter] public EventCallback<T> SelectedChanged { get; set; }

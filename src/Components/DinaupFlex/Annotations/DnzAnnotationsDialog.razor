@@ -11,11 +11,11 @@
 					<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@_annotations.Count.ToString()" Style="font-size:11px" />
 				}
 			</div>
-			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"   Click="@(() => DialogService.Close())" Style="opacity:0.6" />
+			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"   Click="@(() => DialogService.Close())" Style="opacity:0.6" data-testid="annotations-dialog-close" />
 		</div>
 	</TitleContent>
 	<BodyContent>
-		<div class="dnz-annotations-dialog">
+		<div class="dnz-annotations-dialog" data-testid=@TestId>
 			@* ── Tab selector ── *@
 			<RadzenTabs @bind-SelectedIndex="@_selectedTabIndex" Change="@OnTabChanged">
 				<Tabs>
@@ -112,10 +112,10 @@
 								   OnFilesUploaded="@OnFilesAttached"
 								   OnError="@(msg => NotificationService.Notify(NotificationSeverity.Error, msg))" />
 			<RadzenButton Icon="send" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small"
-						  Click="SendAnnotation" Disabled="@(_newMessage.IsEmpty() && _pendingFileId == Guid.Empty)" IsBusy="@_isSending" />
+						  Click="SendAnnotation" Disabled="@(_newMessage.IsEmpty() && _pendingFileId == Guid.Empty)" IsBusy="@_isSending" data-testid="annotations-dialog-send" />
 		</div>
 		<div class="d-flex justify-content-end align-items-center" style="margin-right:20px; margin-top:4px">
-			<RadzenButton Click="@(() => DialogService.Close())" ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" />
+			<RadzenButton Click="@(() => DialogService.Close())" ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" data-testid="annotations-dialog-cerrar" />
 		</div>
 	</FooterContent>
 </DnzDialogLayout>
@@ -126,6 +126,7 @@
 	[Parameter, EditorRequired] public Guid SectionId { get; set; }
 	[Parameter, EditorRequired] public Guid RowId { get; set; }
 	[Parameter] public AnnotationTypeE InitialType { get; set; } = AnnotationTypeE.Comments;
+	[Parameter] public string TestId { get; set; }
 
 	private AnnotationTypeE _currentType;
 	private int _selectedTabIndex = 0;

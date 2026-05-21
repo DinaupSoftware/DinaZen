@@ -22,10 +22,11 @@
 
 </style>
 
-<div class="stepper-vertical">
+<div class="stepper-vertical" data-testid=@TestId>
     @ChildContent
 </div>
 
 @code {
     [Parameter] public RenderFragment  ChildContent { get; set; }
+    [Parameter] public string TestId { get; set; }
 }

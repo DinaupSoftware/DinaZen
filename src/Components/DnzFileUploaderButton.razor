@@ -1,7 +1,7 @@
 @namespace DinaZen.Components
 @implements IAsyncDisposable
 
-<span id="@_selector" class="dnz-upload-wrapper">
+<span id="@_selector" class="dnz-upload-wrapper" data-testid=@TestId>
 	@if (UseDashboard == false && _isUploading)
 	{
 		<RadzenProgressBarCircular Value="@_uploadProgress"  Size="ProgressBarCircularSize.ExtraSmall" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="@(_uploadProgress > 0 ? ProgressBarMode.Determinate : ProgressBarMode.Indeterminate)" />
@@ -14,7 +14,7 @@
 	}
 	else
 	{
-		<RadzenButton Icon="@ButtonIcon" Text="@ButtonText" ButtonStyle="@ButtonStyle" Size="@ButtonSize" Variant="@ButtonVariant" Disabled="@Disabled" />
+		<RadzenButton Icon="@ButtonIcon" Text="@ButtonText" ButtonStyle="@ButtonStyle" Size="@ButtonSize" Variant="@ButtonVariant" Disabled="@Disabled" data-testid=@TestId />
 	}
 </span>
 
@@ -37,6 +37,7 @@
 	[Parameter] public string Note { get; set; }
 	[Parameter] public EventCallback<string> OnError { get; set; }
 	[Parameter] public bool EditBeforeUpload { get; set; } = true;
+	[Parameter] public string TestId { get; set; }
 
 	private readonly string _selector = "dnz-fbtn-" + Guid.NewGuid().ToString("N")[..8];
 	private DotNetObjectReference<DnzFileUploaderButton> _dotNetRef;

@@ -1,6 +1,6 @@
 @inject IJSRuntime JS
 
-<div class="highlight-code @SizeClass">
+<div class="highlight-code @SizeClass" data-testid=@TestId>
 	<div class="highlight-code-header">
 		@if (string.IsNullOrEmpty(Language) == false)
 		{
@@ -16,7 +16,8 @@
 				<button type="button"
 						class="highlight-code-btn @(copied ? "copied" : "")"
 						@onclick="CopyCode"
-						title="@(copied ? "Copiado!" : "Copiar")">
+						title="@(copied ? "Copiado!" : "Copiar")"
+						data-testid="highlight-code-copy">
 					<RadzenIcon Icon="@(copied ? "check" : "content_copy")" />
 					@if (copied)
 					{
@@ -47,6 +48,7 @@
 	[Parameter] public bool ShowCopy { get; set; } = true;
 	[Parameter] public bool ShowLineNumbers { get; set; } = false;
 	[Parameter] public DnzHighlightCodeSize Size { get; set; } = DnzHighlightCodeSize.Default;
+	[Parameter] public string TestId { get; set; }
 
 	private ElementReference codeElement;
 	private bool copied;

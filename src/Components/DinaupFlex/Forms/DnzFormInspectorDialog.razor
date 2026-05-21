@@ -2,7 +2,7 @@
 
 <DnzDialogLayout Icon="info" Title="Inspeccionar registro">
 	<BodyContent>
-		<div class="dnz-inspector">
+		<div class="dnz-inspector" data-testid=@TestId>
 			<div class="dnz-inspector-section">
 				<h6 class="dnz-inspector-title"><RadzenIcon Icon="badge" Style="font-size:16px" /> Registro</h6>
 				<table class="dnz-inspector-table">
@@ -131,6 +131,7 @@
 	[Parameter] public string SectionId { get; set; } = "";
 	[Parameter] public string SectionLabel { get; set; } = "";
 	[Parameter] public List<Dinaup.VirtualFormDTO.Control> Fields { get; set; } = new();
+	[Parameter] public string TestId { get; set; }
 
 	private string TruncateValue(string val)
 	{

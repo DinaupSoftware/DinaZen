@@ -2,7 +2,7 @@
 
 @if (Context?.Mapping?.CanChart == true && Context.Rows.IsNotEmpty())
 {
-	<div class="dnz-chart-view">
+	<div class="dnz-chart-view" data-testid=@TestId>
 		@if (_chartData.IsNotEmpty())
 		{
 			<RadzenChart>
@@ -48,6 +48,7 @@
 	[Parameter] public string ValueColumn { get; set; }
 	[Parameter] public string CategoryColumn { get; set; }
 	[Parameter] public int MaxItems { get; set; } = 20;
+	[Parameter] public string TestId { get; set; }
 
 	public enum ChartTypeE { Column, Bar, Line, Area, Pie }
 

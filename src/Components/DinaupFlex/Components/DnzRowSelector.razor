@@ -4,7 +4,7 @@
 
 
 <ErrorBoundary>
-	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap dnz-rs-has-label")>
+	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap dnz-rs-has-label") data-testid=@TestId>
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@($"width:{Width};" + Style)>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
@@ -41,13 +41,13 @@
 		<div class="dnz-rs-actions-overlay">
 			@if (SelectedRow.IsNotEmpty()) {
 				@if (Disabled == false) {
-					<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" onclick=@(() => OnClearClick()) />
+					<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" onclick=@(() => OnClearClick()) data-testid="row-selector-remove" />
 				}
 				@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-					<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnOpenClick()) />
+					<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnOpenClick()) data-testid="row-selector-open" />
 				}
 			} else if (Disabled == false && OnAdd.HasDelegate) {
-				<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" onclick=@(() => OnAddClick()) />
+				<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" onclick=@(() => OnAddClick()) data-testid="row-selector-add" />
 			}
 		</div>
 	</div>
@@ -138,6 +138,7 @@
 	[Parameter] public EventCallback<IDinaupRow> OnOpenRecord { get; set; }
 	[Parameter] public bool OpenInWindow { get; set; } = true;
 	[Parameter] public Guid DefaultID { get; set; }
+	[Parameter] public string TestId { get; set; }
 
 	string _rootClass => "dropdown-menu-component"
 		+ ((IsRequired && SelectedRow.IsEmpty()) ? " dnz-rs-required" : "")

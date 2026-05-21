@@ -1,10 +1,10 @@
 @namespace DinaZen.Components.DinaupFlex.Annotations
 
-<div class="d-flex gap-1">
+<div class="d-flex gap-1" data-testid=@TestId>
 	<RadzenCard Variant="Variant.Outlined" class="flex-grow-1">
 		<h4>Agregar un Comentario</h4>
-		<RadzenTextArea @bind-Value=@mensaje Style="min-height: 100px; width: 100%;" />
-		<RadzenButton class="ml-auto" Icon="send" Text="Comentar" Click=@GuardarComentarioAsync Variant="Variant.Text" />
+		<RadzenTextArea @bind-Value=@mensaje Style="min-height: 100px; width: 100%;" data-testid="redactar-moderno-textarea" />
+		<RadzenButton class="ml-auto" Icon="send" Text="Comentar" Click=@GuardarComentarioAsync Variant="Variant.Text" data-testid="redactar-moderno-enviar" />
 	</RadzenCard>
 </div>
 
@@ -17,6 +17,7 @@
 	[Parameter] public System.Guid RowId { get; set; }
 	[Parameter] public System.Guid SectionId { get; set; }
 	[Parameter] public Dinaup.AnnotationTypeE Type { get; set; }
+	[Parameter] public string TestId { get; set; }
 	public string mensaje;
 
 	async Task GuardarComentarioAsync()

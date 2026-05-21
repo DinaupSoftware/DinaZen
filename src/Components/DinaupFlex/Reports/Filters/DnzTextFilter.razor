@@ -3,7 +3,7 @@
 @if (Column.IsNull()) return;
 @if (DataColumn.IsNull()) return;
 
-<div class="p-4 d-flex flex-column">
+<div class="p-4 d-flex flex-column" data-testid="filter-text">
 	<RadzenTextBox @bind-Value=@searchText Placeholder="Buscar..." Style="width: 400px" class="mb-1" />
 	<RadzenButton Text="Aplicar" Click=@(async () => await ApplyFilterAsync()) />
 	<hr />

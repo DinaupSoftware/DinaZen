@@ -4,7 +4,7 @@
 @if (Column.BadgetsStyle.IsEmpty()) return;
 @if (DataColumn.IsNull()) return;
 
-<div class="d-flex gap-2 flex-wrap p-3 flex-column">
+<div class="d-flex gap-2 flex-wrap p-3 flex-column" data-testid="filter-badge">
 
 	@foreach (var item in Column.BadgetsStyle)
 	{

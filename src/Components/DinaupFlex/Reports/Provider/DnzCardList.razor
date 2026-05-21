@@ -13,7 +13,7 @@
 	}
 	else
 	{
-		<div class="dnz-card-list">
+		<div class="dnz-card-list" data-testid=@TestId>
 			@foreach (var row in Context.Rows)
 			{
 				<div class="dnz-card-list-item" @onclick="() => HandleClick(row)">
@@ -86,6 +86,7 @@
 	[CascadingParameter] public ReportContext Context { get; set; }
 	[Parameter] public int MaxFields { get; set; } = 4;
 	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
+	[Parameter] public string TestId { get; set; }
 
 	private List<DinaupFieldDTO> _displayCols = new();
 	private DinaupFieldDTO _moneyCol;

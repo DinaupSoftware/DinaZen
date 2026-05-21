@@ -1,6 +1,6 @@
 @inject TooltipService TooltipService
 
-<div class="dz-taglist-editor @Class" style="@Style">
+<div class="dz-taglist-editor @Class" style="@Style" data-testid=@TestId>
     @if (string.IsNullOrEmpty(Title) == false)
     {
         <div class="dz-taglist-toolbar">
@@ -77,6 +77,7 @@
     [Parameter] public bool ReadOnly { get; set; } = false;
     [Parameter] public string Class { get; set; } = "";
     [Parameter] public string Style { get; set; } = "";
+    [Parameter] public string TestId { get; set; }
 
     /// <summary>
     /// Optional validation function. Return null/empty if valid, or an error message if invalid.

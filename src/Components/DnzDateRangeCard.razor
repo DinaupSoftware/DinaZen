@@ -1,6 +1,6 @@
 @* DnzDateRangeCard - Card with integrated date range selector and loading state *@
 
-<RadzenCard>
+<RadzenCard data-testid=@TestId>
 	<DnzCardTitle Title="@Title" Icon="@Icon" />
 
 	<DnzDateRangeSelector OnRangeChanged="@HandleRangeChanged"
@@ -52,6 +52,7 @@
 	[Parameter] public DnzDateRangeSelector.DateRangePreset DefaultPreset { get; set; } = DnzDateRangeSelector.DateRangePreset.Last7Days;
 	[Parameter] public EventCallback<DnzDateRangeSelector.DateRangePreset> PresetChanged { get; set; }
 	[Parameter] public EventCallback<(DateTime From, DateTime To)> OnRangeChanged { get; set; }
+	[Parameter] public string TestId { get; set; }
 
 	private DateOnly? _from;
 	private DateOnly? _to;

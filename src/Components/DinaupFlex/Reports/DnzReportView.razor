@@ -13,7 +13,7 @@
 } else if (_showResponse && _report?.VariableList?.Variables != null) {
 	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
-	<div class="dnz-report-view">
+	<div class="dnz-report-view" data-testid="report-view" data-testid-id=@ReportId>
 		@if (ShowTitle || ShowSearch) {
 			<div class="dnz-report-header">
 				@if (ShowTitle && _dataList.Section.IsNotNull()) {
@@ -22,11 +22,11 @@
 				@if (ShowTitle) {
 					<span>@Title.IfIsEmpty(_dataList.Title)</span>
 				}
-				<div class="d-flex align-items-center gap-2 ms-auto">
-					<RadzenButton Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
-					<RadzenTextBox Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
-					<RadzenButton Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV" />
-					<RadzenButton Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
+				<div class="d-flex align-items-center gap-2 ms-auto" data-testid="report-toolbar">
+					<RadzenButton data-testid="report-add" Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
+					<RadzenTextBox data-testid="report-search" Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
+					<RadzenButton data-testid="report-export" Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV" />
+					<RadzenButton data-testid="report-refresh" Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
 				</div>
 			</div>
 		}
