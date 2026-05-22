@@ -7,7 +7,7 @@
 				<RadzenIcon Icon="image" Style="color:var(--rz-primary); font-size:20px" />
 				<span style="font-weight:600">Editor de Imagen</span>
 			</div>
-			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small" Click=@Cerrar Style="opacity:0.6" data-testid="image-editor-cerrar" />
+			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small" Click=@Cerrar Style="opacity:0.6" data-testid="image-editor-close" />
 		</div>
 	</TitleContent>
 	<BodyContent>
@@ -15,8 +15,8 @@
 	</BodyContent>
 	<FooterContent>
 		<div class="d-flex justify-content-end gap-1 align-items-center px-3">
-			<RadzenButton Click=@Aceptar IsBusy=@_isBusy ButtonStyle="ButtonStyle.Success" Text="Aceptar" Icon="check" Variant="Variant.Text" data-testid="image-editor-aceptar" />
-			<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" data-testid="image-editor-cerrar" />
+			<RadzenButton Click=@Aceptar IsBusy=@_isBusy ButtonStyle="ButtonStyle.Success" Text="Aceptar" Icon="check" Variant="Variant.Text" data-testid="image-editor-accept" />
+			<RadzenButton Click=@Cerrar ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" data-testid="image-editor-close" />
 		</div>
 	</FooterContent>
 </DnzDialogLayout>

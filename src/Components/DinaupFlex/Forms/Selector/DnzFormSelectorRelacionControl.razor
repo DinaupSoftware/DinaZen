@@ -127,15 +127,15 @@
 
 				@if (DataControl.IsFilled) {
 					@if (DataControl.IsLocked == false) {
-						<RadzenButton style="zoom:0.9" @key=@(DataControl.Token + "-3") Icon="close" Variant="Variant.Text" Click=EliminarRelacion ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" data-testid="selector-relacional-remove" />
+						<RadzenButton style="zoom:0.9" @key=@(DataControl.Token + "-3") Icon="close" Variant="Variant.Text" Click=EliminarRelacion ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" data-testid="selector-relational-remove" />
 					}
 
 					@if (DataControl.TokenList != "" && Client != null) {
-						<RadzenButton Click=@(async () => await AccederAsync()) style="zoom:0.9;margin-right:10px" @key=@(DataControl.Token + "-4") Variant="Variant.Text" Icon="open_in_new" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" data-testid="selector-relacional-open" />
+						<RadzenButton Click=@(async () => await AccederAsync()) style="zoom:0.9;margin-right:10px" @key=@(DataControl.Token + "-4") Variant="Variant.Text" Icon="open_in_new" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" data-testid="selector-relational-open" />
 					}
 				} else {
 					@if (DataControl.TokenList != "" && DataControl.IsLocked == false && Client != null) {
-						<RadzenButton Click=@(async () => await AgregarAsync()) style="zoom:0.9" @key=@(DataControl.Token + "-5") Variant="Variant.Text" Icon="add" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" data-testid="selector-relacional-add" />
+						<RadzenButton Click=@(async () => await AgregarAsync()) style="zoom:0.9" @key=@(DataControl.Token + "-5") Variant="Variant.Text" Icon="add" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.ExtraSmall" data-testid="selector-relational-add" />
 					}
 				}
 			</div>

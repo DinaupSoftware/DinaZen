@@ -19,7 +19,7 @@ else if (_form.IsNotNull())
 				{
 					<RadzenBadge BadgeStyle="BadgeStyle.Info" Text="Modificado" />
 				}
-				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Text" Size="ButtonSize.Small" Click="CloseForm" Style="margin-left:12px; opacity:0.6" data-testid="form-cerrar" />
+				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Dark" Variant="Variant.Text" Size="ButtonSize.Small" Click="CloseForm" Style="margin-left:12px; opacity:0.6" data-testid="form-close" />
 			</div>
 		</div>
 
@@ -68,8 +68,8 @@ else if (_form.IsNotNull())
 				}
 				else
 				{
-					<RadzenButton IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" data-testid="form-guardar" />
-					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" data-testid="form-cancelar" />
+					<RadzenButton IsBusy="@_isSaving" ButtonStyle="ButtonStyle.Success" Icon="check" Text="Guardar" Click="@SaveForm" data-testid="form-save" />
+					<RadzenButton IsBusy="@_isSaving" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Cancelar" Click="@CloseForm" data-testid="form-cancel" />
 				}
 			</div>
 		</div>

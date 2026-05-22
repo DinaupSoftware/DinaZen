@@ -115,7 +115,7 @@
 						  Click="SendAnnotation" Disabled="@(_newMessage.IsEmpty() && _pendingFileId == Guid.Empty)" IsBusy="@_isSending" data-testid="annotations-dialog-send" />
 		</div>
 		<div class="d-flex justify-content-end align-items-center" style="margin-right:20px; margin-top:4px">
-			<RadzenButton Click="@(() => DialogService.Close())" ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" data-testid="annotations-dialog-cerrar" />
+			<RadzenButton Click="@(() => DialogService.Close())" ButtonStyle="ButtonStyle.Danger" Text="Cerrar" Icon="close" Variant="Variant.Text" data-testid="annotations-dialog-close" />
 		</div>
 	</FooterContent>
 </DnzDialogLayout>
