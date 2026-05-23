@@ -9,7 +9,9 @@
 
 
 @if (_isLoading && _dataList == null) {
-	<DnzLoader />
+	<div data-testid="report-loading">
+		<DnzLoader />
+	</div>
 } else if (_showResponse && _report?.VariableList?.Variables != null) {
 	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
@@ -32,7 +34,9 @@
 		}
 
 		<div class="dnz-report-body">
-			<RadzenDataGrid @ref="_gridRef" Data="@_rows" TItem="DinaupDynamicRowDTO"
+			<RadzenDataGrid @ref="_gridRef" Data="@_rows" TItem="DinaupDynamicRowDTO" data-testid="report-grid"
+							RowRender="@(a => a.Attributes.Add("data-testid", $"report-row-{a.Data.ID}"))"
+							CellRender="@OnCellRender"
 							AllowSorting="true" AllowFiltering="@Filtrable"
 							AllowMultiColumnSorting="true" ShowMultiColumnSortingIndex="true"
 							AllowColumnPicking="@ShowTitle"
@@ -57,7 +61,7 @@
 							SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
 
 				<EmptyTemplate>
-					<div class="dnz-report-empty">
+					<div class="dnz-report-empty" data-testid="report-empty">
 						<RadzenIcon Icon="search_off" />
 						<span>Sin resultados</span>
 					</div>
@@ -201,7 +205,7 @@
 		</div>
 	</div>
 } else if (_errorMessage.IsNotEmpty()) {
-	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter" data-testid="report-error">
 		@_errorMessage
 	</RadzenAlert>
 }
@@ -349,6 +353,14 @@
 		await LoadDataAsync(ld);
 
 		await InvokeAsync(StateHasChanged);
+	}
+
+	void OnCellRender(DataGridCellRenderEventArgs<DinaupDynamicRowDTO> args) {
+		var prop = args.Column.Property.STR();
+		if (prop.IsNotEmpty() && prop.Contains("[\"")) {
+			var kw = Dinaup.extensions.ParseBetween(ref prop, "[\"", "\"]");
+			if (kw.IsNotEmpty()) args.Attributes["data-testid"] = $"cell-{kw}";
+		}
 	}
 
 	private string ResolveColId(string name) {
