@@ -1,0 +1,39 @@
+@if (Value.HasValue)
+{
+	<span class=@_class style=@_style>@_text</span>
+}
+
+@code {
+
+	[Parameter] public decimal? Value { get; set; }
+	[Parameter] public int Decimals { get; set; } = 1; // decimales maximos (se omiten ceros de cola)
+	[Parameter] public bool AutoColor { get; set; } = false;
+	[Parameter] public string Class { get; set; } = "";
+	[Parameter] public string FontSize { get; set; } = "16px"; // Tamaño de fuente predeterminado
+
+	private string _class = "";
+	private string _style = "";
+	private string _text = "";
+
+	protected override Task OnParametersSetAsync()
+	{
+		string _color = "";
+
+		if (AutoColor && Value.HasValue && Value.Value > 0)
+			_color = "color:var(--dnz-success-color-dark, #086F0C);";
+		else if (AutoColor && Value.HasValue && Value.Value < 0)
+			_color = "color:var(--dnz-danger-color-dark, #6A0808);";
+
+		_class = Class + " numspan";
+		_style = $"font-size:{FontSize};     width: fit-content;word-break: keep-all; white-space: nowrap;{_color}";
+
+		if (Value.HasValue)
+		{
+			string fmt = Decimals > 0 ? "0." + new string('#', Decimals) : "0";
+			_text = Value.Value.ToString(fmt) + " %";
+		}
+
+		return base.OnParametersSetAsync();
+	}
+
+}

@@ -1,6 +1,6 @@
 @inject IJSRuntime JS
 
-<div class="highlight-code @SizeClass" data-testid=@TestId>
+<div class="highlight-code @SizeClass" @attributes="AdditionalAttributes">
 	<div class="highlight-code-header">
 		@if (string.IsNullOrEmpty(Language) == false)
 		{
@@ -48,7 +48,7 @@
 	[Parameter] public bool ShowCopy { get; set; } = true;
 	[Parameter] public bool ShowLineNumbers { get; set; } = false;
 	[Parameter] public DnzHighlightCodeSize Size { get; set; } = DnzHighlightCodeSize.Default;
-	[Parameter] public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private ElementReference codeElement;
 	private bool copied;

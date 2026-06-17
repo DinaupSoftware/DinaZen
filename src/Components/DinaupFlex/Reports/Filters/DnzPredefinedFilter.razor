@@ -39,13 +39,17 @@
 	async Task ApplyFilterAsync(int v)
 	{
 		if (Column.Predefined_Values.IsNotEmpty())
+		{
+			DataColumn.ClearFilters();
 			await DataColumn.SetFilterValueAsync(Column.Predefined_Values[v]);
+		}
 
 		await DataColumn.CloseFilter();
 	}
 
 	async Task FilterEmptyAsync()
 	{
+		DataColumn.ClearFilters();
 		DataColumn.SetFilterOperator(FilterOperator.IsEmpty);
 		await DataColumn.SetFilterValueAsync("a");
 		await DataColumn.CloseFilter();
@@ -53,6 +57,7 @@
 
 	async Task FilterFilledAsync()
 	{
+		DataColumn.ClearFilters();
 		DataColumn.SetFilterOperator(FilterOperator.IsNotEmpty);
 		await DataColumn.SetFilterValueAsync("a");
 		await DataColumn.CloseFilter();

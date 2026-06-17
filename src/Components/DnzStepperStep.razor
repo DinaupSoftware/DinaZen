@@ -27,7 +27,7 @@
 		line-height: 1.4;
 	}
 </style>
-<div class="stepper-step" data-testid=@TestId>
+<div class="stepper-step" @attributes="AdditionalAttributes">
     <div class="stepper-circle">@Index</div>
     <div class="stepper-content">
         @ChildContent
@@ -37,5 +37,5 @@
 @code {
     [Parameter] public int Index { get; set; }
     [Parameter] public RenderFragment  ChildContent { get; set; }
-    [Parameter] public string TestId { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 }

@@ -180,6 +180,7 @@
 			{
 				foreach (var currentDocument in CompatibleDocuments)
 				{
+					if (currentDocument.VariableList.IsNull() || currentDocument.VariableList.Variables.IsEmpty()) continue;
 					string actualKey = currentDocument.VariableList.Variables.Keys.First();
 					if (!sendVar.ContainsKey(actualKey))
 						sendVar.Add(actualKey, VariableValues?.Values?.FirstOrDefault() ?? "");

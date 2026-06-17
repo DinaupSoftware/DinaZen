@@ -1,7 +1,7 @@
 @* DnzDateRangeSelector - Date range picker with predefined options (DateOnly) *@
 @using System.ComponentModel.DataAnnotations
 
-<div class="d-flex gap-2 align-items-center flex-wrap" data-testid=@TestId>
+<div class="d-flex gap-2 align-items-center flex-wrap" @attributes="AdditionalAttributes">
 
 	<RadzenFormField Text="Rango" Variant="Variant.Flat" Style="min-width:240px">
 		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" />
@@ -32,7 +32,7 @@
 	[Parameter] public EventCallback<(DateOnly From, DateOnly To)> OnRangeChanged { get; set; }
 	[Parameter] public DateRangePreset SelectedPreset { get; set; } = DateRangePreset.Last7Days;
 	[Parameter] public EventCallback<DateRangePreset> SelectedPresetChanged { get; set; }
-	[Parameter] public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private DateOnly? _from;
 	private DateOnly? _to;

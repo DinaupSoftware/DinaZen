@@ -28,7 +28,9 @@
 					<b>Igual</b>
 					<RadzenDatePicker @bind-Value="exactDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
 				</div>
-				<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Equals")) />
+				<div class="d-flex justify-content-end pt-2 pe-2">
+					<RadzenButton Text="Aplicar" Icon="search" Click=@(() => ApplyFilterAsync("Equals")) Size="ButtonSize.Small" Variant="Variant.Text" />
+				</div>
 			</RadzenTabsItem>
 
 			<RadzenTabsItem Text="Rango">
@@ -40,7 +42,9 @@
 					<b>Menor que</b>
 					<RadzenDatePicker @bind-Value="maxDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
 				</div>
-				<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Range")) />
+				<div class="d-flex justify-content-end pt-2 pe-2">
+					<RadzenButton Text="Aplicar" Icon="search" Click=@(() => ApplyFilterAsync("Range")) Size="ButtonSize.Small" Variant="Variant.Text" />
+				</div>
 			</RadzenTabsItem>
 		</Tabs>
 	</RadzenTabs>
@@ -56,7 +60,7 @@
 	[Parameter]
 	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
 
-	void ApplyPresetFilter(string filtro)
+	async Task ApplyPresetFilter(string filtro)
 	{
 		switch (filtro)
 		{
@@ -99,7 +103,7 @@
 				break;
 		}
 
-		_ = ApplyFilterAsync("Range");
+		await ApplyFilterAsync("Range");
 	}
 
 	async Task ApplyFilterAsync(string filterType)

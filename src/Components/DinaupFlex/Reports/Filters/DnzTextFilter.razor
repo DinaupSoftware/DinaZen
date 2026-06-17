@@ -3,9 +3,9 @@
 @if (Column.IsNull()) return;
 @if (DataColumn.IsNull()) return;
 
-<div class="p-4 d-flex flex-column" data-testid="filter-text">
-	<RadzenTextBox @bind-Value=@searchText Placeholder="Buscar..." Style="width: 400px" class="mb-1" />
-	<RadzenButton Text="Aplicar" Click=@(async () => await ApplyFilterAsync()) />
+<div class="p-3 d-flex flex-column gap-2" data-testid="filter-text">
+	<RadzenTextBox @bind-Value=@searchText Placeholder="Buscar..." Style="width:min(400px, 80vw)" />
+	<RadzenButton Text="Aplicar" Icon="search" Click=@(async () => await ApplyFilterAsync()) />
 	<hr />
 
 	<div class="d-flex gap-3 justify-content-center">

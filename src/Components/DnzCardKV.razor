@@ -1,11 +1,11 @@
-﻿<RadzenCard Style=@Style class="d-flex gap-1 align-items-center align-content-center p-2" Variant=@Variant data-testid=@TestId>
+﻿<RadzenCard Style=@Style class="d-flex gap-2 align-items-center p-2" Variant=@Variant @attributes="AdditionalAttributes">
 
-	<div>
-		<RadzenIcon Style="font-size: 32px; min-height: 56px; min-width: 56px" Icon=@Icon IconColor=@IconColor />
+	<div class="d-flex align-items-center justify-content-center" style="min-height: 56px; min-width: 56px">
+		<RadzenIcon Style="font-size: 32px" Icon=@Icon IconColor=@IconColor />
 	</div>
-	<div class="flex-grow-1 d-flex flex-column justify-content-start align-items-start align-content-center ">
-		<span class="rz-text-overline">  @(Title.IsNotEmpty() ? Title : Tile) </span>
-		<span class="rz-text-h5">  @Value </span>
+	<div class="flex-grow-1 d-flex flex-column align-items-start">
+		<span class="rz-text-overline">@(Title.IsNotEmpty() ? Title : Tile)</span>
+		<span class="rz-text-h5">@Value</span>
 	</div>
 
 </RadzenCard>
@@ -48,12 +48,11 @@
 
 
 	/// <summary>
-	/// Valor principal a mostrar
+	/// Estilo CSS inline aplicado al card
 	/// </summary>
 	[Parameter]
 	public string Style { get; set; } = string.Empty;
 
-	[Parameter]
-	public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 }

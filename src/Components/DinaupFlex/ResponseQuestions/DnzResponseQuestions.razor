@@ -152,8 +152,8 @@
 		VariableValues.AddOrUpdate(variable.KeyWord, formatted);
 	}
 
-	private void OnSubmit()
+	private async Task OnSubmit()
 	{
-		OnConfirm.InvokeAsync(VariableValues);
+		await OnConfirm.InvokeAsync(VariableValues);
 	}
 }

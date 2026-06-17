@@ -13,7 +13,7 @@
 	}
 	else
 	{
-		<div class="dnz-card-list" data-testid=@TestId>
+		<div class="dnz-card-list" @attributes="AdditionalAttributes">
 			@foreach (var row in Context.Rows)
 			{
 				<div class="dnz-card-list-item" @onclick="() => HandleClick(row)">
@@ -86,7 +86,7 @@
 	[CascadingParameter] public ReportContext Context { get; set; }
 	[Parameter] public int MaxFields { get; set; } = 4;
 	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
-	[Parameter] public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private List<DinaupFieldDTO> _displayCols = new();
 	private DinaupFieldDTO _moneyCol;
@@ -132,12 +132,12 @@
 			SectionId = row.SectionId,
 			RowId = row.ID,
 			Title = row.Title ?? "",
-			Client = null
+			Client = Context.Client
 		})) return;
 
 		if (WindowManager != null)
-			DnzFormView.OpenAsWindow(WindowManager, null, row.SectionId, row.ID, title: row.Title ?? "Formulario");
+			DnzFormView.OpenAsWindow(WindowManager, Context.Client, row.SectionId, row.ID, title: row.Title ?? "Formulario");
 		else
-			await DnzFormView.OpenAsync(DialogService, null, row.SectionId, row.ID);
+			await DnzFormView.OpenAsync(DialogService, Context.Client, row.SectionId, row.ID);
 	}
 }

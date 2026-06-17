@@ -42,6 +42,7 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		_context.Client = Client;
 		_context.RefreshAsync = LoadAsync;
 		await LoadAsync();
 	}

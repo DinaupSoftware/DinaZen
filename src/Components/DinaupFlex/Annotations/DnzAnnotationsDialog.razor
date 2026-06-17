@@ -15,7 +15,7 @@
 		</div>
 	</TitleContent>
 	<BodyContent>
-		<div class="dnz-annotations-dialog" data-testid=@TestId>
+		<div class="dnz-annotations-dialog" @attributes="AdditionalAttributes">
 			@* ── Tab selector ── *@
 			<RadzenTabs @bind-SelectedIndex="@_selectedTabIndex" Change="@OnTabChanged">
 				<Tabs>
@@ -126,7 +126,7 @@
 	[Parameter, EditorRequired] public Guid SectionId { get; set; }
 	[Parameter, EditorRequired] public Guid RowId { get; set; }
 	[Parameter] public AnnotationTypeE InitialType { get; set; } = AnnotationTypeE.Comments;
-	[Parameter] public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private AnnotationTypeE _currentType;
 	private int _selectedTabIndex = 0;

@@ -41,7 +41,7 @@ else
 
 @if (DataColumn.GetFilterValue() != null)
 {
-	<div class="d-flex justify-content-end" style="padding-bottom:10px; padding-right:10px">
+	<div class="d-flex justify-content-end pb-2 pe-2">
 		<RadzenButton Text="Quitar filtro" Icon="search_off" Click=@Clear Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" />
 	</div>
 }
@@ -53,7 +53,7 @@ else
 	[Parameter]
 	public RadzenDataGridColumn<DinaupDynamicRowDTO> DataColumn { get; set; }
 
-	async void Clear()
+	async Task Clear()
 	{
 		DataColumn.ClearFilters();
 		await DataColumn.CloseFilter();

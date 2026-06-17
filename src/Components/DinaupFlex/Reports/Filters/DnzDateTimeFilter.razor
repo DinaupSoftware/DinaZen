@@ -28,7 +28,7 @@
 					<b>Igual</b>
 					<RadzenDatePicker Culture=@RegionService.Culture @bind-Value="exactDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" />
 				</div>
-				<div class="d-flex justify-content-end" style="padding-top:10px; padding-right:10px">
+				<div class="d-flex justify-content-end pt-2 pe-2">
 					<RadzenButton Text="Aplicar" Icon="search" Click=@(() => ApplyFilterAsync("Equals")) Size="ButtonSize.Small" Variant="Variant.Text" />
 				</div>
 			</RadzenTabsItem>
@@ -42,7 +42,7 @@
 					<b>Menor que</b>
 					<RadzenDatePicker @bind-Value="maxLocal" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
 				</div>
-				<div class="d-flex justify-content-end" style="padding-top:10px; padding-right:10px">
+				<div class="d-flex justify-content-end pt-2 pe-2">
 					<RadzenButton Text="Aplicar" Icon="search" Click=@(() => ApplyFilterAsync("Range")) Size="ButtonSize.Small" Variant="Variant.Text" />
 				</div>
 			</RadzenTabsItem>

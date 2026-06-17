@@ -1,10 +1,12 @@
 @namespace DinaZen.Components.DinaupFlex.Annotations
 
-<div class="d-flex gap-1" data-testid=@TestId>
+<div class="d-flex gap-1" @attributes="AdditionalAttributes">
 	<RadzenCard Variant="Variant.Outlined" class="flex-grow-1">
-		<h4>Agregar un Comentario</h4>
-		<RadzenTextArea @bind-Value=@mensaje Style="min-height: 100px; width: 100%;" data-testid="modern-compose-textarea" />
-		<RadzenButton class="ml-auto" Icon="send" Text="Comentar" Click=@GuardarComentarioAsync Variant="Variant.Text" data-testid="modern-compose-send" />
+		<h6 class="mb-2">Agregar un comentario</h6>
+		<RadzenTextArea @bind-Value=@mensaje Placeholder="Escribe un comentario..." Style="min-height: 100px; width: 100%;" data-testid="modern-compose-textarea" />
+		<div class="d-flex justify-content-end mt-2">
+			<RadzenButton Icon="send" Text="Comentar" Click=@GuardarComentarioAsync IsBusy=@enviando Variant="Variant.Text" data-testid="modern-compose-send" />
+		</div>
 	</RadzenCard>
 </div>
 
@@ -17,32 +19,40 @@
 	[Parameter] public System.Guid RowId { get; set; }
 	[Parameter] public System.Guid SectionId { get; set; }
 	[Parameter] public Dinaup.AnnotationTypeE Type { get; set; }
-	[Parameter] public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 	public string mensaje;
+	private bool enviando;
 
 	async Task GuardarComentarioAsync()
 	{
+		if (mensaje.IsEmpty())
+		{
+			NotificationService.Notify(Radzen.NotificationSeverity.Warning, "Comentario vacío", "Escribe un comentario antes de enviar");
+			return;
+		}
+
+		enviando = true;
 		try
 		{
 			await Client.Annotation_PutAsync((new Dinaup.AnotationParameters(SectionId, RowId, Type)).WithText(mensaje));
 
 			mensaje = "";
 
+			// El comentario ya se guardó: un fallo del callback del padre no debe mostrarse como error de guardado.
 			try
 			{
 				if (ComentarioEnviado.HasDelegate)
-				{
-					_ = ComentarioEnviado.InvokeAsync();
-				}
+					await ComentarioEnviado.InvokeAsync();
 			}
-			catch (Exception)
-			{
-			}
-
+			catch { }
 		}
 		catch (Exception ex)
 		{
 			NotificationService.Notify(Radzen.NotificationSeverity.Error, "Error", ex.Message);
+		}
+		finally
+		{
+			enviando = false;
 		}
 	}
 }

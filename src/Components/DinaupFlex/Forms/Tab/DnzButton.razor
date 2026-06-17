@@ -1,10 +1,10 @@
-<RadzenButton data-fieldid=@ButtonData.FieldId data-testid=@(TestId.IsEmpty() ? ButtonData.Id : TestId) Click=OnClick Text=@ButtonData.Label @key=ButtonData.Token style="@ButtonStyle">
+<RadzenButton data-fieldid=@ButtonData.FieldId data-testid=@ButtonData.Id @attributes="AdditionalAttributes" Click=OnClick Text=@ButtonData.Label @key=ButtonData.Token style="@ButtonStyle">
 </RadzenButton>
 
 @code {
 
 
-    [Parameter] public string TestId { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
     [Parameter] public EventCallback<string> OnMostrarDialogRequiereGuardar { get; set; }
 

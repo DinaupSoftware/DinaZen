@@ -320,8 +320,7 @@
 	public void UpdateSearchInmediate(string query) {
 		if (QuerySearch == query) return;
 		QuerySearch = query;
-		LoadDataAsync();
-
+		_ = LoadDataAsync();
 	}
 
 	public void UpdateSearch(string query) {
@@ -335,7 +334,7 @@
 
 	// ── Server-side LoadData ──
 
-	private async void HandleLoadDataEvent(LoadDataArgs args) {
+	private async Task HandleLoadDataEvent(LoadDataArgs args) {
 		var ld = new LoadDataReportC {
 			Skip = args.Skip,
 			Top = args.Top,

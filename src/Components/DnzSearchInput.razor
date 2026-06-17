@@ -3,13 +3,12 @@
 
 <div class=@("dnz-search-input d-flex align-items-center gap-1 px-2 py-1 " + Class) style=@Style>
 	<RadzenIcon Icon="search" Style="font-size:18px; color:var(--rz-text-secondary-color)" />
-	<input type="text" data-testid=@TestId placeholder=@Placeholder @oninput="OnInput" class="dnz-search-input__field" />
+	<input type="text" @attributes="AdditionalAttributes" placeholder=@Placeholder @oninput="OnInput" class="dnz-search-input__field" />
 </div>
 
 @code {
 
-	[Parameter]
-	public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	[Parameter]
 	public string Value { get; set; }

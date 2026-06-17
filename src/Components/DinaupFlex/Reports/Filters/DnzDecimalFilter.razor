@@ -2,7 +2,7 @@
 
 @if (Column == null || DataColumn == null) return;
 
-<div class="d-flex flex-column p-4 gap-2" data-testid="filter-decimal">
+<div class="d-flex flex-column p-3 gap-2" data-testid="filter-decimal">
 	<RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Server">
 		<Tabs>
 			<RadzenTabsItem Text="Signo">
@@ -23,11 +23,11 @@
 
 			<RadzenTabsItem Text="Rango">
 				<div class="d-flex gap-3 align-items-center">
-					<b>Mayor qué</b>
+					<b>Mayor que</b>
 					<RadzenNumeric Culture=@RegionService.Culture TValue="Decimal" Format="0.##################" @bind-Value="minValue" Style="width: 100px" />
 				</div>
 				<div class="d-flex gap-3 align-items-center">
-					<b>Menor qué</b>
+					<b>Menor que</b>
 					<RadzenNumeric Culture=@RegionService.Culture TValue="Decimal" Format="0.##################" @bind-Value="maxValue" Style="width: 100px" />
 					<RadzenButton Text="Aplicar" Click=@(() => ApplyFilterAsync("Range")) />
 				</div>

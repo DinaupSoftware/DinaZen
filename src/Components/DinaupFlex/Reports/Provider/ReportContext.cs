@@ -4,6 +4,7 @@ namespace DinaZen.Components.DinaupFlex.Reports.Provider;
 
 public class ReportContext
 {
+	public DinaupClientC Client { get; set; }
 	public DinaupReportDTO Report { get; set; }
 	public DinaupReportDataDTO DataList { get; set; }
 	public List<DinaupDynamicRowDTO> Rows { get; set; } = new();

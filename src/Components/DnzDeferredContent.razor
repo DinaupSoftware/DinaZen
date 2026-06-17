@@ -1,3 +1,5 @@
+@implements IDisposable
+
 @if (IsLoaded)
 {
 	@ChildContent
@@ -35,14 +37,21 @@ else
 	public string Class { get; set; } = "";
 
 	private bool IsLoaded { get; set; } = false;
+	private bool _disposed;
 
-	protected override async Task OnInitializedAsync()
+	// Fire-and-forget a propósito: un await en OnInitializedAsync bloquearía la quiescencia del prerender.
+	protected override void OnInitialized()
 	{
-		_=Task.Delay(DelayMs).ContinueWith((e) =>
-		{
-			IsLoaded = true;
-			InvokeAsync(StateHasChanged);
-		});
-		
+		_ = ShowAfterDelayAsync();
 	}
+
+	private async Task ShowAfterDelayAsync()
+	{
+		await Task.Delay(DelayMs);
+		if (_disposed) return;
+		IsLoaded = true;
+		try { await InvokeAsync(StateHasChanged); } catch { }
+	}
+
+	public void Dispose() => _disposed = true;
 }

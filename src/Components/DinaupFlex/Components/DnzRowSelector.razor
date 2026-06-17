@@ -4,7 +4,7 @@
 
 
 <ErrorBoundary>
-	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap dnz-rs-has-label") data-testid=@TestId>
+	<div class=@(_isCompact ? "dnz-rs-wrap dnz-rs-compact" : "dnz-rs-wrap dnz-rs-has-label") @attributes="AdditionalAttributes">
 		<RadzenFormField Text=@Label Variant="Variant.Flat" class=@(_rootClass) Style=@($"width:{Width};" + Style)>
 			<Start>
 				@if (Icon.IsNotEmpty()) {
@@ -138,7 +138,7 @@
 	[Parameter] public EventCallback<IDinaupRow> OnOpenRecord { get; set; }
 	[Parameter] public bool OpenInWindow { get; set; } = true;
 	[Parameter] public Guid DefaultID { get; set; }
-	[Parameter] public string TestId { get; set; }
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	string _rootClass => "dropdown-menu-component"
 		+ ((IsRequired && SelectedRow.IsEmpty()) ? " dnz-rs-required" : "")
