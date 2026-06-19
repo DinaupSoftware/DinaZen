@@ -1,0 +1,325 @@
+@namespace DinaZen.Components.DinaupFlex.Reports
+
+@* Dialog de debug del informe: desglose de tiempos (cliente vs servidor), SQL ejecutado y metadatos.
+   Los campos de tiempo/SQL/trace los expone el SDK Dinaup en DinaupReportDataDTO (sql, sql_ms, prep_ms, post_ms, trace_id, app). *@
+
+<DnzDialogLayout Icon="query_stats" Title="Detalles del informe">
+	<BodyContent>
+		<div class="dnz-rdebug" @attributes="AdditionalAttributes">
+
+			@* ── TIEMPOS ── *@
+			<div class="dnz-rdebug-section">
+				<h6 class="dnz-rdebug-title"><RadzenIcon Icon="timer" Style="font-size:16px" /> Tiempos</h6>
+
+				<div class="dnz-rdebug-bar" title="Reparto del tiempo total (cliente)">
+					@if (_prep > 0) { <div class="bg-info" style="@SegStyle(_prep)"></div> }
+					@if (_pg > 0) { <div class="bg-primary" style="@SegStyle(_pg)"></div> }
+					@if (_post > 0) { <div class="bg-warning" style="@SegStyle(_post)"></div> }
+					@if (_hasTransport)
+					{
+						@if (_serializeServer > 0) { <div class="bg-success" style="@SegStyle(_serializeServer)"></div> }
+						@if (_wire > 0) { <div class="bg-secondary" style="@SegStyle(_wire)"></div> }
+						@if (_clientParse > 0) { <div class="dnz-seg-client" style="@SegStyle(_clientParse)"></div> }
+					}
+					else
+					{
+						@if (_overhead > 0) { <div class="bg-secondary" style="@SegStyle(_overhead)"></div> }
+					}
+				</div>
+
+				<table class="dnz-rdebug-table">
+					<tr>
+						<td class="dnz-rdebug-key"><span class="dnz-dot bg-dark"></span>Total cliente (ida y vuelta)</td>
+						<td class="dnz-rdebug-val"><b>@ClientMs ms</b></td>
+						<td class="dnz-rdebug-pct">100%</td>
+					</tr>
+					<tr>
+						<td class="dnz-rdebug-key"><span class="dnz-dot bg-info"></span>Preparación (server)</td>
+						<td class="dnz-rdebug-val">@_prep ms</td>
+						<td class="dnz-rdebug-pct">@Pct(_prep)%</td>
+					</tr>
+					<tr>
+						<td class="dnz-rdebug-key"><span class="dnz-dot bg-primary"></span>Postgres</td>
+						<td class="dnz-rdebug-val">@_pg ms</td>
+						<td class="dnz-rdebug-pct">@Pct(_pg)%</td>
+					</tr>
+					<tr>
+						<td class="dnz-rdebug-key"><span class="dnz-dot bg-warning"></span>Post-proceso (server)</td>
+						<td class="dnz-rdebug-val">@_post ms</td>
+						<td class="dnz-rdebug-pct">@Pct(_post)%</td>
+					</tr>
+					@if (_hasTransport)
+					{
+						<tr>
+							<td class="dnz-rdebug-key"><span class="dnz-dot bg-success"></span>Serializar + resto (server)</td>
+							<td class="dnz-rdebug-val">@_serializeServer ms</td>
+							<td class="dnz-rdebug-pct">@Pct(_serializeServer)%</td>
+						</tr>
+						<tr>
+							<td class="dnz-rdebug-key"><span class="dnz-dot bg-secondary"></span>Red</td>
+							<td class="dnz-rdebug-val">@_wire ms</td>
+							<td class="dnz-rdebug-pct">@Pct(_wire)%</td>
+						</tr>
+						<tr>
+							<td class="dnz-rdebug-key"><span class="dnz-dot dnz-seg-client"></span>Cliente (parsear + pintar)</td>
+							<td class="dnz-rdebug-val">@_clientParse ms</td>
+							<td class="dnz-rdebug-pct">@Pct(_clientParse)%</td>
+						</tr>
+					}
+					else
+					{
+						<tr>
+							<td class="dnz-rdebug-key"><span class="dnz-dot bg-secondary"></span>Red + serialización</td>
+							<td class="dnz-rdebug-val">@_overhead ms</td>
+							<td class="dnz-rdebug-pct">@Pct(_overhead)%</td>
+						</tr>
+					}
+					<tr class="dnz-rdebug-sep">
+						<td class="dnz-rdebug-key">Núcleo en servidor (prep + PG + post)</td>
+						<td class="dnz-rdebug-val"><b>@_server ms</b></td>
+						<td class="dnz-rdebug-pct">@Pct(_server)%</td>
+					</tr>
+					@if (_hasTransport)
+					{
+						<tr>
+							<td class="dnz-rdebug-key">Servidor total (declarado)</td>
+							<td class="dnz-rdebug-val"><b>@_serverWall ms</b></td>
+							<td class="dnz-rdebug-pct">@Pct(_serverWall)%</td>
+						</tr>
+						<tr>
+							<td class="dnz-rdebug-key">Round-trip HTTP (red + server)</td>
+							<td class="dnz-rdebug-val"><b>@_httpRtt ms</b></td>
+							<td class="dnz-rdebug-pct">@Pct(_httpRtt)%</td>
+						</tr>
+					}
+				</table>
+			</div>
+
+			@* ── SQL ── *@
+			<div class="dnz-rdebug-section">
+				<h6 class="dnz-rdebug-title"><RadzenIcon Icon="code" Style="font-size:16px" /> SQL ejecutado</h6>
+				@if (Data != null && Data.SQL.IsNotEmpty())
+				{
+					<DnzHighlightCode Language="sql" Code="@Data.SQL" ShowLineNumbers="true" />
+				}
+				else
+				{
+					<span class="text-muted small">No disponible.</span>
+				}
+			</div>
+
+			@* ── METADATOS ── *@
+			<div class="dnz-rdebug-section">
+				<h6 class="dnz-rdebug-title"><RadzenIcon Icon="info" Style="font-size:16px" /> Metadatos</h6>
+				<table class="dnz-rdebug-table">
+					<tr><td class="dnz-rdebug-key">Trace ID</td><td class="dnz-rdebug-val mono">@Show(_traceId)</td></tr>
+					<tr><td class="dnz-rdebug-key">App (etiqueta PG)</td><td class="dnz-rdebug-val">@Show(_appName)</td></tr>
+					<tr>
+						<td class="dnz-rdebug-key">Cloudflare</td>
+						<td class="dnz-rdebug-val">
+							@if (_cfRay.IsNotEmpty())
+							{
+								<span class="text-warning">vía Cloudflare</span>
+								@if (_cfPop.IsNotEmpty())
+								{
+									<text> · PoP <b>@_cfPop</b></text>
+								}
+								<span class="mono"> (@_cfRay)</span>
+							}
+							else
+							{
+								<span class="text-success">directo (sin Cloudflare)</span>
+							}
+						</td>
+					</tr>
+					<tr><td class="dnz-rdebug-key">Report ID</td><td class="dnz-rdebug-val mono">@Show(ReportId)</td></tr>
+					<tr><td class="dnz-rdebug-key">Sección ID</td><td class="dnz-rdebug-val mono">@Show(_sectionId)</td></tr>
+					<tr><td class="dnz-rdebug-key">Total resultados</td><td class="dnz-rdebug-val">@_totalResults</td></tr>
+					<tr><td class="dnz-rdebug-key">Página</td><td class="dnz-rdebug-val">@_currentPage / @_totalPages</td></tr>
+					<tr><td class="dnz-rdebug-key">Resultados por página</td><td class="dnz-rdebug-val">@_rpp</td></tr>
+					<tr><td class="dnz-rdebug-key">Filas en esta página</td><td class="dnz-rdebug-val">@_count</td></tr>
+					<tr><td class="dnz-rdebug-key">Columnas</td><td class="dnz-rdebug-val">@_columns</td></tr>
+					@if (_search.IsNotEmpty())
+					{
+						<tr><td class="dnz-rdebug-key">Búsqueda</td><td class="dnz-rdebug-val">@_search</td></tr>
+					}
+					@if (_notices.IsNotEmpty())
+					{
+						<tr><td class="dnz-rdebug-key">Avisos</td><td class="dnz-rdebug-val">@_notices</td></tr>
+					}
+				</table>
+			</div>
+
+		</div>
+	</BodyContent>
+</DnzDialogLayout>
+
+<style>
+	.dnz-rdebug {
+		padding: 16px 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		height: 100%;
+		overflow: auto;
+	}
+
+	.dnz-rdebug-section {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.dnz-rdebug-title {
+		font-size: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--rz-text-tertiary-color, #888);
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 0;
+	}
+
+	.dnz-rdebug-bar {
+		display: flex;
+		height: 12px;
+		border-radius: 6px;
+		overflow: hidden;
+		background: var(--rz-border-color, #e5e7eb);
+	}
+
+	.dnz-rdebug-bar > div {
+		height: 100%;
+	}
+
+	.dnz-rdebug-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 12px;
+	}
+
+	.dnz-rdebug-table td {
+		padding: 5px 8px;
+		border-bottom: 1px solid var(--rz-border-color);
+		vertical-align: top;
+	}
+
+	.dnz-rdebug-key {
+		font-weight: 500;
+		white-space: nowrap;
+		color: var(--rz-text-secondary-color, #555);
+		min-width: 120px;
+	}
+
+	.dnz-rdebug-val {
+		word-break: break-all;
+		color: var(--rz-text-color, #1b1d20);
+	}
+
+	.dnz-rdebug-pct {
+		text-align: right;
+		white-space: nowrap;
+		color: var(--rz-text-tertiary-color, #888);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.dnz-rdebug-sep td {
+		border-top: 2px solid var(--rz-border-color);
+	}
+
+	.dnz-rdebug-val.mono,
+	.dnz-rdebug .mono {
+		font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+		font-size: 11px;
+		user-select: all;
+	}
+
+	.dnz-dot {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
+
+	/* Tramo "cliente": Bootstrap no trae un 6º color distinto, lo defino aquí (morado). */
+	.dnz-seg-client {
+		background-color: #6f42c1;
+	}
+</style>
+
+@code {
+
+	[Parameter] public DinaupReportDataDTO Data { get; set; }
+	[Parameter] public long ClientMs { get; set; }
+	[Parameter] public string ReportId { get; set; } = "";
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+	private int _prep, _pg, _post, _server, _serverWall, _httpRtt;
+	private long _serializeServer, _wire, _clientParse, _overhead, _barBase = 1;
+	private bool _hasTransport;
+
+	private string _traceId = "", _appName = "", _sectionId = "", _search = "", _notices = "", _cfRay = "", _cfPop = "";
+	private int _totalResults, _currentPage, _totalPages, _rpp, _count, _columns;
+
+	protected override void OnParametersSet()
+	{
+		if (Data == null) return;
+
+		_prep = Data.PrepareTimeMS;
+		_pg = Data.DatabaseTimeMS;
+		_post = Data.PostProcessTimeMS;
+		_server = _prep + _pg + _post;
+		_serverWall = Data.ServerWallMS;
+		_httpRtt = Data.HttpRoundTripMS;
+
+		_hasTransport = _serverWall > 0 && _httpRtt > 0;
+		if (_hasTransport)
+		{
+			_serializeServer = Math.Max(0, _serverWall - _server);
+			_wire = Math.Max(0, _httpRtt - _serverWall);
+			_clientParse = Math.Max(0, ClientMs - _httpRtt);
+		}
+		else
+		{
+			_overhead = Math.Max(0, ClientMs - _server);
+		}
+
+		_barBase = Math.Max(1, Math.Max(ClientMs, _server));
+
+		_traceId = Data.TraceId;
+		_appName = Data.ApplicationName;
+		_sectionId = Data.SectionId;
+		_search = Data.QuerySearch;
+		_notices = Data.Notices == null ? "" : string.Join(" · ", Data.Notices);
+		_totalResults = Data.TotalResults;
+		_currentPage = Data.CurrentPage;
+		_totalPages = Data.TotalPages;
+		_rpp = Data.ResultsPerPage;
+		_count = Data.Count;
+		_columns = Data.Columns == null ? 0 : Data.Columns.Count;
+
+		_cfRay = Data.CfRay;
+		_cfPop = (_cfRay.IsNotEmpty() && _cfRay.Contains("-")) ? _cfRay.Substring(_cfRay.LastIndexOf('-') + 1) : "";
+	}
+
+	private double Pct(long part) => _barBase <= 0 ? 0 : Math.Round(part * 100.0 / _barBase, 1);
+	private string SegStyle(long part) => $"width:{Pct(part)}%";
+	private static string Show(string v) => string.IsNullOrEmpty(v) ? "—" : v;
+
+	/// <summary>Abre el dialog de detalles de un informe ya cargado.</summary>
+	public static async Task OpenAsync(DialogService ds, DinaupReportDataDTO data, long clientMs, string reportId)
+	{
+		var p = new Dictionary<string, object> {
+			{ nameof(Data), data },
+			{ nameof(ClientMs), clientMs },
+			{ nameof(ReportId), reportId },
+		};
+		await ds.OpenAsync<DnzReportDebugDialog>(null, p, new DialogOptions {
+			Width = "760px", Height = "80%", CloseDialogOnEsc = true, Resizable = true, Draggable = true, ShowClose = false, ShowTitle = false
+		});
+	}
+}
