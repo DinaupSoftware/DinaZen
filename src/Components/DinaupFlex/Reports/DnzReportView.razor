@@ -26,12 +26,18 @@
 				}
 				<div class="d-flex align-items-center gap-2 ms-auto" data-testid="report-toolbar">
 					@if (ShowLoadTime && _lastLoadMs > 0) {
+						<span class="text-muted small" data-testid="report-rowcount" title="Filas materializadas en memoria de @_totalResults totales. En scroll continuo solo se mantiene la ventana visible (no se acumulan).">@_rows.Count / @_totalResults filas</span>
+						@if (_fastMode && _totalResults > MaxRows) {
+							<span class="text-warning small" data-testid="report-scrollcap" title="El scroll continuo está limitado a @MaxRows filas. Filtra o pagina para acotar el resultado.">scroll máx. @MaxRows</span>
+						}
 						<span class="text-muted small" style="cursor:pointer" title="@LoadTimeTitle" data-testid="report-loadtime" @onclick="ToggleFastModeAsync">@_lastLoadMs ms@(ServerMs > 0 ? $" · {ServerMs} srv" : "")@(_fastMode ? " · scroll" : "")</span>
 						<RadzenButton data-testid="report-details" Visible=@(_dataList != null) Variant="Variant.Text" Icon="query_stats" Size="ButtonSize.Small" Click="@ShowDetailsAsync" title="Ver detalles (tiempos, SQL, metadatos)" />
 					}
 					<RadzenButton data-testid="report-add" Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
-					<RadzenTextBox data-testid="report-search" Visible=@ShowSearch Placeholder="Buscar..." Style="max-width:300px" Change="@UpdateSearch" />
-					<RadzenButton data-testid="report-export" Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV" />
+					@if (ShowSearch) {
+						<DnzSearchInput data-testid="report-search" Value="@QuerySearch" BounceValueChanged="@UpdateSearchAsync" Placeholder="Buscar..." Style="max-width:300px" />
+					}
+					<RadzenButton data-testid="report-export" Visible=@(!_fastMode) Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV (filas en pantalla)" />
 					<RadzenButton data-testid="report-refresh" Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
 				</div>
 			</div>
@@ -43,7 +49,7 @@
 				RowRender="@(a => a.Attributes.Add("data-testid", $"report-row-{a.Data.ID}"))" CellRender="@OnCellRender" AllowSorting="false"
 				AllowFiltering="@Filtrable" AllowMultiColumnSorting="false" ShowMultiColumnSortingIndex="false"
 				AllowColumnPicking="@ShowTitle" ColumnsShowingText="Columnas Visibles" AllColumnsText="Todas"
-				AllowColumnReorder="true" Count="@_totalResults" PageSize="@Limit" AllowPaging=@(!_fastMode)
+				AllowColumnReorder="true" Count="@GridCount" PageSize="@Limit" AllowPaging=@(!_fastMode)
 				PageSizeOptions="@_pageSizeOptions" PageSizeText="filas" PagerAlwaysVisible="false" Density="Density.Compact"
 				AllowVirtualization=@_fastMode Style="@GridStyle" IsLoading="@_isLoading" LoadData="@HandleLoadDataEvent"
 				FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand" LogicalFilterOperator="LogicalFilterOperator.And"
@@ -229,10 +235,13 @@
 	private bool _showResponse;
 	private string _errorMessage = "";
 	private long _lastLoadMs;
-	private Debouncer _searchDebouncer;
 	private string _lastQuerySearch = "";
 	private LoadDataReportC _lastFilter;
 	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500, 1000, 3000 };
+	// Tope duro del scroll virtual en modo fast: acota el OFFSET (Postgres) y la RAM del circuito. Pide ventanas bajo demanda, NO de golpe.
+	private const int MaxRows = 50000;
+	// Tope del export por integración (Yudo/GenerateCsvAsync): ahí SÍ se pide al servidor de golpe, por eso se capa. El botón de la UI NO usa esto: exporta solo lo que hay en memoria (la página actual).
+	private const int MaxExportRows = 10000;
 	// ── Settings (persistencia columnas visibles) ──
 
 	// Flag de TEST: desactiva la persistencia de columnas/orden en localStorage. Sin ella no hay lectura JS al arrancar
@@ -277,18 +286,6 @@
 		QuerySearch = query;
 		await LoadDataAsync();
 	}
-	public void UpdateSearchInmediate(string query) {
-		if (QuerySearch == query) return;
-		QuerySearch = query;
-		_ = LoadDataAsync();
-	}
-
-	public void UpdateSearch(string query) {
-		if (QuerySearch == query) return;
-		QuerySearch = query;
-		_searchDebouncer ??= new Debouncer(async () => await InvokeAsync(async () => { await LoadDataAsync(); StateHasChanged(); }), 800);
-		_searchDebouncer.Debounce();
-	}
 
 	public async Task UpdateAsync() => await LoadDataAsync(_lastFilter, force: true);
 
@@ -296,6 +293,9 @@
 
 	// FastMode swaps the pager for virtualized infinite scroll: Radzen requests windows via LoadData as you scroll, so it needs a fixed viewport height.
 	private string GridStyle => _fastMode ? "height:70vh" : "";
+
+	// En fast mode topamos el Count que ve Radzen a MaxRows: así la virtualización no pide offsets más profundos que eso. En paginado normal, total real.
+	private int GridCount => _fastMode ? Math.Min(_totalResults, MaxRows) : _totalResults;
 
 	private string LoadTimeTitle => _fastMode ? "Scroll continuo (carga bajo demanda) · click para paginación normal" : "Paginación normal · click para scroll continuo";
 
@@ -349,8 +349,9 @@
 
 		var p = BaseRequest();
 		p.ApplyLoadingConfiguration(filter);
-		var key = FilterKey(p);
-
+		p.QuerySearch = this.QuerySearch;
+		var key = FilterKey(p) +  this.QuerySearch + FastMode;
+		p.GetPageSummary = !FastMode;
 		// Misma petición que la última ya servida → no repito (mata la ráfaga del scroll virtual). El refresh fuerza.
 		if (!force && key.IsNotEmpty() && key == _lastLoadedKey) return;
 
@@ -362,6 +363,8 @@
 		_isLoading = true;
 		_settingsStore ??= new ReportGridSettingsStore(JS, SettingsKey);
 		if (DisableLocalStorageSettings == false) await _settingsStore.LoadAsync();
+
+
 
 		var sw = System.Diagnostics.Stopwatch.StartNew();
 		try {
@@ -380,9 +383,10 @@
 			_lastLoadMs = sw.ElapsedMilliseconds;
 			_isLoading = false;
 			_loadInFlight = false;
-			await InvokeAsync(StateHasChanged);
 			await DrainPendingAsync();
 		}
+
+		await InvokeAsync(StateHasChanged);
 
 	}
 
@@ -398,14 +402,12 @@
 
 	// ── Export ──
 
+	// Export del botón = solo lo que YA hay en memoria (la página actual, _rows). No pide nada al servidor: cero llamada extra, cero materialización masiva. En fast mode el botón está oculto.
 	private async Task HandleExportClick() {
 		try {
-			var response = await Client.Report_GetAsync(ReportRequestBuilder.ForExport(BaseRequest(), _lastFilter, _totalResults));
-			if (response.IsNull() || response.DataList.IsNull()) return;
-
-			var rows = response.DataList.GetDynamicsRowsOBJ()?.ToList() ?? new();
-			var columns = response.DataList.Columns.Where(c => !c.isColumnHidden).ToList();
-			var (csv, fileName, _) = ReportCsvExporter.Build(rows, columns, Title.IfIsEmpty(_dataList?.Title));
+			if (_dataList.IsNull() || _rows.Count == 0) return;
+			var columns = _dataList.Columns.Where(c => !c.isColumnHidden).ToList();
+			var (csv, fileName, _) = ReportCsvExporter.Build(_rows, columns, Title.IfIsEmpty(_dataList.Title));
 			await DownloadCsvAsync(csv, fileName);
 		} catch { }
 	}
@@ -413,7 +415,7 @@
 	/// <summary>Genera el CSV y lo devuelve como string. Público para integraciones (ej: Yudo).</summary>
 	public async Task<(string Csv, string FileName, int RowCount)> GenerateCsvAsync() {
 		try {
-			var response = await Client.Report_GetAsync(ReportRequestBuilder.ForExport(BaseRequest(), _lastFilter, _totalResults));
+			var response = await Client.Report_GetAsync(ReportRequestBuilder.ForExport(BaseRequest(), _lastFilter, Math.Min(_totalResults, MaxExportRows)));
 			if (response.IsNull() || response.DataList.IsNull()) return ("", "", 0);
 
 			var rows = response.DataList.GetDynamicsRowsOBJ()?.ToList() ?? new();
