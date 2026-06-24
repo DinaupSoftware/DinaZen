@@ -1180,6 +1180,7 @@ textarea.rz-textarea {
    ================================================================ */
 
 .dnz-report-view {
+    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -1189,6 +1190,34 @@ textarea.rz-textarea {
     border-radius: var(--dnz-container-radius);
     border: 1px solid var(--dnz-header-border);
     box-shadow: var(--dnz-card-shadow);
+}
+
+/* Barra de carga indeterminada (busqueda / paginado). Fina, en el borde superior, sin tapar la lista. */
+.dnz-report-loadbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    overflow: hidden;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.dnz-report-loadbar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 35%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, rgba(52, 129, 229, .9), transparent);
+    animation: dnz-report-loadbar-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes dnz-report-loadbar-slide {
+    0% { left: -35%; }
+    100% { left: 100%; }
 }
 
 .dnz-report-header {

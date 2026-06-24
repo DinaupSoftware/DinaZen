@@ -16,6 +16,10 @@
 	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
 	<div class="dnz-report-view" data-testid="report-view" data-testid-id=@ReportId>
+		@if (_isLoading) {
+			<div class="dnz-report-loadbar" data-testid="report-loadbar"></div>
+
+		}
 		@if (ShowTitle || ShowSearch) {
 			<div class="dnz-report-header">
 				@if (ShowTitle && _dataList.Section.IsNotNull()) {
@@ -51,7 +55,7 @@
 				AllowColumnPicking="@ShowTitle" ColumnsShowingText="Columnas Visibles" AllColumnsText="Todas"
 				AllowColumnReorder="true" Count="@GridCount" PageSize="@Limit" AllowPaging=@(!_fastMode)
 				PageSizeOptions="@_pageSizeOptions" PageSizeText="filas" PagerAlwaysVisible="false" Density="Density.Compact"
-				AllowVirtualization=@_fastMode Style="@GridStyle" IsLoading="@_isLoading" LoadData="@HandleLoadDataEvent"
+				AllowVirtualization=@_fastMode Style="@GridStyle" LoadData="@HandleLoadDataEvent"
 				FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand" LogicalFilterOperator="LogicalFilterOperator.And"
 				RowSelect="@HandleRowSelect" CellContextMenu="@OnCellContextMenu" AllowColumnResize="true"
 				HeaderTemplate=@ToolBarTemplate ShowPagingSummary="true" KeyProperty="ID" SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
@@ -281,11 +285,14 @@
 		_ = UpdateAsync();
 	}
 
-	public async Task UpdateSearchAsync(string query) {
+	// El debounce de DnzSearchInput dispara este callback desde un Task.Run (fuera del SynchronizationContext del circuito).
+	// Envolvemos en InvokeAsync para correr TODO el flujo (incluida la continuación tras el await al servidor) en el hilo de Blazor:
+	// así el setter de Data del grid y el repintado ocurren on-context, como en el scroll. Sin esto la 1ª búsqueda no repinta hasta hacer scroll.
+	public Task UpdateSearchAsync(string query) => InvokeAsync(async () => {
 		if (QuerySearch == query) return;
 		QuerySearch = query;
 		await LoadDataAsync();
-	}
+	});
 
 	public async Task UpdateAsync() => await LoadDataAsync(_lastFilter, force: true);
 
@@ -361,32 +368,39 @@
 		_loadInFlight = true;
 		_lastFilter = filter;
 		_isLoading = true;
+		await InvokeAsync(StateHasChanged); // pinta la barrita de carga ANTES de la llamada al servidor (si no, _isLoading solo se vería ya en false al volver)
 		_settingsStore ??= new ReportGridSettingsStore(JS, SettingsKey);
 		if (DisableLocalStorageSettings == false) await _settingsStore.LoadAsync();
 
+ 
 
 
-		var sw = System.Diagnostics.Stopwatch.StartNew();
-		try {
-			var response = await Client.Report_GetAsync(p);
-			if (response.IsNotNull()) {
-				_report = response.Report;
-				_showResponse = response.DataList.IsNull();
-				_dataList = response.DataList;
-				_rows = _dataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
-				_totalResults = _dataList?.TotalResults ?? _rows.Count;
-				if (OnDataChanged.HasDelegate)
-					try { await OnDataChanged.InvokeAsync(); } catch { }
+			var sw = System.Diagnostics.Stopwatch.StartNew();
+			try {
+				var response = await Client.Report_GetAsync(p);
+				if (response.IsNotNull()) {
+					_report = response.Report;
+					_showResponse = response.DataList.IsNull();
+					_dataList = response.DataList;
+					_rows = _dataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
+					_totalResults = _dataList?.TotalResults ?? _rows.Count;
+					if (OnDataChanged.HasDelegate)
+						try { await OnDataChanged.InvokeAsync(); } catch { }
+				}
+				_lastLoadedKey = key;
+			} catch (Exception ex) { _errorMessage = ex.Message; } finally {
+				_lastLoadMs = sw.ElapsedMilliseconds;
+				_isLoading = false;
+				_loadInFlight = false;
+				await DrainPendingAsync();
 			}
-			_lastLoadedKey = key;
-		} catch (Exception ex) { _errorMessage = ex.Message; } finally {
-			_lastLoadMs = sw.ElapsedMilliseconds;
-			_isLoading = false;
-			_loadInFlight = false;
-			await DrainPendingAsync();
-		}
 
-		await InvokeAsync(StateHasChanged);
+
+			if (FastMode)
+			 _gridRef.RefreshDataAsync();
+
+			await InvokeAsync(StateHasChanged);
+ 
 
 	}
 
