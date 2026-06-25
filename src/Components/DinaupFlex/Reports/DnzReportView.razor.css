@@ -11,16 +11,16 @@
 }
 
 @keyframes dnz-row-in-b {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: none; }
+    from { opacity: 0;  }
+    to   { opacity: 1;  }
 }
 
 .dnz-report-body.dnz-anim-a ::deep .rz-data-row {
-    animation: dnz-row-in-a .3s ease both;
+    animation: dnz-row-in-a .3s ease .2s both;
 }
 
 .dnz-report-body.dnz-anim-b ::deep .rz-data-row {
-    animation: dnz-row-in-b .3s ease both;
+    animation: dnz-row-in-b .3s ease .2s both;
 }
 
 @media (prefers-reduced-motion: reduce) {

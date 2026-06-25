@@ -376,7 +376,7 @@
 		var p = BaseRequest();
 		p.ApplyLoadingConfiguration(filter);
 		p.QuerySearch = this.QuerySearch;
-		var key = FilterKey(p) +  this.QuerySearch + _fastMode;
+		var key = ToSHA1( ReportId  +    FilterKey(p) +  this.QuerySearch + _fastMode);
 		p.GetPageSummary = !_fastMode;
 		// Misma petición que la última ya servida → no repito (mata la ráfaga del scroll virtual). El refresh fuerza.
 		if (!force && key.IsNotEmpty() && key == _lastLoadedKey) return;
