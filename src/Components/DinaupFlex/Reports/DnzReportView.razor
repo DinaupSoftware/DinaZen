@@ -30,22 +30,14 @@
 				}
 				<div class="d-flex align-items-center gap-2 ms-auto" data-testid="report-toolbar">
 					@if (ShowLoadTime && _lastLoadMs > 0) {
-						@if (_fastMode) {
-							<span class="text-muted small" data-testid="report-rowcount" title="Scroll continuo: las filas se piden al bajar y solo se mantiene en memoria la ventana visible. No se calcula el total (es lo que lo hace rápido).">@_rows.Count filas</span>
-							@if (_fastCeiling >= MaxRows) {
-								<span class="text-warning small" data-testid="report-scrollcap" title="El scroll continuo está limitado a @MaxRows filas. Filtra o pagina para acotar el resultado.">máx. @MaxRows</span>
-							}
-						} else {
-							<span class="text-muted small" data-testid="report-rowcount" title="Filas materializadas en memoria de @_totalResults totales.">@_rows.Count / @_totalResults filas</span>
-						}
-						<span class="text-muted small" style="cursor:pointer" title="@LoadTimeTitle" data-testid="report-loadtime" @onclick="ToggleFastModeAsync">@_lastLoadMs ms@(ServerMs > 0 ? $" · {ServerMs} srv" : "")@(_fastMode ? " · scroll" : "")</span>
+						<span class="text-muted small" data-testid="report-loadtime" title="Tiempo de la última carga (cliente · servidor).">@_lastLoadMs ms@(ServerMs > 0 ? $" · {ServerMs} srv" : "")</span>
 						<RadzenButton data-testid="report-details" Visible=@(_dataList != null) Variant="Variant.Text" Icon="query_stats" Size="ButtonSize.Small" Click="@ShowDetailsAsync" title="Ver detalles (tiempos, SQL, metadatos)" />
 					}
 					<RadzenButton data-testid="report-add" Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
 					@if (ShowSearch) {
 						<DnzSearchInput data-testid="report-search" Value="@QuerySearch" BounceValueChanged="@UpdateSearchAsync" Placeholder="Buscar..." Style="max-width:300px" />
 					}
-					<RadzenButton data-testid="report-export" Visible=@(!_fastMode) Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" title="Exportar CSV (filas en pantalla)" />
+					<RadzenButton data-testid="report-export" Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" IsBusy=@_exporting title="Exportar CSV (todas las filas)" />
 					<RadzenButton data-testid="report-refresh" Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
 				</div>
 			</div>
@@ -57,12 +49,11 @@
 				RowRender="@(a => a.Attributes.Add("data-testid", $"report-row-{a.Data.ID}"))" CellRender="@OnCellRender" AllowSorting="false"
 				AllowFiltering="@Filtrable" AllowMultiColumnSorting="false" ShowMultiColumnSortingIndex="false"
 				AllowColumnPicking="@ShowTitle" ColumnsShowingText="Columnas Visibles" AllColumnsText="Todas"
-				AllowColumnReorder="true" Count="@GridCount" PageSize="@Limit" AllowPaging=@(!_fastMode)
-				PageSizeOptions="@_pageSizeOptions" PageSizeText="filas" PagerAlwaysVisible="false" Density="Density.Compact"
-				AllowVirtualization=@_fastMode Style="@GridStyle" LoadData="@HandleLoadDataEvent"
+				AllowColumnReorder="true" AllowPaging="false" Density="Density.Compact"
+				LoadData="@HandleLoadDataEvent"
 				FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand" LogicalFilterOperator="LogicalFilterOperator.And"
 				RowSelect="@HandleRowSelect" CellContextMenu="@OnCellContextMenu" AllowColumnResize="true"
-				HeaderTemplate=@ToolBarTemplate ShowPagingSummary="true" KeyProperty="ID" SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
+				HeaderTemplate=@ToolBarTemplate KeyProperty="ID" SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
 
 				<EmptyTemplate>
 					<div class="dnz-report-empty" data-testid="report-empty">
@@ -84,7 +75,7 @@
 										<DnzSpanMoney Amount="@row.GetDec(col.Keyword)" AutoColorRed=true />
 									</Template>
 									<FooterTemplate>
-										@if (!_fastMode && _rows.Count > 1) {
+										@if (_rows.Count > 1) {
 											<span>Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b></span>
 										}
 									</FooterTemplate>
@@ -105,7 +96,7 @@
 										}
 									</Template>
 									<FooterTemplate>
-										@if (!_fastMode && _rows.Count > 1) {
+										@if (_rows.Count > 1) {
 											<span>Suma: <b>@RegionService.ToStringDecimal(_rows.Sum(o => o.GetDec(col.Keyword)))</b></span>
 										}
 									</FooterTemplate>
@@ -126,7 +117,7 @@
 										}
 									</Template>
 									<FooterTemplate>
-										@if (!_fastMode && _rows.Count > 1) {
+										@if (_rows.Count > 1) {
 											<span>Suma: <b>@_rows.Sum(o => (long)o.GetInt(col.Keyword))</b></span>
 										}
 									</FooterTemplate>
@@ -200,6 +191,14 @@
 
 				</Columns>
 			</RadzenDataGrid>
+
+			<div class="dnz-report-pager" data-testid="report-pager">
+				<RadzenButton data-testid="report-prev" Variant="Variant.Text" Icon="chevron_left" Text="Anterior" Size="ButtonSize.Small" Disabled=@(_skip == 0 || _isLoading) Click="@(() => GoToPageAsync(-1))" />
+				<span class="text-muted small" data-testid="report-pageinfo">Página @(_skip / _pageSize + 1) · @_rows.Count filas</span>
+				<RadzenButton data-testid="report-next" Variant="Variant.Text" Icon="chevron_right" Text="Siguiente" Size="ButtonSize.Small" Disabled=@(!_hasNext || _isLoading) Click="@(() => GoToPageAsync(1))" />
+				<span class="text-muted small ms-2">filas/página</span>
+				<RadzenDropDown TValue="int" data-testid="report-pagesize" Data="@_pageSizeOptions" Value="@_pageSize" Change="@OnPageSizeChanged" Style="width:84px" Disabled=@_isLoading />
+			</div>
 		</div>
 	</div>
 } else if (_errorMessage.IsNotEmpty()) {
@@ -218,8 +217,7 @@
 	[Parameter] public Dictionary<string, string> VariablesValues { get; set; }
 	[Parameter] public string QuerySearch { get; set; } = "";
 	[Parameter] public List<FilterCondition> AdvancedFilter { get; set; }
-	[Parameter] public int Limit { get; set; } = 50;
-	[Parameter] public bool FastMode { get; set; } = false;
+	[Parameter] public int Limit { get; set; } = 25;
 	[Parameter] public Dictionary<string, bool> Orden { get; set; }
 	[Parameter] public bool ShowTitle { get; set; } = true;
 	[Parameter] public string Title { get; set; } = "";
@@ -240,12 +238,14 @@
 	private DinaupReportDTO _report;
 	private DinaupReportDataDTO _dataList;
 	private List<DinaupDynamicRowDTO> _rows = new();
-	private int _totalResults;
-	// Techo optimista del scroll en fast mode (NO es el total real: no hacemos COUNT). Crece una página por delante mientras las ventanas vengan llenas; se clava cuando llega una corta.
-	private int _fastCeiling;
-	// Final real ya descubierto en fast mode (0 = aún no se sabe). Evita que al recargar una ventana intermedia el techo vuelva a inflarse y el scroll rebote. Se resetea en cada carga fresca.
-	private int _fastEnd;
-	private bool _fastMode;
+	// Offset de la página actual (0 = primera). La navegación es por OFFSET; el motor de informes lo capa a MaxRows (issue #26).
+	private int _skip;
+	// ¿La última ventana vino llena? ⇒ asumimos que hay página siguiente. Sin COUNT no hay total, así que ESTA es la señal de "Siguiente".
+	private bool _hasNext;
+	// Export en curso (recorre el informe en varias ventanas): feedback del botón.
+	private bool _exporting;
+	// Tamaño de página elegible por el usuario (selector de la barra). Arranca en Limit; gobierna la navegación prev/next.
+	private int _pageSize;
 	private bool _isLoading = true;
 	// Alterna par/impar en cada recarga de usuario (buscar/refrescar/toggle). El .razor.css usa la paridad para cambiar el animation-name y RE-DISPARAR el fade de fila aunque Radzen reutilice el <tr> (virtualización). En scroll NO se toca → sin parpadeo.
 	private int _loadSeq;
@@ -254,11 +254,12 @@
 	private long _lastLoadMs;
 	private string _lastQuerySearch = "";
 	private LoadDataReportC _lastFilter;
-	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500, 1000, 3000 };
-	// Tope duro del scroll virtual en modo fast: acota el OFFSET (Postgres) y la RAM del circuito. Pide ventanas bajo demanda, NO de golpe.
+	// Tope de OFFSET de la paginación de informes (issue #26: el motor lo capa ahí). Acota tanto la profundidad navegable como el recorrido del export.
 	private const int MaxRows = 50000;
-	// Tope del export por integración (Yudo/GenerateCsvAsync): ahí SÍ se pide al servidor de golpe, por eso se capa. El botón de la UI NO usa esto: exporta solo lo que hay en memoria (la página actual).
-	private const int MaxExportRows = 10000;
+	// Tamaño de cada ventana del export: recorre el informe por páginas (NO de golpe) hasta agotar o MaxRows.
+	private const int ExportPageSize = 5000;
+	// Opciones del selector "filas por página" de la barra (como el pager clásico).
+	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500, 1000, 3000 };
 	// ── Settings (persistencia columnas visibles) ──
 
 	// Flag de TEST: desactiva la persistencia de columnas/orden en localStorage. Sin ella no hay lectura JS al arrancar
@@ -275,10 +276,8 @@
 
 
 	protected override async Task OnInitializedAsync() {
-		_fastMode = FastMode;
 		_lastQuerySearch = QuerySearch ?? "";
-
-		// if(!FastMode)
+		_pageSize = Limit > 0 ? Limit : 100;
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
@@ -316,19 +315,26 @@
 
 	// ── Server-side LoadData ──
 
-	// FastMode swaps the pager for virtualized infinite scroll: Radzen requests windows via LoadData as you scroll, so it needs a fixed viewport height.
-	private string GridStyle => _fastMode ? "height:70vh" : "";
-
-	// En fast mode el Count es un TECHO optimista (lo cargado + una página mientras vengan llenas), no el total real: así Radzen sigue pidiendo ventanas SIN que el server haga COUNT. Capado a MaxRows. En paginado normal, total real.
-	private int GridCount => _fastMode ? Math.Min(_fastCeiling, MaxRows) : _totalResults;
-
-	private string LoadTimeTitle => _fastMode ? "Scroll continuo (carga bajo demanda) · click para paginación normal" : "Paginación normal · click para scroll continuo";
-
-	// El tiempo de carga actúa de interruptor: alterna entre cargar-todo (scroll virtual) y paginación server-side.
-	private async Task ToggleFastModeAsync() {
-		_fastMode = !_fastMode;
+	// Navegación por páginas (nuestra barra prev/next): avanza/retrocede una ventana de _pageSize filas y recarga. Δ = +1 siguiente, -1 anterior.
+	private async Task GoToPageAsync(int delta) {
+		var next = _skip + delta * _pageSize;
+		if (next < 0) next = 0;
+		if (next >= MaxRows) return; // el motor capa el OFFSET a MaxRows (issue #26): no ofrecemos navegar más allá
+		var cfg = new LoadDataReportC { Skip = next, Top = _pageSize };
+		if (_lastFilter.IsNotNull()) { cfg.Filter = _lastFilter.Filter; cfg.Filters = _lastFilter.Filters; cfg.Sorts = _lastFilter.Sorts; cfg.OrderBy = _lastFilter.OrderBy; }
 		_loadSeq++;
-		await LoadDataAsync(force: true);
+		await LoadDataAsync(cfg, force: true);
+	}
+
+	// Cambio del tamaño de página desde el selector: vuelve a la primera página con el nuevo tamaño, conservando filtro/orden.
+	private async Task OnPageSizeChanged(object value) {
+		_pageSize = (int)value;
+		if (_pageSize <= 0) _pageSize = 100;
+		_skip = 0;
+		_loadSeq++;
+		var cfg = new LoadDataReportC { Skip = 0, Top = _pageSize };
+		if (_lastFilter.IsNotNull()) { cfg.Filter = _lastFilter.Filter; cfg.Filters = _lastFilter.Filters; cfg.Sorts = _lastFilter.Sorts; cfg.OrderBy = _lastFilter.OrderBy; }
+		await LoadDataAsync(cfg, force: true);
 	}
 
 	// Tiempo total consumido EN el servidor (prep + Postgres + post), reportado por el SDK. 0 si no hay datos aún.
@@ -341,7 +347,11 @@
 	}
 
 	private async Task HandleLoadDataEvent(LoadDataArgs args) {
-		await LoadDataAsync(RadzenReportQuery.ToLoadConfig(args, _dataList));
+		// La paginación la gobierna nuestra barra prev/next, no Radzen. Este evento solo llega por cambio de filtro: volvemos a la primera página con nuestro tamaño, conservando los filtros.
+		var cfg = RadzenReportQuery.ToLoadConfig(args, _dataList);
+		cfg.Skip = 0;
+		cfg.Top = _pageSize;
+		await LoadDataAsync(cfg);
 		await InvokeAsync(StateHasChanged);
 	}
 
@@ -370,14 +380,14 @@
 	}
 
 	private async Task LoadDataAsync(LoadDataReportC filter = null, bool force = false) {
-		if (Limit == 0) Limit = 100;
-		filter ??= new LoadDataReportC { Skip = 0, Top = Limit };
+		if (_pageSize <= 0) _pageSize = Limit > 0 ? Limit : 100;
+		filter ??= new LoadDataReportC { Skip = 0, Top = _pageSize };
 
 		var p = BaseRequest();
 		p.ApplyLoadingConfiguration(filter);
 		p.QuerySearch = this.QuerySearch;
-		var key = ToSHA1( string.Join("¬", ReportId  ,    FilterKey(p) ,  this.QuerySearch , _fastMode  , Limit  , p.CurrentPage) );
-		p.GetPageSummary = !_fastMode;
+		var key = ToSHA1( string.Join("¬", ReportId  ,    FilterKey(p) ,  this.QuerySearch , _pageSize  , p.CurrentPage) );
+		p.GetPageSummary = false;
 		if (!force && key.IsNotEmpty() && key == _lastLoadedKey) return;
 		if (_loadInFlight) { _pendingFilter = filter; _pendingForce = force; return; }
 
@@ -393,30 +403,25 @@
 
 			var sw = System.Diagnostics.Stopwatch.StartNew();
 			try {
-				// Cache solo en fast mode (scroll continuo) y en la primera ventana (Skip==0): el caso "abrir la lista", el de alto reuso. Paginacion normal, paginas profundas y ventanas de scroll van directas al server.
-				var response = (FetchInterceptor != null && _fastMode && filter.Skip == 0) ? await FetchInterceptor(key, force, () => Client.Report_GetAsync(p)) : await Client.Report_GetAsync(p);
+				// Cache solo en la primera ventana (Skip==0): el caso "abrir la lista", el de alto reuso. Las páginas profundas van directas al server.
+				var response = (FetchInterceptor != null && filter.Skip.GetValueOrDefault() == 0) ? await FetchInterceptor(key, force, () => Client.Report_GetAsync(p)) : await Client.Report_GetAsync(p);
 				if (response.IsNotNull()) {
 					var fetched = response.DataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
 					var skip = filter.Skip.GetValueOrDefault();
-					var top = filter.Top.GetValueOrDefault(Limit); if (top <= 0) top = Limit;
-					// Carga fresca (refresh/búsqueda/toggle o primera ventana): re-descubrimos dónde está el final.
-					if (force || skip == 0) _fastEnd = 0;
+					var top = filter.Top.GetValueOrDefault(_pageSize); if (top <= 0) top = _pageSize;
 
-					// Scroll sin COUNT: Radzen puede pedir una ventana MÁS ALLÁ del final (cuando el total es múltiplo exacto de la página) y llega vacía.
-					// No la pintamos: conservamos la última ventana buena y clavamos el final en su offset, así el scroll se planta sin parpadeo ni rebote.
-					if (_fastMode && skip > 0 && fetched.Count == 0 && response.DataList.IsNotNull()) {
-						_fastEnd = skip;
-						_fastCeiling = skip;
+					// Ventana vacía pedida más allá del final (p.ej. "Siguiente" justo en un múltiplo exacto): no la pintamos, retrocedemos al offset anterior y plantamos el "no hay más".
+					if (skip > 0 && fetched.Count == 0 && response.DataList.IsNotNull()) {
+						_skip = Math.Max(0, skip - top);
+						_hasNext = false;
 					} else {
 						_report = response.Report;
 						_showResponse = response.DataList.IsNull();
 						_dataList = response.DataList;
 						_rows = fetched;
-						_totalResults = _dataList?.TotalResults ?? _rows.Count;
-
-						// Sin COUNT no sabemos el total. Ventana CORTA ⇒ es el final real (lo memorizamos). Ventana LLENA ⇒ asumimos que hay más y empujamos el techo una página por delante para que Radzen siga pidiendo; pero si ya conocemos el final, lo respetamos (no reinflar al recargar una ventana intermedia ⇒ sin rebote).
-						if (_fastMode && fetched.Count < top) { _fastEnd = skip + fetched.Count; _fastCeiling = _fastEnd; }
-						else if (_fastMode) _fastCeiling = _fastEnd > 0 ? _fastEnd : Math.Min(skip + fetched.Count + top, MaxRows);
+						_skip = skip;
+						// Sin COUNT no hay total: ventana llena ⇒ probablemente haya página siguiente; corta ⇒ es el final. Y nunca más allá del tope de OFFSET del motor (issue #26).
+						_hasNext = fetched.Count >= top && (skip + top) < MaxRows;
 
 						if (OnDataChanged.HasDelegate)
 							try { await OnDataChanged.InvokeAsync(); } catch { }
@@ -431,11 +436,7 @@
 			}
 
 
-			// if (_fastMode)
-			 _gridRef?.RefreshDataAsync();
-
 			await InvokeAsync(StateHasChanged);
- 
 
 	}
 
@@ -451,28 +452,51 @@
 
 	// ── Export ──
 
-	// Export del botón = solo lo que YA hay en memoria (la página actual, _rows). No pide nada al servidor: cero llamada extra, cero materialización masiva. En fast mode el botón está oculto.
+	// Export del botón: recorre TODO el informe en ventanas (no de golpe) reutilizando GenerateCsvAsync, con feedback de ocupado porque son varias llamadas al servidor.
 	private async Task HandleExportClick() {
+		if (_exporting) return;
+		_exporting = true;
+		await InvokeAsync(StateHasChanged);
 		try {
-			if (_dataList.IsNull() || _rows.Count == 0) return;
-			var columns = _dataList.Columns.Where(c => !c.isColumnHidden).ToList();
-			var (csv, fileName, _) = ReportCsvExporter.Build(_rows, columns, Title.IfIsEmpty(_dataList.Title));
+			var (csv, fileName, rowCount) = await GenerateCsvAsync();
+			if (csv.IsEmpty()) { NotificationService.Notify(NotificationSeverity.Info, "Sin datos", "No hay filas que exportar."); return; }
 			await DownloadCsvAsync(csv, fileName);
-		} catch { }
+			NotificationService.Notify(NotificationSeverity.Success, "Exportado", $"{rowCount} filas.");
+		} catch (Exception ex) {
+			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message, TimeSpan.FromSeconds(30));
+		} finally {
+			_exporting = false;
+			await InvokeAsync(StateHasChanged);
+		}
 	}
 
-	/// <summary>Genera el CSV y lo devuelve como string. Público para integraciones (ej: Yudo).</summary>
+	/// <summary>
+	/// Recorre TODO el informe en ventanas por OFFSET (NO de golpe), conservando el filtro/orden activos, y serializa a CSV.
+	/// Respeta el tope de OFFSET de MaxRows del motor (issue #26): más allá, hay que filtrar. Público para integraciones (ej: Yudo).
+	/// </summary>
 	public async Task<(string Csv, string FileName, int RowCount)> GenerateCsvAsync() {
 		try {
-			// Export: sin COUNT fiable en scroll, pedimos directamente el tope (el server devuelve hasta MaxExportRows; si hay menos, devuelve las que haya). Sin page summary: no necesitamos el total.
-			var req = ReportRequestBuilder.ForExport(BaseRequest(), _lastFilter, MaxExportRows);
-			req.GetPageSummary = false;
-			var response = await Client.Report_GetAsync(req);
-			if (response.IsNull() || response.DataList.IsNull()) return ("", "", 0);
-
-			var rows = response.DataList.GetDynamicsRowsOBJ()?.ToList() ?? new();
-			var columns = response.DataList.Columns.Where(c => !c.isColumnHidden).ToList();
-			return ReportCsvExporter.Build(rows, columns, Title.IfIsEmpty(_dataList?.Title));
+			var all = new List<DinaupDynamicRowDTO>();
+			DinaupReportDataDTO data = null;
+			var skip = 0;
+			while (skip < MaxRows) {
+				var cfg = new LoadDataReportC { Skip = skip, Top = ExportPageSize };
+				if (_lastFilter.IsNotNull()) { cfg.Filter = _lastFilter.Filter; cfg.Filters = _lastFilter.Filters; cfg.Sorts = _lastFilter.Sorts; cfg.OrderBy = _lastFilter.OrderBy; }
+				var p = BaseRequest();
+				p.ApplyLoadingConfiguration(cfg);
+				p.QuerySearch = this.QuerySearch;
+				p.GetPageSummary = false;
+				var response = await Client.Report_GetAsync(p);
+				var rows = response?.DataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
+				if (response.IsNotNull() && response.DataList.IsNotNull()) data = response.DataList;
+				if (rows.Count == 0) break;
+				all.AddRange(rows);
+				if (rows.Count < ExportPageSize) break; // última ventana
+				skip += ExportPageSize;
+			}
+			if (data.IsNull()) return ("", "", 0);
+			var columns = data.Columns.Where(c => !c.isColumnHidden).ToList();
+			return ReportCsvExporter.Build(all, columns, Title.IfIsEmpty(_dataList?.Title));
 		} catch { return ("", "", 0); }
 	}
 
@@ -540,8 +564,6 @@
 			var result = await Client.RunWriteOperationAsync(_contextRow.SectionId.ToGUID(), wo, false);
 			result.EnsureSuccess();
 			_rows.Remove(_contextRow);
-			_totalResults = Math.Max(0, _totalResults - 1);
-			_fastCeiling = Math.Max(0, _fastCeiling - 1);
 			_contextRow = null;
 			await InvokeAsync(StateHasChanged);
 			NotificationService.Notify(NotificationSeverity.Success, "Genial", "El registro se ha eliminado correctamente.");
