@@ -1,0 +1,28 @@
+/* Carga "soft": SOLO las filas (.rz-data-row), vía ::deep.
+   Radzen virtualiza con <Virtualize> de Blazor → RECICLA los <tr> (reusa el nodo y cambia el contenido).
+   Un keyframe solo se reproduce al CREAR el elemento, así que en una recarga (buscar/refrescar) la fila
+   reutilizada no re-anima → aparecería de golpe. Truco: dos keyframes idénticos con distinto nombre; el
+   .razar alterna .dnz-anim-a / .dnz-anim-b en cada recarga de usuario. Cambiar el animation-name RE-DISPARA
+   la animación aunque el <tr> se reutilice. En scroll NO se alterna → no estroboscopia al bajar. */
+
+@keyframes dnz-row-in-a {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes dnz-row-in-b {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.dnz-report-body.dnz-anim-a ::deep .rz-data-row {
+    animation: dnz-row-in-a .3s ease both;
+}
+
+.dnz-report-body.dnz-anim-b ::deep .rz-data-row {
+    animation: dnz-row-in-b .3s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dnz-report-body ::deep .rz-data-row { animation: none; }
+}
