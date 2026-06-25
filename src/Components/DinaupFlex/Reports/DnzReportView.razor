@@ -376,12 +376,9 @@
 		var p = BaseRequest();
 		p.ApplyLoadingConfiguration(filter);
 		p.QuerySearch = this.QuerySearch;
-		var key = ToSHA1( ReportId  +    FilterKey(p) +  this.QuerySearch + _fastMode);
+		var key = ToSHA1( string.Join("¬", ReportId  ,    FilterKey(p) ,  this.QuerySearch , _fastMode  , Limit  , p.CurrentPage) );
 		p.GetPageSummary = !_fastMode;
-		// Misma petición que la última ya servida → no repito (mata la ráfaga del scroll virtual). El refresh fuerza.
 		if (!force && key.IsNotEmpty() && key == _lastLoadedKey) return;
-
-		// Ya hay una carga en curso → me quedo con la última pedida y la sirvo al terminar (coalesce).
 		if (_loadInFlight) { _pendingFilter = filter; _pendingForce = force; return; }
 
 		_loadInFlight = true;
@@ -434,7 +431,7 @@
 			}
 
 
-			if (_fastMode)
+			// if (_fastMode)
 			 _gridRef?.RefreshDataAsync();
 
 			await InvokeAsync(StateHasChanged);
