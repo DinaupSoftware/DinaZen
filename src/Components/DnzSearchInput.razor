@@ -25,6 +25,10 @@
 	[Parameter]
 	public EventCallback<string> BounceValueChanged { get; set; }
 
+	// Se dispara en CADA tecla (antes del debounce). El padre lo usa para encender feedback de "buscando" sin esperar los 500ms. Opcional: si no hay delegate, no hace nada.
+	[Parameter]
+	public EventCallback OnTyping { get; set; }
+
 
 	private Dinaup.Debouncer debouncer;
 	protected override Task OnInitializedAsync()
@@ -38,10 +42,11 @@
 	{
 		await BounceValueChanged.InvokeAsync(Value);
 	}
-	private void OnInput(ChangeEventArgs e)
+	private async Task OnInput(ChangeEventArgs e)
 	{
 		Value = e.Value?.ToString();
 		debouncer.Debounce();
+		if (OnTyping.HasDelegate) await OnTyping.InvokeAsync();
 	}
 
 

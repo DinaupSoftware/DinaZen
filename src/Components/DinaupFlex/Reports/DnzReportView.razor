@@ -16,7 +16,7 @@
 	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
 	<div class="dnz-report-view" data-testid="report-view" data-testid-id=@ReportId>
-		@if (_isLoading) {
+		@if (_isLoading || _typing) {
 			<div class="dnz-report-loadbar" data-testid="report-loadbar"></div>
 
 		}
@@ -35,7 +35,7 @@
 					}
 					<RadzenButton data-testid="report-add" Visible=@(ShowAdd && _dataList?.Section != null) Variant="Variant.Flat" ButtonStyle="ButtonStyle.Primary" Icon="add" Size="ButtonSize.Small" Click="@HandleAddClick" />
 					@if (ShowSearch) {
-						<DnzSearchInput data-testid="report-search" Value="@QuerySearch" BounceValueChanged="@UpdateSearchAsync" Placeholder="Buscar..." Style="max-width:300px" />
+						<DnzSearchInput data-testid="report-search" Value="@QuerySearch" BounceValueChanged="@UpdateSearchAsync" OnTyping="@OnSearchTyping" Placeholder="Buscar..." Style="max-width:300px" />
 					}
 					<RadzenButton data-testid="report-export" Variant="Variant.Text" Icon="file_download" Size="ButtonSize.Small" Click="@HandleExportClick" IsBusy=@_exporting title="Exportar CSV (todas las filas)" />
 					<RadzenButton data-testid="report-refresh" Variant="Variant.Text" Icon="refresh" Size="ButtonSize.Small" Click="@(async () => await UpdateAsync())" />
@@ -247,6 +247,8 @@
 	// Tamaño de página elegible por el usuario (selector de la barra). Arranca en Limit; gobierna la navegación prev/next.
 	private int _pageSize;
 	private bool _isLoading = true;
+	// Buscando "en caliente": se enciende en la 1ª tecla del buscador (antes del debounce) y se apaga cuando UpdateSearchAsync resuelve. Solo gobierna la barrita azul, no la lógica de carga.
+	private bool _typing;
 	// Alterna par/impar en cada recarga de usuario (buscar/refrescar/toggle). El .razor.css usa la paridad para cambiar el animation-name y RE-DISPARAR el fade de fila aunque Radzen reutilice el <tr> (virtualización). En scroll NO se toca → sin parpadeo.
 	private int _loadSeq;
 	private bool _showResponse;
@@ -304,11 +306,16 @@
 	// El debounce de DnzSearchInput dispara este callback desde un Task.Run (fuera del SynchronizationContext del circuito).
 	// Envolvemos en InvokeAsync para correr TODO el flujo (incluida la continuación tras el await al servidor) en el hilo de Blazor:
 	// así el setter de Data del grid y el repintado ocurren on-context, como en el scroll. Sin esto la 1ª búsqueda no repinta hasta hacer scroll.
+	// Primera tecla en el buscador: enciende la barrita YA (sin esperar los 500ms del debounce). Se apaga en UpdateSearchAsync, busque o no.
+	private void OnSearchTyping() { if (_typing) return; _typing = true; StateHasChanged(); }
+
 	public Task UpdateSearchAsync(string query) => InvokeAsync(async () => {
-		if (QuerySearch == query) return;
+		if (QuerySearch == query) { _typing = false; StateHasChanged(); return; } // tecleó y borró: no hay búsqueda real, pero hay que apagar la barrita
 		QuerySearch = query;
 		_loadSeq++;
 		await LoadDataAsync();
+		_typing = false;
+		StateHasChanged();
 	});
 
 	public async Task UpdateAsync() { _loadSeq++; await LoadDataAsync(_lastFilter, force: true); }
