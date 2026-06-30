@@ -155,7 +155,7 @@
 
 
 
-<Popup @key=@(DataControl.Token + "-6") @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute; max-width:600px;  border:var(--rz-panel-border);">
+<RadzenPopup @key=@(DataControl.Token + "-6") @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute; max-width:600px;  border:var(--rz-panel-border);">
 
 	<div class="desplegablecontent" data-testid=@($"dnz-selector-popup-{DataControl.Token}") style="background:white">
 
@@ -193,7 +193,7 @@
 							  OnItemSelect="@(async (row) => await SelectOrder(row))" />
 		}
 	</div>
-</Popup>
+</RadzenPopup>
 
 
 
@@ -209,7 +209,7 @@
 	// ── Private fields ──
 	RadzenTextBox txtBoxSearch;
 	ElementReference elDivX;
-	Popup popup;
+	RadzenPopup popup;
 	string searchString = "";
 	private string idSeach = Guid.NewGuid().ToString().Replace("-", "");
 	bool subiendoArchivo;

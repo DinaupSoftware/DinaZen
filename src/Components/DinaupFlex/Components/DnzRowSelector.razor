@@ -53,12 +53,12 @@
 	</div>
 </ErrorBoundary>
 
-<Popup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);" class="dnz-rs-popup">
+<RadzenPopup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);" class="dnz-rs-popup">
 	<ErrorBoundary>
 		<DnzSearchInput BounceValueChanged=@OnDebouncedSearch Class="w-100" />
 		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
 	</ErrorBoundary>
-</Popup>
+</RadzenPopup>
 
 <style>
 	.dnz-rs-wrap { position: relative; overflow: hidden; min-width: 0; }
@@ -122,7 +122,7 @@
 
 	DnzReportView reportControl;
 	ElementReference containerRef;
-	Popup popup;
+	RadzenPopup popup;
 
 	[Parameter] public string Width { get; set; } = "280px";
 	[Parameter] public string Style { get; set; } = "flex:1";
