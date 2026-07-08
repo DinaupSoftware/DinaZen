@@ -1,7 +1,7 @@
 @if (HighlightColor != HighlightColorType.Undefined)
 {
 	<RadzenCard Variant="Variant.Filled" Style="@GetGradient()" class="@($"h-100 {Class}")" title="@Tooltip">
-		<div class="d-flex flex-column justify-content-between h-100 gap-3" style="@($"color: {GetTextColor()}; min-height: 140px;")">
+		<div class="d-flex flex-column justify-content-between h-100 gap-3" style="@($"color: {GetTextColor()}; ")">
 			<div class="d-flex justify-content-between align-items-start gap-2">
 				<div class="flex-grow-1">
 					<div class="rz-text-caption" style="@($"color: {GetTextColor()}; opacity: 0.8;")">@Title</div>

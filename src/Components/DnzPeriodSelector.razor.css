@@ -1,0 +1,174 @@
+/* ───────── Barra compacta (estado en reposo) ───────── */
+.dnz-ps { position: relative; display: inline-block; }
+
+.dnz-ps-bar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: var(--rz-base-background-color, #fff);
+	border: 1px solid var(--rz-border-color);
+	border-radius: 10px;
+	padding: 5px 8px;
+}
+
+.dnz-ps-grain { min-width: 118px; }
+.dnz-ps-grain ::deep .rz-dropdown { border-radius: 8px; }
+
+.dnz-ps-divider {
+	width: 1px;
+	height: 20px;
+	background: var(--rz-border-color);
+}
+
+.dnz-ps-step {
+	width: 28px;
+	height: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 1px solid var(--rz-border-color);
+	background: var(--rz-base-background-color, #fff);
+	border-radius: 8px;
+	color: var(--rz-text-secondary-color);
+	cursor: pointer;
+	transition: background .12s, border-color .12s, color .12s;
+}
+.dnz-ps-step:hover {
+	background: var(--rz-base-100);
+	border-color: var(--rz-text-tertiary-color);
+	color: var(--rz-text-color);
+}
+.dnz-ps-step ::deep i { font-size: 18px; color: inherit; }
+
+.dnz-ps-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	border: none;
+	background: transparent;
+	color: var(--rz-text-color);
+	font-weight: 600;
+	font-size: 14.5px;
+	padding: 5px 8px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background .12s;
+}
+.dnz-ps-label:hover { background: var(--rz-base-100); }
+.dnz-ps-label-txt { white-space: nowrap; }
+
+.dnz-ps-sub {
+	font-size: 12.5px;
+	color: var(--rz-text-tertiary-color);
+	white-space: nowrap;
+}
+
+/* ───────── Panel (bajo demanda) ───────── */
+/* Neutraliza el chrome por defecto de RadzenPopup; el look lo lleva el panel interno. */
+.dnz-ps-popup {
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 0 !important;
+}
+
+.dnz-ps-panel {
+	width: min(340px, calc(100vw - 32px));
+	background: var(--rz-panel-background-color, #fff);
+	border: 1px solid var(--rz-border-color);
+	border-radius: 12px;
+	box-shadow: 0 10px 30px rgba(20, 24, 33, .14), 0 2px 8px rgba(20, 24, 33, .08);
+	padding: 14px;
+}
+
+/* Paso de año en la rejilla */
+.dnz-ps-yr {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+.dnz-ps-yrl { font-size: 15px; font-weight: 600; color: var(--rz-text-color); }
+
+/* Rejillas de trimestre / mes / año */
+.dnz-ps-grid { display: grid; gap: 8px; }
+.dnz-ps-grid-q { grid-template-columns: 1fr 1fr; }
+.dnz-ps-grid-m { grid-template-columns: repeat(3, 1fr); }
+.dnz-ps-grid-y { grid-template-columns: 1fr 1fr; }
+
+.dnz-ps-cell {
+	position: relative;
+	text-align: left;
+	border: 1.5px solid var(--rz-border-color);
+	background: var(--rz-base-background-color, #fff);
+	border-radius: 10px;
+	padding: 11px 12px;
+	color: var(--rz-text-color);
+	cursor: pointer;
+	transition: border-color .12s, background .12s;
+}
+.dnz-ps-cell:hover { border-color: var(--rz-text-tertiary-color); }
+.dnz-ps-cell.on {
+	border-color: var(--rz-primary);
+	background: var(--rz-base-100);
+	background: color-mix(in srgb, var(--rz-primary) 12%, var(--rz-base-background-color, #fff));
+}
+.dnz-ps-cell.on .dnz-ps-cell-t { color: var(--rz-primary); }
+
+.dnz-ps-cell-top { display: flex; align-items: center; justify-content: space-between; }
+.dnz-ps-cell-t { font-size: 15px; font-weight: 600; }
+.dnz-ps-cell-sub { font-size: 12px; color: var(--rz-text-secondary-color); margin-top: 2px; }
+.dnz-ps-cell-mini { text-align: center; padding: 12px 6px; }
+.dnz-ps-cell-mini .dnz-ps-cell-t { font-size: 14px; }
+
+.dnz-ps-act {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 10.5px;
+	color: var(--rz-text-secondary-color);
+}
+.dnz-ps-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rz-danger); }
+.dnz-ps-dot-mini {
+	display: block;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--rz-danger);
+	margin: 4px auto 0;
+}
+
+/* Día / semana / rango se eligen con RadzenDatePicker (sin calendario propio) */
+.dnz-ps-hint {
+	margin-top: 8px;
+	font-size: 12px;
+	color: var(--rz-text-tertiary-color);
+}
+
+/* Atajos rápidos */
+.dnz-ps-sc-wrap { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rz-border-color); }
+.dnz-ps-sc-h {
+	font-size: 11px;
+	color: var(--rz-text-tertiary-color);
+	margin-bottom: 8px;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+.dnz-ps-sc-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.dnz-ps-sc {
+	border: 1px solid var(--rz-border-color);
+	background: var(--rz-base-background-color, #fff);
+	color: var(--rz-text-secondary-color);
+	font-size: 12.5px;
+	padding: 6px 10px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: border-color .12s, color .12s;
+}
+.dnz-ps-sc:hover { border-color: var(--rz-primary); color: var(--rz-primary); }
+
+.dnz-ps-foot { margin-top: 14px; display: flex; justify-content: flex-end; }
+
+@media (max-width: 430px) { .dnz-ps-sub { display: none; } }
+@media (prefers-reduced-motion: reduce) { .dnz-ps *, .dnz-ps-panel * { transition: none !important; } }
