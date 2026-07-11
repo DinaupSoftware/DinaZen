@@ -41,6 +41,17 @@
 }
 .dnz-ps-step ::deep i { font-size: 18px; color: inherit; }
 
+/* Volver al periodo actual: acento sutil para que se distinga de las flechas */
+.dnz-ps-today {
+	color: var(--rz-primary);
+	border-color: color-mix(in srgb, var(--rz-primary) 45%, var(--rz-border-color));
+}
+.dnz-ps-today:hover {
+	color: var(--rz-primary);
+	border-color: var(--rz-primary);
+	background: color-mix(in srgb, var(--rz-primary) 8%, var(--rz-base-background-color, #fff));
+}
+
 .dnz-ps-label {
 	display: inline-flex;
 	align-items: center;
@@ -91,11 +102,11 @@
 }
 .dnz-ps-yrl { font-size: 15px; font-weight: 600; color: var(--rz-text-color); }
 
-/* Rejillas de trimestre / mes / año */
+/* Rejillas de trimestre / mes / año (bloque fijo de 12 años) */
 .dnz-ps-grid { display: grid; gap: 8px; }
 .dnz-ps-grid-q { grid-template-columns: 1fr 1fr; }
 .dnz-ps-grid-m { grid-template-columns: repeat(3, 1fr); }
-.dnz-ps-grid-y { grid-template-columns: 1fr 1fr; }
+.dnz-ps-grid-y { grid-template-columns: repeat(3, 1fr); }
 
 .dnz-ps-cell {
 	position: relative;
@@ -170,5 +181,17 @@
 
 .dnz-ps-foot { margin-top: 14px; display: flex; justify-content: flex-end; }
 
+/* Teclado: foco visible en todos los controles propios */
+.dnz-ps-step:focus-visible,
+.dnz-ps-label:focus-visible,
+.dnz-ps-cell:focus-visible,
+.dnz-ps-sc:focus-visible {
+	outline: 2px solid var(--rz-primary);
+	outline-offset: 1px;
+}
+
+@media (max-width: 600px) {
+	.dnz-ps-label-txt { max-width: 38vw; overflow: hidden; text-overflow: ellipsis; }
+}
 @media (max-width: 430px) { .dnz-ps-sub { display: none; } }
 @media (prefers-reduced-motion: reduce) { .dnz-ps *, .dnz-ps-panel * { transition: none !important; } }

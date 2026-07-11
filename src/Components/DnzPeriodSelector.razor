@@ -1,6 +1,10 @@
 @* DnzPeriodSelector - Navegador de periodo: granularidad (día/semana/mes/trimestre/año/rango)
-   con flechas para saltar de un periodo al siguiente y un panel para saltos largos o rango a mano.
-   Día/semana/rango se eligen con RadzenDatePicker; mes/trimestre/año con rejilla. Emite (inicio, fin) + granularidad. *@
+   con flechas para saltar al periodo anterior/siguiente (en rango salta su misma duración) y un
+   panel para saltos largos, atajos rápidos o rango a mano. Día/semana/rango se eligen con
+   RadzenDatePicker; mes/trimestre/año con rejilla. Hojear la rejilla NO cambia la selección
+   (solo tocar una celda emite), al cambiar de granularidad se conserva el periodo que se estaba
+   viendo, y el botón "hoy" vuelve al periodo actual. Emite (inicio, fin) + granularidad, sin
+   duplicados: el mismo periodo nunca se emite dos veces seguidas. *@
 @namespace DinaZen.Components
 @using System.Globalization
 @using System.ComponentModel.DataAnnotations
@@ -16,44 +20,52 @@
 			<DnzEnumDropDown TEnum="PeriodGrain" @bind-Value="_grain" @bind-Value:after="OnGrainChanged" Style="width:100%;" />
 		</div>
 
-		@if (_grain != PeriodGrain.Rango)
+		<span class="dnz-ps-divider"></span>
+
+		@if (cur.Start.HasValue)
 		{
-			<span class="dnz-ps-divider"></span>
-			<button type="button" class="dnz-ps-step" @onclick="() => Step(-1)" aria-label="Periodo anterior">
+			<button type="button" class="dnz-ps-step" @onclick="() => Step(-1)" title="@PrevTitle" aria-label="@PrevTitle">
 				<RadzenIcon Icon="chevron_left" />
 			</button>
 		}
 
-		<button type="button" class="dnz-ps-label" @onclick="TogglePanelAsync">
+		<button type="button" class="dnz-ps-label" @onclick="TogglePanelAsync" title="Cambiar periodo" aria-label="Cambiar periodo">
 			<span class="dnz-ps-label-txt">@cur.Label</span>
 			<RadzenIcon Icon="expand_more" Style="font-size:18px;color:var(--rz-text-tertiary-color);" />
 		</button>
 
-		@if (_grain != PeriodGrain.Rango)
+		@if (cur.Start.HasValue)
 		{
-			<button type="button" class="dnz-ps-step" @onclick="() => Step(1)" aria-label="Periodo siguiente">
+			<button type="button" class="dnz-ps-step" @onclick="() => Step(1)" title="@NextTitle" aria-label="@NextTitle">
 				<RadzenIcon Icon="chevron_right" />
 			</button>
-			@if (cur.Sub.IsNotEmpty())
-			{
-				<span class="dnz-ps-sub">@cur.Sub</span>
-			}
+		}
+
+		@if (cur.Sub.IsNotEmpty())
+		{
+			<span class="dnz-ps-sub">@cur.Sub</span>
+		}
+
+		@if (cur.Start.HasValue && (Today < cur.Start.Value || cur.End.Value < Today))
+		{
+			<button type="button" class="dnz-ps-step dnz-ps-today" @onclick="GoToTodayAsync" title="Ir al periodo actual" aria-label="Ir al periodo actual">
+				<RadzenIcon Icon="today" />
+			</button>
 		}
 	</div>
 
-	<RadzenPopup @ref="_popup" Lazy="true" class="dnz-ps-popup" Style="display:none;position:absolute;">
+	<RadzenPopup @ref="_popup" Lazy="true" Open="OnPanelOpened" Close="OnPanelClosed" class="dnz-ps-popup" Style="display:none;position:absolute;">
 		<div class="dnz-ps-panel">
 
 			@if (_grain == PeriodGrain.Dia)
 			{
-				<RadzenDatePicker TValue="DateTime?" Value="@(_day.ToDateTime(TimeOnly.MinValue))" Change="@OnDiaPicked"
-								  Inline="true" DateFormat="dd/MM/yyyy" />
+				<RadzenDatePicker TValue="DateTime?" Value="@(_day.ToDateTime(TimeOnly.MinValue))" Change="@OnDiaPicked" Inline="true" />
 			}
 			else if (_grain == PeriodGrain.Semana)
 			{
 				<RadzenDatePicker TValue="DateTime?" Value="@(_weekStart.ToDateTime(TimeOnly.MinValue))" Change="@OnSemanaPicked"
-								  Inline="true" DateFormat="dd/MM/yyyy" />
-				<div class="dnz-ps-hint">Se toma la semana completa (lun–dom) del día elegido.</div>
+								  Inline="true" ShowCalendarWeek="true" CalendarWeekTitle="sem" />
+				<div class="dnz-ps-hint">Elige cualquier día: se toma su semana completa (lun–dom).</div>
 			}
 			else if (_grain == PeriodGrain.Rango)
 			{
@@ -70,15 +82,28 @@
 			}
 			else
 			{
-				@* ── Rejilla (mes / trimestre / año) con paso de año ── *@
+				@* ── Rejilla (mes / trimestre / año). Hojear años aquí NO cambia la selección: solo tocar una celda. ── *@
 				<div class="dnz-ps-yr">
-					<button type="button" class="dnz-ps-step" @onclick="() => ShiftYear(-1)" aria-label="Año anterior">
-						<RadzenIcon Icon="chevron_left" />
-					</button>
-					<span class="dnz-ps-yrl">@_year</span>
-					<button type="button" class="dnz-ps-step" @onclick="() => ShiftYear(1)" aria-label="Año siguiente">
-						<RadzenIcon Icon="chevron_right" />
-					</button>
+					@if (_grain == PeriodGrain.Anio)
+					{
+						<button type="button" class="dnz-ps-step" @onclick="() => _yearBase -= 12" title="Años anteriores" aria-label="Años anteriores">
+							<RadzenIcon Icon="chevron_left" />
+						</button>
+						<span class="dnz-ps-yrl">@_yearBase – @(_yearBase + 11)</span>
+						<button type="button" class="dnz-ps-step" @onclick="() => _yearBase += 12" title="Años siguientes" aria-label="Años siguientes">
+							<RadzenIcon Icon="chevron_right" />
+						</button>
+					}
+					else
+					{
+						<button type="button" class="dnz-ps-step" @onclick="() => _panelYear--" title="Año anterior" aria-label="Año anterior">
+							<RadzenIcon Icon="chevron_left" />
+						</button>
+						<span class="dnz-ps-yrl">@_panelYear</span>
+						<button type="button" class="dnz-ps-step" @onclick="() => _panelYear++" title="Año siguiente" aria-label="Año siguiente">
+							<RadzenIcon Icon="chevron_right" />
+						</button>
+					}
 				</div>
 
 				@if (_grain == PeriodGrain.Trimestre)
@@ -88,8 +113,8 @@
 						{
 							var quarter = q;
 							var sm = (quarter - 1) * 3 + 1;
-							var on = quarter == _quarter;
-							var act = quarter == CurQuarter && _year == Today.Year;
+							var on = quarter == _quarter && _panelYear == _year;
+							var act = quarter == CurQuarter && _panelYear == Today.Year;
 							<button type="button" class="dnz-ps-cell @(on ? "on" : "")" @onclick="() => PickQuarter(quarter)">
 								<div class="dnz-ps-cell-top">
 									<span class="dnz-ps-cell-t">T@(quarter)</span>
@@ -109,9 +134,9 @@
 						@for (var i = 1; i <= 12; i++)
 						{
 							var month = i;
-							var on = month == _month;
-							var act = month == Today.Month && _year == Today.Year;
-							<button type="button" class="dnz-ps-cell dnz-ps-cell-mini @(on ? "on" : "")" @onclick="() => PickMonth(month)">
+							var on = month == _month && _panelYear == _year;
+							var act = month == Today.Month && _panelYear == Today.Year;
+							<button type="button" class="dnz-ps-cell dnz-ps-cell-mini @(on ? "on" : "")" title="@MFull(month) @_panelYear" @onclick="() => PickMonth(month)">
 								<span class="dnz-ps-cell-t">@MShortCap(month)</span>
 								@if (act)
 								{
@@ -124,7 +149,7 @@
 				else
 				{
 					<div class="dnz-ps-grid dnz-ps-grid-y">
-						@for (var y = _year - 2; y <= _year + 1; y++)
+						@for (var y = _yearBase; y < _yearBase + 12; y++)
 						{
 							var year = y;
 							var on = year == _year;
@@ -164,11 +189,17 @@
 
 	#region Parameters
 
-	/// <summary>Se dispara cada vez que cambia el periodo seleccionado (rango resuelto + granularidad).</summary>
+	/// <summary>Se dispara cada vez que cambia el periodo seleccionado (rango resuelto + granularidad). Deduplicado: el mismo periodo no se emite dos veces seguidas.</summary>
 	[Parameter] public EventCallback<PeriodSelection> OnChanged { get; set; }
 
 	/// <summary>Granularidad inicial de la barra.</summary>
 	[Parameter] public PeriodGrain InitialGrain { get; set; } = PeriodGrain.Mes;
+
+	/// <summary>Periodo inicial opcional (para restaurar estado, p. ej. desde la URL). Basta el inicio: el periodo se deriva según la granularidad. Sin él, se parte del periodo actual.</summary>
+	[Parameter] public DateOnly? InitialStart { get; set; }
+
+	/// <summary>Fin del periodo inicial. Solo se usa con granularidad Rango; en el resto el fin se deriva.</summary>
+	[Parameter] public DateOnly? InitialEnd { get; set; }
 
 	/// <summary>Fecha "hoy" de referencia (por defecto la del sistema). Inyectable para tests.</summary>
 	[Parameter] public DateOnly Today { get; set; } = DateOnly.FromDateTime(DateTime.Today);
@@ -188,13 +219,32 @@
 	private DateOnly? _rangeStart;
 	private DateOnly? _rangeEnd;
 
+	// Vista del panel, independiente de la selección: hojear no emite nada.
+	private int _panelYear;     // año mostrado en la rejilla de mes/trimestre
+	private int _yearBase;      // primer año del bloque de 12 en la rejilla de años
+
+	private PeriodSelection _last;  // último periodo emitido (dedupe + ancla al cambiar granularidad)
+	private bool _panelOpen;
+
 	private RadzenPopup _popup;
 	private ElementReference _anchor;
 
-	private int CurQuarter => (Today.Month - 1) / 3 + 1;
+	private int CurQuarter => QuarterOf(Today);
 
 	private DateTime? _rangoDesdeDT => _rangeStart?.ToDateTime(TimeOnly.MinValue);
 	private DateTime? _rangoHastaDT => _rangeEnd?.ToDateTime(TimeOnly.MinValue);
+
+	private string GrainNoun => _grain switch
+	{
+		PeriodGrain.Dia => "Día",
+		PeriodGrain.Semana => "Semana",
+		PeriodGrain.Mes => "Mes",
+		PeriodGrain.Trimestre => "Trimestre",
+		PeriodGrain.Anio => "Año",
+		_ => "Periodo"
+	};
+	private string PrevTitle => $"{GrainNoun} anterior";
+	private string NextTitle => $"{GrainNoun} siguiente";
 
 	#endregion
 
@@ -208,6 +258,24 @@
 		_quarter = CurQuarter;
 		_day = Today;
 		_weekStart = MondayOf(Today);
+
+		if (InitialStart.HasValue)
+		{
+			var s = InitialStart.Value;
+			switch (_grain)
+			{
+				case PeriodGrain.Dia: _day = s; break;
+				case PeriodGrain.Semana: _weekStart = MondayOf(s); break;
+				case PeriodGrain.Mes: _year = s.Year; _month = s.Month; break;
+				case PeriodGrain.Trimestre: _year = s.Year; _quarter = QuarterOf(s); break;
+				case PeriodGrain.Anio: _year = s.Year; break;
+				case PeriodGrain.Rango:
+					_rangeStart = s;
+					_rangeEnd = InitialEnd.HasValue ? InitialEnd.Value : s;
+					break;
+			}
+		}
+		SyncPanelView();
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -231,40 +299,88 @@
 				_weekStart = _weekStart.AddDays(7 * dir);
 				break;
 			case PeriodGrain.Trimestre:
-				_quarter += dir;
-				if (_quarter > 4) { _quarter = 1; _year++; }
-				if (_quarter < 1) { _quarter = 4; _year--; }
+				var qm = new DateOnly(_year, (_quarter - 1) * 3 + 1, 1).AddMonths(3 * dir);
+				_year = qm.Year; _quarter = QuarterOf(qm);
 				break;
 			case PeriodGrain.Mes:
-				_month += dir;
-				if (_month > 12) { _month = 1; _year++; }
-				if (_month < 1) { _month = 12; _year--; }
+				var mm = new DateOnly(_year, _month, 1).AddMonths(dir);
+				_year = mm.Year; _month = mm.Month;
 				break;
 			case PeriodGrain.Anio:
 				_year += dir;
+				break;
+			case PeriodGrain.Rango:
+				if (_rangeStart.HasValue && _rangeEnd.HasValue)
+				{
+					var len = _rangeEnd.Value.DayNumber - _rangeStart.Value.DayNumber + 1;
+					_rangeStart = _rangeStart.Value.AddDays(len * dir);
+					_rangeEnd = _rangeEnd.Value.AddDays(len * dir);
+				}
 				break;
 		}
 		await EmitAsync();
 	}
 
+	// Al cambiar de granularidad se conserva lo que se estaba viendo: el nuevo periodo
+	// es el que contiene el ancla (hoy si el periodo visible lo incluye; si no, su inicio).
 	private async Task OnGrainChanged()
 	{
-		if (_grain == PeriodGrain.Semana) _weekStart = MondayOf(_day);
-		if (_grain == PeriodGrain.Rango) await OpenPanelAsync();
+		var anchor = AnchorDate();
+		switch (_grain)
+		{
+			case PeriodGrain.Dia: _day = anchor; break;
+			case PeriodGrain.Semana: _weekStart = MondayOf(anchor); break;
+			case PeriodGrain.Mes: _year = anchor.Year; _month = anchor.Month; break;
+			case PeriodGrain.Trimestre: _year = anchor.Year; _quarter = QuarterOf(anchor); break;
+			case PeriodGrain.Anio: _year = anchor.Year; break;
+			case PeriodGrain.Rango:
+				// Rango parte del periodo que se estaba viendo, listo para ajustar los extremos.
+				if (_last != null) { _rangeStart = _last.Start; _rangeEnd = _last.End; }
+				await OpenPanelAsync();
+				break;
+		}
 		await EmitAsync();
 	}
 
-	private async Task ShiftYear(int delta) { _year += delta; await EmitAsync(); }
+	private DateOnly AnchorDate()
+	{
+		if (_last == null) return Today;
+		if (_last.Start <= Today && Today <= _last.End) return Today;
+		return _last.Start;
+	}
 
-	private async Task PickQuarter(int q) { _quarter = q; await EmitAsync(); }
-	private async Task PickMonth(int m) { _month = m; await EmitAsync(); }
-	private async Task PickYear(int y) { _year = y; await EmitAsync(); }
+	private async Task GoToTodayAsync()
+	{
+		switch (_grain)
+		{
+			case PeriodGrain.Dia: _day = Today; break;
+			case PeriodGrain.Semana: _weekStart = MondayOf(Today); break;
+			case PeriodGrain.Mes: _year = Today.Year; _month = Today.Month; break;
+			case PeriodGrain.Trimestre: _year = Today.Year; _quarter = CurQuarter; break;
+			case PeriodGrain.Anio: _year = Today.Year; break;
+			case PeriodGrain.Rango:
+				// Mantiene la duración del rango y lo trae hasta hoy.
+				if (_rangeStart.HasValue && _rangeEnd.HasValue)
+				{
+					var len = _rangeEnd.Value.DayNumber - _rangeStart.Value.DayNumber;
+					_rangeEnd = Today;
+					_rangeStart = Today.AddDays(-len);
+				}
+				break;
+		}
+		await EmitAsync();
+	}
+
+	private async Task PickQuarter(int q) { _quarter = q; _year = _panelYear; await EmitAsync(); await ClosePanelAsync(); }
+	private async Task PickMonth(int m) { _month = m; _year = _panelYear; await EmitAsync(); await ClosePanelAsync(); }
+	private async Task PickYear(int y) { _year = y; await EmitAsync(); await ClosePanelAsync(); }
 
 	private async Task OnDiaPicked(DateTime? v)
 	{
 		if (v.HasValue == false) return;
 		_day = DateOnly.FromDateTime(v.Value);
 		await EmitAsync();
+		await ClosePanelAsync();
 	}
 
 	private async Task OnSemanaPicked(DateTime? v)
@@ -272,26 +388,32 @@
 		if (v.HasValue == false) return;
 		_weekStart = MondayOf(DateOnly.FromDateTime(v.Value));
 		await EmitAsync();
+		await ClosePanelAsync();
 	}
 
 	private async Task OnRangoDesde(DateTime? v)
 	{
+		var wasComplete = _rangeStart.HasValue && _rangeEnd.HasValue;
 		_rangeStart = v.HasValue ? DateOnly.FromDateTime(v.Value) : null;
-		NormalizeRange();
-		await EmitAsync();
+		await AfterRangeEditAsync(wasComplete);
 	}
 
 	private async Task OnRangoHasta(DateTime? v)
 	{
+		var wasComplete = _rangeStart.HasValue && _rangeEnd.HasValue;
 		_rangeEnd = v.HasValue ? DateOnly.FromDateTime(v.Value) : null;
-		NormalizeRange();
-		await EmitAsync();
+		await AfterRangeEditAsync(wasComplete);
 	}
 
-	private void NormalizeRange()
+	// Normaliza (swap si vienen invertidas), emite, y cierra el panel solo cuando el rango
+	// se acaba de completar; si ya estaba completo y se está ajustando, se deja abierto.
+	private async Task AfterRangeEditAsync(bool wasComplete)
 	{
 		if (_rangeStart.HasValue && _rangeEnd.HasValue && _rangeEnd.Value < _rangeStart.Value)
 			(_rangeStart, _rangeEnd) = (_rangeEnd, _rangeStart);
+		await EmitAsync();
+		if (wasComplete == false && _rangeStart.HasValue && _rangeEnd.HasValue)
+			await ClosePanelAsync();
 	}
 
 	private async Task ApplyShortcut(string k)
@@ -321,9 +443,8 @@
 				_grain = PeriodGrain.Trimestre; _year = Today.Year; _quarter = CurQuarter;
 				break;
 			case "triP":
-				var q = CurQuarter - 1; var qy = Today.Year;
-				if (q < 1) { q = 4; qy--; }
-				_grain = PeriodGrain.Trimestre; _quarter = q; _year = qy;
+				var pq = new DateOnly(Today.Year, (CurQuarter - 1) * 3 + 1, 1).AddMonths(-3);
+				_grain = PeriodGrain.Trimestre; _year = pq.Year; _quarter = QuarterOf(pq);
 				break;
 			case "anioA":
 				_grain = PeriodGrain.Anio; _year = Today.Year;
@@ -331,24 +452,49 @@
 			case "ytd":
 				_grain = PeriodGrain.Rango; _rangeStart = new DateOnly(Today.Year, 1, 1); _rangeEnd = Today;
 				break;
+			case "d7": SetLastDays(7); break;
+			case "d30": SetLastDays(30); break;
+			case "d90": SetLastDays(90); break;
 		}
 		await EmitAsync();
+		await ClosePanelAsync();
+	}
+
+	private void SetLastDays(int n)
+	{
+		_grain = PeriodGrain.Rango;
+		_rangeEnd = Today;
+		_rangeStart = Today.AddDays(-(n - 1));
 	}
 
 	#endregion
 
 	#region Panel
 
-	private async Task TogglePanelAsync() => await _popup.ToggleAsync(_anchor);
+	private void OnPanelOpened() => _panelOpen = true;
+	private void OnPanelClosed() => _panelOpen = false;
+
+	private async Task TogglePanelAsync()
+	{
+		SyncPanelView();
+		await _popup.ToggleAsync(_anchor);
+	}
 
 	private async Task OpenPanelAsync()
 	{
-		try { await _popup.ToggleAsync(_anchor); } catch { }
+		if (_panelOpen == false) await TogglePanelAsync();
 	}
 
 	private async Task ClosePanelAsync()
 	{
-		try { await _popup.CloseAsync(); } catch { }
+		if (_panelOpen) await _popup.CloseAsync();
+	}
+
+	// Re-ancla la vista del panel a la selección (se llama al abrir y tras cada cambio real).
+	private void SyncPanelView()
+	{
+		_panelYear = _year;
+		_yearBase = _year - 7;  // 7 años hacia atrás, 4 hacia delante: mirar histórico pesa más
 	}
 
 	#endregion
@@ -363,14 +509,14 @@
 		{
 			case PeriodGrain.Dia:
 				r.Label = HumanDate(_day);
-				r.Sub = WeekdayAbbr(_day);
+				r.Sub = DaySub(_day);
 				r.Start = _day; r.End = _day;
 				break;
 
 			case PeriodGrain.Semana:
 				var we = _weekStart.AddDays(6);
-				r.Label = $"Sem {IsoWeek(_weekStart)} {IsoWeekYear(_weekStart)}";
-				r.Sub = SpanNoYear(_weekStart, we);
+				r.Label = SpanWithYear(_weekStart, we);
+				r.Sub = $"Sem {IsoWeek(_weekStart)}";
 				r.Start = _weekStart; r.End = we;
 				break;
 
@@ -398,8 +544,18 @@
 			case PeriodGrain.Rango:
 				if (_rangeStart.HasValue && _rangeEnd.HasValue)
 				{
-					r.Label = SpanNoYear(_rangeStart.Value, _rangeEnd.Value);
+					var days = _rangeEnd.Value.DayNumber - _rangeStart.Value.DayNumber + 1;
+					r.Label = SpanWithYear(_rangeStart.Value, _rangeEnd.Value);
+					r.Sub = days == 1 ? "1 día" : $"{days} días";
 					r.Start = _rangeStart; r.End = _rangeEnd;
+				}
+				else if (_rangeStart.HasValue)
+				{
+					r.Label = $"Desde {HumanDate(_rangeStart.Value)} …";
+				}
+				else if (_rangeEnd.HasValue)
+				{
+					r.Label = $"… hasta {HumanDate(_rangeEnd.Value)}";
 				}
 				else
 				{
@@ -410,11 +566,29 @@
 		return r;
 	}
 
+	private string DaySub(DateOnly d)
+	{
+		var abbr = WeekdayAbbr(d);
+		var diff = d.DayNumber - Today.DayNumber;
+		if (diff == 0) return $"{abbr} · hoy";
+		if (diff == -1) return $"{abbr} · ayer";
+		if (diff == 1) return $"{abbr} · mañana";
+		return abbr;
+	}
+
 	private async Task EmitAsync(bool render = true)
 	{
+		SyncPanelView();
 		var r = Resolve();
 		if (r.Start.HasValue && r.End.HasValue)
-			await OnChanged.InvokeAsync(new PeriodSelection(_grain, r.Start.Value, r.End.Value, r.Label));
+		{
+			var sel = new PeriodSelection(_grain, r.Start.Value, r.End.Value, r.Label);
+			if (sel != _last)
+			{
+				_last = sel;
+				await OnChanged.InvokeAsync(sel);
+			}
+		}
 		if (render) StateHasChanged();
 	}
 
@@ -430,7 +604,8 @@
 	{
 		("hoy", "Hoy"), ("ayer", "Ayer"), ("semA", "Esta semana"), ("semP", "Sem. pasada"),
 		("mesA", "Este mes"), ("mesP", "Mes pasado"), ("triA", "Este trimestre"),
-		("triP", "Trim. anterior"), ("anioA", "Este año"), ("ytd", "Año hasta hoy")
+		("triP", "Trim. anterior"), ("anioA", "Este año"), ("ytd", "Año hasta hoy"),
+		("d7", "Últimos 7 días"), ("d30", "Últimos 30 días"), ("d90", "Últimos 90 días")
 	};
 
 	private static string MFull(int m) => _mFull[m - 1];
@@ -438,12 +613,17 @@
 	private static string MShortCap(int m) => Cap(_mShort[m - 1]);
 	private static string WeekdayAbbr(DateOnly d) => _wdAbbr[(int)d.DayOfWeek];
 
+	private static int QuarterOf(DateOnly d) => (d.Month - 1) / 3 + 1;
+
 	private static string HumanDate(DateOnly d) => $"{d.Day} {MShort(d.Month)} {d.Year}";
 
-	private static string SpanNoYear(DateOnly a, DateOnly b)
-		=> a.Month == b.Month && a.Year == b.Year
-			? $"{a.Day}–{b.Day} {MShort(a.Month)}"
-			: $"{a.Day} {MShort(a.Month)} – {b.Day} {MShort(b.Month)}";
+	// Rango legible SIEMPRE con año: "1–15 mar 2026", "1 mar – 15 jun 2026", "1 nov 2025 – 31 ene 2026".
+	private static string SpanWithYear(DateOnly a, DateOnly b)
+	{
+		if (a.Year != b.Year) return $"{HumanDate(a)} – {HumanDate(b)}";
+		if (a.Month == b.Month) return a.Day == b.Day ? HumanDate(a) : $"{a.Day}–{b.Day} {MShort(a.Month)} {a.Year}";
+		return $"{a.Day} {MShort(a.Month)} – {b.Day} {MShort(b.Month)} {a.Year}";
+	}
 
 	private static DateOnly MondayOf(DateOnly d)
 	{
@@ -452,7 +632,6 @@
 	}
 
 	private static int IsoWeek(DateOnly d) => ISOWeek.GetWeekOfYear(d.ToDateTime(TimeOnly.MinValue));
-	private static int IsoWeekYear(DateOnly d) => ISOWeek.GetYear(d.ToDateTime(TimeOnly.MinValue));
 
 	private static string Cap(string s) => s.Length == 0 ? s : char.ToUpper(s[0]) + s.Substring(1);
 
