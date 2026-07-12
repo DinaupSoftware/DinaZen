@@ -1,30 +1,32 @@
+@*
+	Historial de cambios de UN campo (auditoría).
+	Escenarios de diseño:
+	E1: el header muestra el campo que se está mirando (label humano si el caller lo pasa) y el nº de cambios.
+	E2: el valor vigente se destaca arriba ("Valor actual") con autor y fecha del último cambio.
+	E3: cada cambio se lee en <1s — inline "antes → después" si los valores son cortos,
+	    bloques apilados −/+ si son largos. Sin toggle manual: el layout se adapta solo.
+	E4: colores semánticos del tema (variables CSS): rojo=valor anterior, verde=valor nuevo. Dark mode OK.
+	E5: skeleton de timeline mientras carga; estado vacío que menciona el campo.
+	E6: timeline agrupada por fecha (Hoy/Ayer/Esta semana/...), avatar + autor + hora en cada entrada.
+*@
 @using DinaZen.Components
-@inject TooltipService TooltipService
 <DnzDialogLayout>
 	<TitleContent>
 		<div class="d-flex align-items-center justify-content-between w-100">
-			<div class="d-flex align-items-center gap-2">
+			<div class="d-flex align-items-center gap-2" style="min-width:0">
 				<RadzenIcon Icon="history" Style="color:var(--rz-primary); font-size:20px" />
-				<span style="font-weight:600">Historial de cambios</span>
-				@if (cargando == false && HistoryList.IsNotEmpty())
+				<span class="fw-semibold text-nowrap">Historial</span>
+				@if (EtiquetaCampo.IsNotEmpty())
 				{
-					<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@($"{HistoryList.Count}")" Style="font-size:11px" />
+					<span class="dnz-history-field-chip" title="@Field">@EtiquetaCampo</span>
+				}
+				@if (cargando == false && entradas.IsNotEmpty())
+				{
+					<RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@(entradas.Count == 1 ? "1 cambio" : $"{entradas.Count} cambios")" Style="font-size:11px" />
 				}
 			</div>
-			<div class="d-flex align-items-center gap-1">
-				@if (cargando == false && HistoryList.IsNotEmpty())
-				{
-					<RadzenButton Icon="@(isCompact ? "unfold_more" : "unfold_less")"
-								  ButtonStyle="ButtonStyle.Light"
-								  Variant="Variant.Text"
-								  Size="ButtonSize.Small"
-								  Click="@(() => { isCompact = (isCompact == false); })"
-								  MouseEnter="@(args => TooltipService.Open(args, isCompact ? "Vista expandida" : "Vista compacta", null))"
-								  MouseLeave="@(args => TooltipService.Close())" />
-				}
-				<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
-							  Click="@(() => DialogService.Close())" Style="opacity:0.6" />
-			</div>
+			<RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text" Size="ButtonSize.Small"
+						  Click="@(() => DialogService.Close())" Style="opacity:0.6" />
 		</div>
 	</TitleContent>
 	<BodyContent>
@@ -44,11 +46,32 @@
 				}
 			</div>
 		}
-		else if (HistoryList.IsNotEmpty())
+		else if (entradas.IsNotEmpty())
 		{
+			@* E2: héroe — valor vigente del campo *@
+			<div class="dnz-history-current">
+				<div class="dnz-history-current-label">
+					<RadzenIcon Icon="check_circle" Style="font-size:14px" />
+					<span>Valor actual</span>
+				</div>
+				@if (valorActual.IsNotEmpty())
+				{
+					<div class="dnz-history-current-value">@valorActual</div>
+				}
+				else
+				{
+					<div class="dnz-history-current-value dnz-history-current-value--empty">(vacío)</div>
+				}
+				<div class="dnz-history-current-meta">
+					<DnzAvatarInitial Data="@entradas[0].EditedByUserName" Size="1.2rem" Style="font-size:0.6rem" />
+					<span>@entradas[0].EditedByUserName</span>
+					<DnzSpanDateTime Value="@entradas[0].EditedOn" Caption="true" FontSize="11px" />
+				</div>
+			</div>
+
 			<div class="dnz-history-timeline">
 				@{ string lastGroup = null; }
-				@foreach (var item in HistoryList.OrderByDescending(x => x.EditedOn))
+				@foreach (var item in entradas)
 				{
 					var group = GetDateGroupLabel(item.EditedOn);
 					@if (group != lastGroup)
@@ -63,7 +86,7 @@
 					var oldVal = item.OldValueText.IfIsEmpty(item.OldValue);
 					var newVal = item.NewValueText.IfIsEmpty(item.NewValue);
 
-					<div class="dnz-history-entry @(isCompact ? "compact" : "")">
+					<div class="dnz-history-entry">
 						<div class="dnz-history-rail">
 							<div class="dnz-history-dot"></div>
 							<div class="dnz-history-connector"></div>
@@ -76,7 +99,30 @@
 								<DnzSpanDateTime Value="@item.EditedOn" Caption="true" FontSize="11px" />
 							</div>
 
-							@if (isCompact == false)
+							@* E3: layout adaptativo — inline si corto, bloques si largo *@
+							@if (EsCorto(oldVal, newVal))
+							{
+								<div class="dnz-history-inline">
+									@if (oldVal.IsNotEmpty())
+									{
+										<span class="dnz-history-inline-old">@oldVal</span>
+									}
+									else
+									{
+										<span class="dnz-history-inline-empty">vacío</span>
+									}
+									<RadzenIcon Icon="arrow_forward" Style="font-size:12px" />
+									@if (newVal.IsNotEmpty())
+									{
+										<span class="dnz-history-inline-new">@newVal</span>
+									}
+									else
+									{
+										<span class="dnz-history-inline-empty">vacío</span>
+									}
+								</div>
+							}
+							else
 							{
 								<div class="dnz-history-diff">
 									@if (oldVal.IsNotEmpty())
@@ -98,17 +144,6 @@
 									</div>
 								</div>
 							}
-							else
-							{
-								<div class="dnz-history-compact-diff">
-									@if (oldVal.IsNotEmpty())
-									{
-										<span class="dnz-history-compact-old" title="@oldVal">@Truncar(oldVal, 35)</span>
-										<RadzenIcon Icon="arrow_forward" Style="font-size:11px; opacity:0.4; margin:0 2px" />
-									}
-									<span class="dnz-history-compact-new" title="@newVal">@Truncar(newVal, 35)</span>
-								</div>
-							}
 						</div>
 					</div>
 				}
@@ -118,7 +153,14 @@
 		{
 			<div class="dnz-history-empty">
 				<RadzenIcon Icon="history_toggle_off" Style="font-size:48px; opacity:0.2" />
-				<span style="color:#999; font-size:13px; margin-top:6px">No se han registrado cambios.</span>
+				@if (EtiquetaCampo.IsNotEmpty())
+				{
+					<span class="dnz-history-empty-text">El campo "@EtiquetaCampo" no tiene cambios registrados.</span>
+				}
+				else
+				{
+					<span class="dnz-history-empty-text">No se han registrado cambios.</span>
+				}
 			</div>
 		}
 
@@ -128,18 +170,19 @@
 
 @code {
 
-	public static async Task Open(DialogService dialogService, DinaupClientC client, Guid sectionId, Guid rowId, string field)
+	public static async Task Open(DialogService dialogService, DinaupClientC client, Guid sectionId, Guid rowId, string field, string fieldLabel = null)
 	{
 		var parameters = new Dictionary<string, object>()
 		{
 			{ nameof(Client), client },
 			{ nameof(SectionId), sectionId },
 			{ nameof(Id), rowId },
-			{ nameof(Field), field }
+			{ nameof(Field), field },
+			{ nameof(FieldLabel), fieldLabel }
 		};
 		var options = new DialogOptions()
 		{
-			Width = "560px",
+			Width = "620px",
 			Height = "70%",
 			ShowClose = false,
 			ShowTitle = false,
@@ -158,16 +201,34 @@
 	[Parameter] public Guid SectionId { get; set; }
 	[Parameter] public string Field { get; set; }
 
-	private List<DinaupFieldChangeDTO> HistoryList { get; set; } = new();
+	/// <summary>Nombre humano del campo (label del formulario). Si falta, se muestra el nombre nativo.</summary>
+	[Parameter] public string FieldLabel { get; set; }
+
+	private List<DinaupFieldChangeDTO> entradas = new();
+	private string valorActual = "";
 	private bool cargando = true;
-	private bool isCompact = false;
+
+	private string EtiquetaCampo => FieldLabel.IfIsEmpty(Field);
 
 	protected async override Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
-		HistoryList = await Client.GetHistoryChanges(SectionId, Id, Field);
+		var lista = await Client.GetHistoryChanges(SectionId, Id, Field);
+		entradas = lista.OrderByDescending(x => x.EditedOn).ToList();
+		if (entradas.IsNotEmpty())
+			valorActual = entradas[0].NewValueText.IfIsEmpty(entradas[0].NewValue);
 		cargando = false;
 		StateHasChanged();
+	}
+
+	// Inline solo si ambos valores caben en una línea legible (E3)
+	private static bool EsCorto(string oldVal, string newVal)
+	{
+		var total = (oldVal ?? "").Length + (newVal ?? "").Length;
+		if (total > 60) return false;
+		if ((oldVal ?? "").Contains('\n')) return false;
+		if ((newVal ?? "").Contains('\n')) return false;
+		return true;
 	}
 
 	private string GetDateGroupLabel(DateTime date)
@@ -178,11 +239,5 @@
 		if (date.Date >= today.AddDays(-7)) return "Esta semana";
 		if (date.Date.Month == today.Month && date.Date.Year == today.Year) return "Este mes";
 		return date.ToString("MMMM yyyy");
-	}
-
-	private static string Truncar(string value, int max)
-	{
-		if (string.IsNullOrEmpty(value)) return "";
-		return value.Length > max ? value[..max] + "..." : value;
 	}
 }

@@ -1,6 +1,66 @@
 /* ================================================================
-   HistoricoDialog - Vertical Timeline
+   DnzHistoricoDialog — historial de cambios de un campo
+   Colores SIEMPRE vía variables del tema (E4): funciona en dark.
+   Rojo = valor anterior · Verde = valor nuevo, en todo el dialog.
    ================================================================ */
+
+/* -- Chip del campo en el header (E1) -- */
+.dnz-history-field-chip {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rz-primary) 10%, transparent);
+    color: var(--rz-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+}
+
+/* -- Héroe: valor actual (E2) -- */
+.dnz-history-current {
+    margin: 14px 20px 0 20px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--rz-success) 6%, var(--rz-base-background-color, #fff));
+    border: 1px solid color-mix(in srgb, var(--rz-success) 25%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dnz-history-current-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--rz-success);
+}
+
+.dnz-history-current-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--rz-text-color);
+    word-break: break-word;
+}
+
+.dnz-history-current-value--empty {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--rz-text-tertiary-color);
+}
+
+.dnz-history-current-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--rz-text-secondary-color);
+}
 
 /* -- Timeline container -- */
 .dnz-history-timeline {
@@ -9,7 +69,7 @@
     padding: 12px 20px 20px 20px;
 }
 
-/* -- Date group separator -- */
+/* -- Separador de grupo de fecha (E6) -- */
 .dnz-history-date-group {
     display: flex;
     align-items: center;
@@ -27,25 +87,25 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #6b7280;
+    color: var(--rz-text-secondary-color);
     white-space: nowrap;
 }
 
 .dnz-history-date-line {
     flex: 1;
     height: 1px;
-    background: #eef1f5;
+    background: var(--rz-border-color);
 }
 
-/* -- Timeline entry -- */
+/* -- Entrada de la timeline -- */
 .dnz-history-entry {
     display: flex;
     gap: 14px;
     align-items: stretch;
-    min-height: 56px;
+    min-height: 48px;
 }
 
-/* -- Rail (dot + connector) -- */
+/* -- Rail (punto + conector) -- */
 .dnz-history-rail {
     display: flex;
     flex-direction: column;
@@ -59,23 +119,23 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #dfe5ec;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px #dfe5ec;
+    background: var(--rz-base-300, #dfe5ec);
+    border: 2px solid var(--rz-base-background-color, #fff);
+    box-shadow: 0 0 0 2px var(--rz-base-300, #dfe5ec);
     flex-shrink: 0;
     z-index: 1;
-    transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
+    transition: transform 150ms ease;
 }
 
 .dnz-history-date-group + .dnz-history-entry .dnz-history-dot {
-    background: var(--rz-primary, #3481e5);
-    box-shadow: 0 0 0 2px rgba(52, 129, 229, 0.2);
+    background: var(--rz-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--rz-primary) 25%, transparent);
 }
 
 .dnz-history-connector {
     width: 2px;
     flex: 1;
-    background: #eef1f5;
+    background: var(--rz-border-color);
     margin-top: 4px;
 }
 
@@ -83,7 +143,7 @@
     background: transparent;
 }
 
-/* -- Entry content -- */
+/* -- Contenido de la entrada -- */
 .dnz-history-content {
     flex: 1;
     display: flex;
@@ -91,11 +151,9 @@
     gap: 6px;
     padding-bottom: 16px;
     min-width: 0;
-    border-radius: 6px;
-    transition: background 150ms ease;
 }
 
-/* -- Meta row (avatar + name + time) -- */
+/* -- Meta (avatar + autor + hora) (E6) -- */
 .dnz-history-meta {
     display: flex;
     align-items: center;
@@ -105,14 +163,52 @@
 .dnz-history-author {
     font-size: 13px;
     font-weight: 600;
-    color: #1b1d20;
+    color: var(--rz-text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px;
 }
 
-/* -- Diff block (expanded) -- */
+/* -- Cambio inline "antes → después" (E3, valores cortos) -- */
+.dnz-history-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    line-height: 1.4;
+    min-width: 0;
+}
+
+::deep .dnz-history-inline .rzi {
+    color: var(--rz-text-tertiary-color);
+    flex-shrink: 0;
+}
+
+.dnz-history-inline-old {
+    color: var(--rz-danger);
+    text-decoration: line-through;
+    opacity: 0.75;
+    word-break: break-word;
+}
+
+.dnz-history-inline-new {
+    color: var(--rz-success);
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.dnz-history-inline-empty {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--rz-text-tertiary-color);
+    border: 1px dashed var(--rz-border-color);
+    border-radius: 999px;
+    padding: 0 8px;
+}
+
+/* -- Cambio apilado −/+ (E3, valores largos) -- */
 .dnz-history-diff {
     display: flex;
     flex-direction: column;
@@ -126,16 +222,16 @@
     gap: 6px;
     padding: 6px 10px;
     border-radius: 6px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
+    background: color-mix(in srgb, var(--rz-danger) 7%, transparent);
+    border: 1px solid color-mix(in srgb, var(--rz-danger) 25%, transparent);
+    color: var(--rz-danger);
     font-size: 13px;
     line-height: 1.4;
     word-break: break-word;
 }
 
 ::deep .dnz-history-diff-removed .rzi {
-    color: #ef4444;
+    color: var(--rz-danger);
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -146,16 +242,16 @@
     gap: 6px;
     padding: 6px 10px;
     border-radius: 6px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #166534;
+    background: color-mix(in srgb, var(--rz-success) 7%, transparent);
+    border: 1px solid color-mix(in srgb, var(--rz-success) 25%, transparent);
+    color: var(--rz-success);
     font-size: 13px;
     line-height: 1.4;
     word-break: break-word;
 }
 
 ::deep .dnz-history-diff-added .rzi {
-    color: #22c55e;
+    color: var(--rz-success);
     flex-shrink: 0;
     margin-top: 2px;
 }
@@ -163,48 +259,9 @@
 .dnz-history-diff-empty {
     padding: 6px 10px;
     border-radius: 6px;
-    background: #f8fafb;
-    border: 1px dashed #dfe5ec;
-    color: #6b7280;
+    border: 1px dashed var(--rz-border-color);
+    color: var(--rz-text-tertiary-color);
     font-size: 12px;
-}
-
-/* -- Compact view -- */
-.dnz-history-entry.compact {
-    min-height: 36px;
-}
-
-.dnz-history-entry.compact .dnz-history-content {
-    padding-bottom: 10px;
-    gap: 2px;
-}
-
-.dnz-history-compact-diff {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    line-height: 1.3;
-    gap: 2px;
-    min-width: 0;
-}
-
-.dnz-history-compact-old {
-    color: #991b1b;
-    text-decoration: line-through;
-    opacity: 0.7;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 160px;
-}
-
-.dnz-history-compact-new {
-    color: #166534;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 220px;
 }
 
 /* -- Hover -- */
@@ -212,11 +269,11 @@
     transform: scale(1.25);
 }
 
-.dnz-history-entry:hover .dnz-history-content {
-    background: #f8fafb;
+@media (hover: none) {
+    .dnz-history-entry:hover .dnz-history-dot { transform: none; }
 }
 
-/* -- Empty state -- */
+/* -- Estado vacío (E5) -- */
 .dnz-history-empty {
     display: flex;
     flex-direction: column;
@@ -226,7 +283,13 @@
     gap: 4px;
 }
 
-/* -- Skeleton loading -- */
+.dnz-history-empty-text {
+    color: var(--rz-text-secondary-color);
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+/* -- Skeleton de carga (E5) -- */
 .dnz-history-skeleton {
     display: flex;
     flex-direction: column;
@@ -244,7 +307,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #e5e7eb;
+    background: var(--rz-base-300, #e5e7eb);
     flex-shrink: 0;
     margin-top: 6px;
     animation: dnz-history-shimmer 1.25s ease-in-out infinite;
