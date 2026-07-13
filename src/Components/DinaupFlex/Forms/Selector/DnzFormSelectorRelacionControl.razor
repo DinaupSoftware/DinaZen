@@ -1,4 +1,5 @@
 @using Radzen.Blazor.Rendering
+@inject DnzInterceptorService Interceptor
 
 
 
@@ -105,9 +106,9 @@
 
 				@if (DataControl.BadgetsStyle.IsNotEmpty()) {
 					<div class="d-flex align-items-center rz-textbox p-0 h-auto">
-						<div class="flex-grow-1 " style="padding-left:1px">
+						<div class="flex-grow-1 " style="padding-left:1px; min-width:0; overflow:hidden">
 							@if (DataControl.Value_Text.IsNotEmpty()) {
-								<DnzBadgetAutoColor Value=@DataControl.Value_Text BadgetStyle=@DataControl.BadgetsStyle />
+								<DnzBadgetAutoColor Value=@DataControl.Value_Text BadgetStyle=@DataControl.BadgetsStyle Style="display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; vertical-align:middle" />
 							}
 						</div>
 						<div style=" font-size:10px; color: var(--bs-gray); width:15px; height:20px" class="DropDownArrow"></div>
@@ -157,9 +158,9 @@
 
 <RadzenPopup @key=@(DataControl.Token + "-6") @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute; max-width:600px;  border:var(--rz-panel-border);">
 
-	<div class="desplegablecontent" data-testid=@($"dnz-selector-popup-{DataControl.Token}") style="background:white">
+	<div class="desplegablecontent d-flex flex-column" data-testid=@($"dnz-selector-popup-{DataControl.Token}") style="background:white; max-height:min(60vh, 480px)">
 
-		<div class="d-flex gap-2">
+		<div class="d-flex gap-2 flex-shrink-0">
 			@if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) {
 
 			} else if (Client != null && DataControl.TokenList.IsNotEmpty()) {
@@ -170,6 +171,7 @@
 																																											  }) Value="@searchString" />
 		</div>
 
+		<div class="flex-grow-1 overflow-auto" style="min-height:0">
 		@if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) {
 			<div class="dup_input dup_input_estandar d-flex flex-column dup_dropdown" style="width:350px">
 
@@ -192,6 +194,7 @@
 							  Filtrable="false"
 							  OnItemSelect="@(async (row) => await SelectOrder(row))" />
 		}
+		</div>
 	</div>
 </RadzenPopup>
 
@@ -275,34 +278,55 @@
 	// ── Relation actions ──
 
 	async Task AccederAsync() {
-		if (Client != null)
-			await DnzFormView.OpenAsync(DialogService, Client, DataControl.RelationWithSectionId, DataControl.Value);
+		if (Client == null) return;
+
+		// La app host (play) puede tomar el control: p.ej. abrir el TPV (venta/compra/pedido/presupuesto)
+		// en vez del formulario estandar. Si nadie lo intercepta, cae al formulario estandar de siempre.
+		var req = new OpenRecordRequest {
+			SectionId = DataControl.RelationWithSectionId,
+			RowId = DataControl.Value,
+			Title = DataControl.Value_Text ?? "",
+			Client = Client
+		};
+		if (await Interceptor.TryOpenRecordAsync(req)) return;
+
+		await DnzFormView.OpenAsync(DialogService, Client, DataControl.RelationWithSectionId, DataControl.Value);
 	}
 
 	async Task AgregarAsync() {
 		try {
-			if (Client != null) {
-				var result = await Client.OpenedFormAddRelation(DataControl.RelationWithSectionId, DataControl.Token);
-				var tokenForm = result?.TokenForm;
-				if (tokenForm.IsNotEmpty()) {
-					var options = new DialogOptions {
-						WrapperCssClass = "dinaupdialogform",
-						Width = "90%",
-						Height = "90%",
-						CloseDialogOnEsc = true,
-						Resizable = true,
-						Draggable = true,
-						CloseDialogOnOverlayClick = false,
-						ShowClose = false,
-						ShowTitle = false
-					};
+			if (Client == null) return;
 
-					await DialogService.OpenAsync<DnzFormByTokenView>("", new Dictionary<string, object>
-					{
-						{ nameof(DnzFormByTokenView.Client), Client },
-						{ nameof(DnzFormByTokenView.Token), tokenForm }
-					}, options);
-				}
+			// La app host (play) puede tomar el control del alta POR SECCION: p.ej. abrir el TPV
+			// (venta/compra/pedido/presupuesto) para crear el documento. En ese caso el registro se
+			// crea por seccion, SIN token ni pre-enlace. Si nadie lo intercepta, cae al alta con
+			// pre-enlace de siempre (OpenedFormAddRelation con el token del campo).
+			var req = new OpenNewRecordRequest {
+				SectionId = DataControl.RelationWithSectionId,
+				Client = Client
+			};
+			if (await Interceptor.TryOpenNewRecordAsync(req)) return;
+
+			var result = await Client.OpenedFormAddRelation(DataControl.RelationWithSectionId, DataControl.Token);
+			var tokenForm = result?.TokenForm;
+			if (tokenForm.IsNotEmpty()) {
+				var options = new DialogOptions {
+					WrapperCssClass = "dinaupdialogform",
+					Width = "90%",
+					Height = "90%",
+					CloseDialogOnEsc = true,
+					Resizable = true,
+					Draggable = true,
+					CloseDialogOnOverlayClick = false,
+					ShowClose = false,
+					ShowTitle = false
+				};
+
+				await DialogService.OpenAsync<DnzFormByTokenView>("", new Dictionary<string, object>
+				{
+					{ nameof(DnzFormByTokenView.Client), Client },
+					{ nameof(DnzFormByTokenView.Token), tokenForm }
+				}, options);
 			}
 		} catch (Exception ex) {
 			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message);
