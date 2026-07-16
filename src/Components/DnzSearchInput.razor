@@ -40,7 +40,9 @@
 
 	private async Task triggerDebounceChanged()
 	{
-		await BounceValueChanged.InvokeAsync(Value);
+		// El Debouncer dispara desde un Task.Run (fuera del Dispatcher del circuito):
+		// sin InvokeAsync, el StateHasChanged del padre lanza InvalidOperationException.
+		await InvokeAsync(() => BounceValueChanged.InvokeAsync(Value));
 	}
 	private async Task OnInput(ChangeEventArgs e)
 	{
