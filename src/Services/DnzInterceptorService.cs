@@ -1,4 +1,5 @@
 using Dinaup;
+using DinaZen.Components.DinaupFlex.DynamicDocuments;
 
 namespace DinaZen.Services;
 
@@ -39,7 +40,28 @@ public class DnzInterceptorService
 	/// Recibe datos del form (seccion, registro, si es nuevo) y devuelve lista de botones a mostrar.
 	/// </summary>
 	public Func<FormExtensionsRequest, Task<List<FormExtensionButton>>> OnGetFormExtensions { get; set; }
- 
+
+	// ── Documentos dinamicos ──
+	// Aqui no aplica el patron Task(Of bool): no hay comportamiento por defecto que cancelar.
+	// Si la app host no sabe enviar emails, el boton simplemente no se muestra.
+
+	/// <summary>
+	/// Envia el documento por email usando su HTML como cuerpo. Si es null, el boton no aparece.
+	/// </summary>
+	public Func<DinaupDocumentRequest, Task> OnDocumentSendEmail { get; set; }
+
+	/// <summary>
+	/// Envia el documento por email con el PDF adjunto. Si es null, el boton no aparece.
+	/// </summary>
+	public Func<DinaupDocumentRequest, Task> OnDocumentSendEmailWithAttachment { get; set; }
+
+	/// <summary>
+	/// Manda el documento a firmar en PDF (metadato email_sign). Si es null, el boton no aparece.
+	/// Devuelve true si la peticion de firma llego a crearse: mandar a firmar avisa al firmante
+	/// por correo, asi que el visor necesita saberlo para no ofrecer el envio dos veces.
+	/// </summary>
+	public Func<DinaupDocumentRequest, Task<bool>> OnDocumentRequestSign { get; set; }
+
 	// ── Metodos internos que los componentes de DinaZen llaman ──
 	internal async Task<bool> TryOpenRecordAsync(OpenRecordRequest request)
 		=> OnOpenRecord != null && await OnOpenRecord(request);
@@ -53,6 +75,30 @@ public class DnzInterceptorService
 
 	internal async Task<List<FormExtensionButton>> GetFormExtensionsAsync(FormExtensionsRequest request)
 		=> OnGetFormExtensions != null ? (await OnGetFormExtensions(request)) ?? new() : new();
+
+	internal bool CanSendDocumentEmail => OnDocumentSendEmail != null;
+
+	internal bool CanSendDocumentEmailWithAttachment => OnDocumentSendEmailWithAttachment != null;
+
+	internal async Task SendDocumentEmailAsync(DinaupDocumentRequest request)
+	{
+		if (OnDocumentSendEmail == null) return;
+		await OnDocumentSendEmail(request);
+	}
+
+	internal async Task SendDocumentEmailWithAttachmentAsync(DinaupDocumentRequest request)
+	{
+		if (OnDocumentSendEmailWithAttachment == null) return;
+		await OnDocumentSendEmailWithAttachment(request);
+	}
+
+	internal bool CanRequestSign => OnDocumentRequestSign != null;
+
+	internal async Task<bool> RequestSignAsync(DinaupDocumentRequest request)
+	{
+		if (OnDocumentRequestSign == null) return false;
+		return await OnDocumentRequestSign(request);
+	}
 }
 
 // ── Request DTOs ──

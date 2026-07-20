@@ -64,6 +64,26 @@ else if (_virtualForm.IsNotNull())
 		@* ── Mode indicator (thin line) ── *@
 		<div class="dnz-form-mode-strip @(_isNewRecord ? "dnz-mode-new" : "dnz-mode-edit")"></div>
 
+		@* ── Mensajes del formulario (los pide un script; el server los retira al responder) ── *@
+		@foreach (var msg in _virtualForm.MainForm.DialogList_Msgbox ?? new())
+		{
+			<RadzenAlert @key=@($"fv-msg-{msg.ID}") AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Icon="warning" Title="" class="m-2">
+				<div class="d-flex flex-column gap-2">
+					<span>@msg.Text</span>
+					<div class="d-flex flex-wrap gap-2">
+						@foreach (var btn in msg.Options)
+						{
+							<RadzenButton @key=@($"fv-msg-{msg.ID}-{btn.Command}")
+										  Text="@btn.Text"
+										  ButtonStyle="ButtonStyle.Warning"
+										  Size="ButtonSize.Small"
+										  Click="@(() => HandleMsgboxCommand(msg.ID, btn.Command))" />
+						}
+					</div>
+				</div>
+			</RadzenAlert>
+		}
+
 		@* ── Title tab (*) ── *@
 		<div class="dnz-form-title">
 			@foreach (var tab in _virtualForm.MainForm.Tabs.Where(x => x.TabName == "*"))
@@ -394,6 +414,7 @@ else if (_errorMessage.IsNotEmpty())
 			var result = await Client.FormUpdate(vForm);
 			_virtualForm = result.NewForm;
 			await InvokeAsync(StateHasChanged);
+			await DnzFormDialogQueue.ProcessAsync(_virtualForm, _servedDialogs, Client, Interceptor, DialogService, WindowManagerRef);
 		}
 		catch (Exception ex)
 		{
@@ -402,6 +423,14 @@ else if (_errorMessage.IsNotEmpty())
 			await InvokeAsync(StateHasChanged);
 		}
 	}
+
+	// IDs de cola ya servidos por esta instancia. Ver DnzFormDialogQueue.
+	private readonly HashSet<string> _servedDialogs = new();
+
+	/// <summary>
+	/// Responde a un mensaje del formulario: el server espera "idMensaje|comando".
+	/// </summary>
+	private Task HandleMsgboxCommand(string msgId, string command) => HandleButtonClick($"{msgId}|{command}");
 
 	// ── Save ──
 

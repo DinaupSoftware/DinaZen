@@ -1,5 +1,6 @@
 @namespace DinaZen.Components.DinaupFlex.DynamicDocuments
 @using DinaZen.Components.DinaupFlex.DnzResponseQuestions
+@inject DnzInterceptorService Interceptor
 
 <DnzDialogLayout>
 	<TitleContent>
@@ -7,21 +8,32 @@
 	</TitleContent>
 	<BodyContent>
 		<div style="display:flex; flex-direction:column; height:100%; overflow:hidden">
-			@if (CompatibleDocuments.IsNotEmpty())
+			@if (Embedded == false && (CompatibleDocuments.IsNotEmpty() || Destinatario.IsNotEmpty()))
 			{
 				<div class="d-flex align-items-center gap-2 p-2" style="border-bottom:1px solid var(--rz-base-300); flex-shrink:0">
-					<RadzenIcon Icon="description" Style="color:var(--rz-primary); font-size:18px" />
-					<RadzenDropDown AllowFiltering="true"
-									FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-									FilterOperator="StringFilterOperator.Contains"
-									@bind-Value="@DocId"
-									@bind-Value:after="@UpdateAsync"
-									TValue="string"
-									ValueProperty="@nameof(DinaupDynamicDocumentDTO.IDSTR)"
-									TextProperty="@nameof(DinaupDynamicDocumentDTO.Title)"
-									Data="@CompatibleDocuments"
-									Style="flex:1; max-width:400px"
-									Placeholder="Seleccionar plantilla..." />
+					@if (CompatibleDocuments.IsNotEmpty())
+					{
+						<RadzenIcon Icon="description" Style="color:var(--rz-primary); font-size:18px" />
+						<RadzenDropDown AllowFiltering="true"
+										FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+										FilterOperator="StringFilterOperator.Contains"
+										@bind-Value="@DocId"
+										@bind-Value:after="@UpdateAsync"
+										TValue="string"
+										ValueProperty="@nameof(DinaupDynamicDocumentDTO.IDSTR)"
+										TextProperty="@nameof(DinaupDynamicDocumentDTO.Title)"
+										Data="@CompatibleDocuments"
+										Style="flex:1; max-width:400px"
+										Placeholder="Seleccionar plantilla..." />
+					}
+					@* El usuario ve a quien va el email ANTES de pulsar enviar, no en el paso siguiente *@
+					@if (Destinatario.IsNotEmpty())
+					{
+						<div class="d-flex align-items-center gap-1 ms-auto" title="@_lastResponse?.Email_Destinatario">
+							<RadzenIcon Icon="alternate_email" Style="color:var(--rz-text-secondary-color); font-size:18px" />
+							<span class="rz-text-caption">@Destinatario</span>
+						</div>
+					}
 				</div>
 			}
 
@@ -54,27 +66,36 @@
 		</div>
 	</BodyContent>
 	<FooterContent>
-		<div class="d-flex justify-content-between w-100">
-			<div class="d-flex gap-2">
-				@if (_documentContent.IsNotEmpty())
-				{
-					<RadzenButton Icon="print" Text="Imprimir" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
-								  Click="@PrintDocument" />
-					@if (OnSendEmailWithAttachment.HasDelegate)
+		@* Embebido (panel de dashboard, pantalla de cobro) el visor es solo lectura:
+		   ni enviar ni cerrar tienen sentido dentro de otra ventana que ya tiene sus acciones. *@
+		@if (Embedded == false)
+		{
+			<div class="d-flex justify-content-between w-100">
+				<div class="d-flex gap-2">
+					@if (_documentContent.IsNotEmpty())
 					{
-						<RadzenButton Icon="attach_email" Text="Adjuntar y enviar por email" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
-									  IsBusy=@_isSendingEmail Click="@HandleSendEmailWithAttachment" />
+						<RadzenButton Icon="print" Text="Imprimir" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
+									  Click="@PrintDocument" />
+						@* Un solo boton: adjuntar o no, y email o firma, es fontaneria interna que decide
+						   la plantilla (ver EnviaConAdjunto y PideFirma), no el usuario *@
+						@if (PideFirma)
+						{
+							<RadzenButton Icon="draw" Text=@(_firmaSolicitada ? "Enviado a firmar" : "Enviar a firmar")
+										  ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
+										  Disabled=@(PuedeFirmar == false || _firmaSolicitada)
+										  IsBusy=@_isSendingEmail Click="@HandleRequestSign" />
+						}
+						else if (PuedeEnviarEmail)
+						{
+							<RadzenButton Icon="send" Text="Enviar por email" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
+										  IsBusy=@_isSendingEmail Click="@HandleSendEmail" />
+						}
 					}
-					@if (OnSendEmail.HasDelegate)
-					{
-						<RadzenButton Icon="send" Text="Enviar por email" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text"
-									  IsBusy=@_isSendingEmail Click="@HandleSendEmail" />
-					}
-				}
+				</div>
+				<RadzenButton Icon="close" Text="Cerrar" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+							  Click="@(() => DialogService.Close())" />
 			</div>
-			<RadzenButton Icon="close" Text="Cerrar" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-						  Click="@(() => DialogService.Close())" />
-		</div>
+		}
 	</FooterContent>
 </DnzDialogLayout>
 
@@ -111,14 +132,21 @@
 	[Parameter] public bool AutoPrint { get; set; }
 
 	/// <summary>
+	/// El visor se renderiza dentro de otra ventana (panel de dashboard, pantalla de cobro):
+	/// oculta cabecera y footer para no ofrecer acciones que no vienen a cuento.
+	/// </summary>
+	[Parameter] public bool Embedded { get; set; }
+
+	/// <summary>
 	/// Evento para enviar el documento por email (HTML como cuerpo).
 	/// </summary>
-	[Parameter] public EventCallback<DinaupDocumentEmailRequest> OnSendEmail { get; set; }
+	[Parameter] public EventCallback<DinaupDocumentRequest> OnSendEmail { get; set; }
 
 	/// <summary>
 	/// Evento para enviar el documento por email con PDF adjunto.
 	/// </summary>
-	[Parameter] public EventCallback<DinaupDocumentEmailRequest> OnSendEmailWithAttachment { get; set; }
+	[Parameter] public EventCallback<DinaupDocumentRequest> OnSendEmailWithAttachment { get; set; }
+
 
 	private DynamicDocumentsGetResponse _lastResponse;
 	private DynamicDocumentsGetResponse.DDocumentC _docInfo;
@@ -128,6 +156,46 @@
 	private string _errorMessage = "";
 	private bool _isSendingEmail = false;
 	private string _iframeId = $"dnz-doc-{Guid.NewGuid():N}";
+
+	// El callback por parametro manda; si no viene, se usa el que haya registrado la app host
+	// en el interceptor. Asi el email esta disponible en TODAS las vias de apertura del visor
+	// (dialog, ventana, render inline) sin que cada una tenga que cablearlo.
+	private bool HayEnvioComoCuerpo => OnSendEmail.HasDelegate || Interceptor.CanSendDocumentEmail;
+
+	private bool HayEnvioConAdjunto => OnSendEmailWithAttachment.HasDelegate || Interceptor.CanSendDocumentEmailWithAttachment;
+
+	private bool PuedeEnviarEmail => HayEnvioComoCuerpo || HayEnvioConAdjunto;
+
+	/// <summary>
+	/// La plantilla marca el documento como "para firmar" (email_sign). Firmar y enviar por email
+	/// son destinos EXCLUYENTES: el aviso al firmante lo manda el propio servicio de firma, asi que
+	/// ofrecer ademas el email seria un segundo envio distinto del mismo documento. Por eso un
+	/// documento marcado para firmar NO cae al boton de email aunque el host no sepa firmar:
+	/// mandarlo por correo suelto seria dar por hecho un tramite que no ha ocurrido.
+	/// </summary>
+	private bool PideFirma => DinaupDocumentRequest.EsVerdadero(Metadato(DinaupDocumentRequest.ClaveSign));
+
+	private bool PuedeFirmar => PideFirma && Interceptor.CanRequestSign;
+
+	/// <summary>Ya se creo la peticion de firma: repetirla mandaria un segundo aviso al firmante.</summary>
+	private bool _firmaSolicitada;
+
+	/// <summary>
+	/// Que la plantilla defina un texto de acompanamiento significa que el documento va ADJUNTO
+	/// y ese texto es el cuerpo. Sin el, el documento ES el cuerpo. Lo decide la plantilla,
+	/// no el usuario: distinguirlo a mano obligaria a entender como funciona esto por dentro.
+	/// </summary>
+	private bool EnviaConAdjunto => (_lastResponse?.Email_Body).IsNotEmpty() && HayEnvioConAdjunto;
+
+	private string Destinatario
+	{
+		get
+		{
+			if (PuedeEnviarEmail == false && PideFirma == false) return "";
+			string nombre = _lastResponse?.Email_Destinatario_Nombre ?? "";
+			return nombre.IsNotEmpty() ? nombre : (_lastResponse?.Email_Destinatario ?? "");
+		}
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -170,6 +238,7 @@
 		_errorMessage = "";
 		_requiresVariables = false;
 		_documentContent = "";
+		_firmaSolicitada = false;   // otra plantilla es otro documento: aun no se ha mandado a firmar
 		StateHasChanged();
 
 		try
@@ -238,56 +307,111 @@
 		}
 	}
 
-	private DinaupDocumentEmailRequest BuildEmailRequest()
+	private DinaupDocumentRequest BuildEmailRequest()
 	{
-		var request = new DinaupDocumentEmailRequest
+		var request = new DinaupDocumentRequest
 		{
 			DocumentHtml = _documentContent,
-			DocumentTitle = _docInfo?.Name ?? ""
+			DocumentTitle = _docInfo?.Name ?? "",
+			VariableValues = VariableValues ?? new()
 		};
 
-		if (_lastResponse != null)
+		if (_lastResponse == null) return request;
+
+		// Todo lo que puso el script, tal cual: un metadato nuevo llega al host sin tocar DinaZen.
+		if (_lastResponse.Metadata != null)
 		{
-			request.FromName = _lastResponse.Email_FromName;
-			request.FromEmail = _lastResponse.Email_From;
-			request.ToEmail = _lastResponse.Email_Destinatario;
-			request.ToName = _lastResponse.Email_Destinatario_Nombre;
-			request.Subject = _lastResponse.Email_Asunto;
-			request.EmailBody = _lastResponse.Email_Body;
-			request.DnzFileName = _lastResponse.FileName;
+			foreach (var metadato in _lastResponse.Metadata)
+				request.Metadata[metadato.Key] = metadato.Value;
 		}
+
+		// Las claves con varios alias (email_asunto/email_subject, los cinco del destinatario...)
+		// las resuelve el cliente: se vuelcan ya normalizadas para que el host lea siempre la misma.
+		Normalizar(request, DinaupDocumentRequest.ClaveFromEmail, _lastResponse.Email_From);
+		Normalizar(request, DinaupDocumentRequest.ClaveFromName, _lastResponse.Email_FromName);
+		Normalizar(request, DinaupDocumentRequest.ClaveToEmail, _lastResponse.Email_Destinatario);
+		Normalizar(request, DinaupDocumentRequest.ClaveToName, _lastResponse.Email_Destinatario_Nombre);
+		Normalizar(request, DinaupDocumentRequest.ClaveSubject, _lastResponse.Email_Asunto);
+		Normalizar(request, DinaupDocumentRequest.ClaveEmailBody, _lastResponse.Email_Body);
+		Normalizar(request, DinaupDocumentRequest.ClaveFileName, _lastResponse.FileName);
 
 		return request;
 	}
 
-	private async Task HandleSendEmail()
+	private static void Normalizar(DinaupDocumentRequest request, string clave, string valor)
 	{
-		if (_docInfo == null || _documentContent.IsEmpty() || !OnSendEmail.HasDelegate || _isSendingEmail) return;
+		if (valor.IsEmpty()) return;
+		request.Metadata[clave] = valor;
+	}
 
+	/// <summary>Lee un metadato crudo del documento, antes de construir el request.</summary>
+	private string Metadato(string clave)
+	{
+		var metadatos = _lastResponse?.Metadata;
+		if (metadatos == null) return "";
+		return metadatos.TryGetValue(clave, out string valor) ? (valor ?? "") : "";
+	}
+
+	private async Task HandleRequestSign()
+	{
+		if (_docInfo == null || _documentContent.IsEmpty() || PuedeFirmar == false || _isSendingEmail) return;
+
+		// Generar el PDF tarda, asi que el usuario tiene que ver el boton ocupado
 		_isSendingEmail = true;
+		StateHasChanged();
 		try
 		{
-			await OnSendEmail.InvokeAsync(BuildEmailRequest());
+			_firmaSolicitada = await Interceptor.RequestSignAsync(BuildEmailRequest());
 		}
 		finally
 		{
 			_isSendingEmail = false;
+			StateHasChanged();
 		}
 	}
 
-	private async Task HandleSendEmailWithAttachment()
+	private async Task HandleSendEmail()
 	{
-		if (_docInfo == null || _documentContent.IsEmpty() || !OnSendEmailWithAttachment.HasDelegate || _isSendingEmail) return;
+		if (_docInfo == null || _documentContent.IsEmpty() || PuedeEnviarEmail == false || _isSendingEmail) return;
 
 		_isSendingEmail = true;
+		StateHasChanged();
 		try
 		{
-			await OnSendEmailWithAttachment.InvokeAsync(BuildEmailRequest());
+			// Generar el PDF tarda, asi que el usuario tiene que ver el boton ocupado
+			if (EnviaConAdjunto)
+				await EnviarConAdjuntoAsync();
+			else
+				await EnviarComoCuerpoAsync();
 		}
 		finally
 		{
 			_isSendingEmail = false;
+			StateHasChanged();
 		}
+	}
+
+	private async Task EnviarConAdjuntoAsync()
+	{
+		if (OnSendEmailWithAttachment.HasDelegate)
+			await OnSendEmailWithAttachment.InvokeAsync(BuildEmailRequest());
+		else
+			await Interceptor.SendDocumentEmailWithAttachmentAsync(BuildEmailRequest());
+	}
+
+	private async Task EnviarComoCuerpoAsync()
+	{
+		// Si la app host solo sabe enviar con adjunto, mejor eso que no enviar nada
+		if (HayEnvioComoCuerpo == false)
+		{
+			await EnviarConAdjuntoAsync();
+			return;
+		}
+
+		if (OnSendEmail.HasDelegate)
+			await OnSendEmail.InvokeAsync(BuildEmailRequest());
+		else
+			await Interceptor.SendDocumentEmailAsync(BuildEmailRequest());
 	}
 
 	// ── Static helper para abrir como modal ──
@@ -298,8 +422,8 @@
 		string docId,
 		Dictionary<string, string> variableValues = null,
 		List<DinaupDynamicDocumentDTO> compatibleDocuments = null,
-		EventCallback<DinaupDocumentEmailRequest>? onSendEmail = null,
-		EventCallback<DinaupDocumentEmailRequest>? onSendEmailWithAttachment = null,
+		EventCallback<DinaupDocumentRequest>? onSendEmail = null,
+		EventCallback<DinaupDocumentRequest>? onSendEmailWithAttachment = null,
 		string width = "85%",
 		string height = "80%")
 	{
