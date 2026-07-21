@@ -1,0 +1,36 @@
+/* Formulario de variables: columna centrada y estrecha, para que se lea como un formulario
+   y no como una pantalla de la app.
+
+   Las reglas que visten componentes hijos (RadzenLabel) van con ::deep: el CSS aislado solo
+   marca los elementos que este .razor emite directamente. */
+
+.dnz-rq {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px 12px;
+}
+
+::deep .dnz-rq-label {
+    font-weight: 500;
+    font-size: 13px;
+}
+
+::deep .dnz-rq-label-inline {
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* La ayuda de la variable va pegada bajo su campo, no flotando entre dos. */
+.dnz-rq-info {
+    font-size: 11px;
+    line-height: 1.35;
+    margin-top: -2px;
+}
+
+/* Aviso de campos sin rellenar, junto al boton. */
+.dnz-rq-error {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--rz-danger, #dc3545);
+}

@@ -13,7 +13,7 @@
 		<DnzLoader />
 	</div>
 } else if (_showResponse && _report?.VariableList?.Variables != null) {
-	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" OnConfirm="@HandleVariableConfirm" />
+	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" Client="@Client" StorageKey="@ReportId" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
 	<div class="dnz-report-view" data-testid="report-view" data-testid-id=@ReportId>
 		@if (_isLoading || _typing) {

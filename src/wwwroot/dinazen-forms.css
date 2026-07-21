@@ -1731,3 +1731,25 @@ textarea.rz-textarea {
     text-align: right;
     white-space: nowrap;
 }
+
+/* ── Campo obligatorio sin rellenar (clase "obli") ──────────────────────────────
+   La emiten DnzResponseQuestions y DnzDataGridDropDown sobre un RadzenFormField.
+   Vivia solo en el site.css de play, asi que fuera de play no pintaba nada.
+   Reglas identicas a las de play: alli gana la que se cargue despues y el resultado
+   es el mismo. Deliberadamente NO se replica aqui la regla de "input.obli", que en
+   play viste el titulo del formulario dinamico y no tiene que ver con esto. */
+
+.obli label {
+    color: red !important;
+}
+
+.obli label::after {
+    content: "*";
+    font-size: 0.8em;
+    margin-left: 4px;
+}
+
+.obli .rz-form-field-content {
+    background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
+    border-bottom: 2px solid #ffb0b0;
+}

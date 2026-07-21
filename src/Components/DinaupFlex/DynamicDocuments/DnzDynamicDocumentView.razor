@@ -48,6 +48,8 @@
 				{
 					<DnzResponseQuestions Variables="@_docInfo.Questions.Variables"
 									  VariableValues="@VariableValues"
+									  Client="@Client"
+									  StorageKey="@DocId"
 									  OnConfirm="@HandleVariableConfirm" />
 				}
 				else if (_documentContent.IsNotEmpty())

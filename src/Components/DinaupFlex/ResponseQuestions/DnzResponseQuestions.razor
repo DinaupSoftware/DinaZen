@@ -1,159 +1,608 @@
 @namespace DinaZen.Components.DinaupFlex.DnzResponseQuestions
+@using System.Globalization
 
-@if (Variables.IsEmpty())
+@*
+	Formulario que pide al usuario los datos que faltan antes de ver un informe o un documento
+	dinamico. El servidor no devuelve resultados hasta que estan rellenos, asi que esta pantalla
+	es la puerta: si deja pasar con huecos, el usuario recibe la misma pantalla otra vez sin
+	entender por que.
+
+	Escenarios cubiertos (referencia: panel de preguntas del terminal Windows):
+
+	E1  Falta algun dato -> no se lanza la peticion. Los huecos se marcan en rojo desde el
+	    principio (clase obli), igual que en el terminal, y el aviso esta pegado al boton para
+	    que se vea sin subir a buscarlo.
+	E2  Cada formato tiene su control: texto, entero, decimal (con moneda si el rol lo pide),
+	    fecha, hora, fecha y hora, si/no, y relacion. Los numericos aceptan el 0 como respuesta
+	    valida y aparecen vacios mientras no se contestan.
+	E3  Relacion (Guid): informe desplegable -> DnzRowSelector; seccion relacionada ->
+	    DnzSectionDropDown (IAQuery). Si la variable no trae ninguna de las dos esta mal
+	    configurada: se avisa y NO se bloquea el boton, porque el usuario no puede arreglarlo.
+	E4  Un par de variables "X_Desde" / "X_Hasta" (y el par de sistema dinaup_fechadesde /
+	    dinaup_fechahasta) se fusiona en UNA fila con DnzPeriodSelector: presets de periodo
+	    en vez de dos calendarios. Misma convencion de nombres que el terminal.
+	E5  Lo tecleado vive en estado interno, no en el diccionario del padre: los consumidores
+	    pasan "VariablesValues ?? new()", que crea instancia nueva en cada render y perderia
+	    lo escrito. Al confirmar se vuelca ademas sobre la instancia del host, que es como las
+	    vistas guardadas se quedan con las respuestas.
+	E6  Las respuestas se recuerdan por informe en localStorage (ResponseQuestionsStore). De un
+	    periodo con granularidad (mes, trimestre...) se guarda la granularidad y no las fechas,
+	    para que "este mes" siga siendo este mes; de un rango a medida se guardan las fechas.
+	E7  Fecha y hora se envia en UTC segun la zona de la sesion; decimales y fechas se muestran
+	    con la cultura del usuario.
+	E8  La ayuda de cada variable (Info) se ve siempre bajo el campo, no escondida en un tooltip.
+	E9  Un formato desconocido cae a texto libre, nunca a un hueco mudo.
+*@
+
+@if (_rows.IsEmpty())
 {
 	return;
 }
 
-<div class="dnz-response-questions">
-	<div class="dnz-response-questions-intro">
-		<RadzenIcon Icon="help_outline" Style="font-size:32px; color:var(--rz-primary); opacity:0.7" />
-		<div>
-			<span style="font-weight:600; font-size:14px">Informacion necesaria</span>
-			<p class="rz-text-secondary-color" style="font-size:12px; margin:2px 0 0">Completa los campos para continuar.</p>
+<div class="dnz-rq">
+	<RadzenCard>
+		<DnzCardTitle Icon="fact_check" Title="Información necesaria" Subtitle="Rellena estos datos para ver el resultado." />
+
+		<div class="d-flex flex-column gap-3 mt-3">
+			@foreach (var row in _rows)
+			{
+				<div @key=row.Key class="d-flex flex-column gap-1">
+					@if (row.IsRange)
+					{
+						<RadzenLabel Text=@row.Label class="dnz-rq-label" />
+						<DnzPeriodSelector @key=@($"{row.Key}|{_restoreToken}")
+										   InitialGrain=@row.Grain
+										   InitialStart=@row.InitialStart
+										   InitialEnd=@row.InitialEnd
+										   OnChanged=@(p => OnPeriodChanged(row, p)) />
+					}
+					else
+					{
+						switch (row.Variable.Format)
+						{
+							case FieldFormatE.BOOL:
+								<div class="d-flex align-items-center gap-2">
+									<RadzenCheckBox TValue="bool" Value=@GetBool(row.Key) Change=@(v => Set(row.Key, v ? "1" : "0")) Name=@row.Key />
+									<RadzenLabel Text=@row.Label Component=@row.Key class="dnz-rq-label-inline" />
+								</div>
+								break;
+
+							case FieldFormatE.Guid when row.Variable.DropdownReport.IsNotNull() && row.Variable.DropdownReport.Id.IsGUID():
+								<DnzRowSelector Client=@Client
+												ReportId=@row.Variable.DropdownReport.Id
+												Label=@row.Label
+												IsRequired=@IsMissing(row)
+												DefaultID=@GetGuid(row.Key)
+												SelectedRowChanged=@(r => Set(row.Key, r.IsNull() ? "" : r.Id.STR())) />
+								break;
+
+							case FieldFormatE.Guid when row.Variable.RelatedSection.IsNotNull() && row.Variable.RelatedSection.ID.IsNotEmpty():
+								<div class=@RowClass(row)>
+									<DnzSectionDropDown Client=@Client
+														SectionId=@row.Variable.RelatedSection.ID.STR()
+														Label=@row.Label
+														Value=@GetGuid(row.Key)
+														ValueChanged=@(g => Set(row.Key, g.IsEmpty() ? "" : g.STR())) />
+								</div>
+								break;
+
+							case FieldFormatE.Guid:
+								@* Ni informe desplegable ni seccion: el usuario no tiene nada que elegir y no es
+								   culpa suya, asi que se avisa pero no se le encierra (ver IsMissing). *@
+								<RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Size="AlertSize.ExtraSmall" Shade="Shade.Lighter" ShowIcon="false">
+									<b>@row.Label</b>: este dato pide un registro pero el informe no indica de dónde sacarlo. Avisa a quien lo configuró.
+								</RadzenAlert>
+								break;
+
+							case FieldFormatE.INT:
+								<RadzenFormField Text=@row.Label Variant="Variant.Flat" class=@RowClass(row)>
+									<RadzenNumeric TValue="int?" Name=@row.Key Value=@GetInt(row.Key)
+												   Change=@(v => Set(row.Key, v.HasValue ? v.Value.ToString(CultureInfo.InvariantCulture) : ""))
+												   Culture=@RegionService.Culture Style="width:100%" />
+								</RadzenFormField>
+								break;
+
+							case FieldFormatE.DEC:
+								<RadzenFormField Text=@row.Label Variant="Variant.Flat" class=@RowClass(row)>
+									<RadzenNumeric TValue="decimal?" Name=@row.Key Value=@GetDec(row.Key)
+												   Change=@(v => Set(row.Key, v.HasValue ? v.Value.ToString(CultureInfo.InvariantCulture) : ""))
+												   Culture=@RegionService.Culture
+												   Format=@(row.Variable.Role == RoleFieldE.Moneda ? "C" : null)
+												   Style="width:100%" />
+								</RadzenFormField>
+								break;
+
+							case FieldFormatE.DATE:
+							case FieldFormatE.TIME:
+							case FieldFormatE.DateAndTime:
+								<RadzenFormField Text=@row.Label Variant="Variant.Flat" class=@RowClass(row)>
+									<RadzenDatePicker TValue="DateTime?" Name=@row.Key Value=@GetDate(row.Variable)
+													  Change=@(v => SetDate(row.Variable, v))
+													  Culture=@RegionService.Culture
+													  ShowTime=@row.Variable.ShowTime
+													  ShowSeconds=@row.Variable.ShowSeconds
+													  TimeOnly=@(row.Variable.Format == FieldFormatE.TIME)
+													  DateFormat=@(row.Variable.Format == FieldFormatE.TIME ? (row.Variable.ShowSeconds ? "HH:mm:ss" : "HH:mm") : null)
+													  Style="width:100%" />
+								</RadzenFormField>
+								break;
+
+							default:
+								<RadzenFormField Text=@row.Label Variant="Variant.Flat" class=@RowClass(row)>
+									<RadzenTextBox Name=@row.Key Value=@Get(row.Key) Change=@(v => Set(row.Key, v)) Style="width:100%" />
+								</RadzenFormField>
+								break;
+						}
+					}
+
+					@if (row.Info.IsNotEmpty())
+					{
+						<span class="rz-text-caption text-muted dnz-rq-info">@row.Info</span>
+					}
+				</div>
+			}
 		</div>
-	</div>
 
-	<div class="dnz-response-questions-fields">
-		@foreach (var variable in Variables.Values)
-		{
-			<div @key="@variable.KeyWord" class="dnz-response-questions-field">
-				<RadzenLabel Text="@variable.Label" Style="font-weight:500; font-size:13px" />
-				@if (variable.Info.IsNotEmpty())
-				{
-					<span class="rz-text-secondary-color" style="font-size:11px">@variable.Info</span>
-				}
-				@switch (variable.Format)
-				{
-					case FieldFormatE.STR:
-						<RadzenTextBox Change="@(value => HandleChange(value, variable.KeyWord))" Style="width:100%" />
-						break;
-					case FieldFormatE.INT:
-						<RadzenNumeric TValue="int" Change="@(value => HandleChange(value, variable.KeyWord))" Style="width:100%" />
-						break;
-					case FieldFormatE.DEC:
-						<RadzenNumeric TValue="decimal" Change="@(value => HandleChange(value, variable.KeyWord))" Style="width:100%" />
-						break;
-					case FieldFormatE.DateAndTime:
-					case FieldFormatE.DATE:
-					case FieldFormatE.TIME:
-						<RadzenDatePicker TValue="DateTime" Style="width:100%"
-										  Change="@(value => HandleDateChange(value, variable))"
-										  ShowTime="@variable.ShowTime"
-										  ShowSeconds="@variable.ShowSeconds"
-										  TimeOnly="@(variable.Format == FieldFormatE.TIME)"
-										  DateFormat="@variable.DateForma" />
-						break;
-					case FieldFormatE.BOOL:
-						<RadzenCheckBox TValue="bool" Change="@(value => HandleChange(value, variable.KeyWord))" />
-						break;
-					default:
-						<RadzenTextBox Change="@(value => HandleChange(value, variable.KeyWord))" Style="width:100%" />
-						break;
-				}
-			</div>
-		}
-	</div>
-
-	<div class="dnz-response-questions-actions">
-		<RadzenButton Text="Aceptar" Icon="check" ButtonStyle="ButtonStyle.Primary" Click="@OnSubmit" />
-	</div>
+		@* El aviso vive pegado al boton: si estuviera arriba, con varios campos quedaria fuera de
+		   pantalla y pulsar el boton pareceria no hacer nada. *@
+		<div class="d-flex justify-content-end align-items-center gap-3 mt-4">
+			@if (_error.IsNotEmpty())
+			{
+				<span class="dnz-rq-error" data-testid="questions-error">@_error</span>
+			}
+			<RadzenButton data-testid="questions-accept" Text="Ver resultado" Icon="arrow_forward" ButtonStyle="ButtonStyle.Primary" Click=@OnSubmit />
+		</div>
+	</RadzenCard>
 </div>
-
-<style>
-	.dnz-response-questions {
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-		padding: 20px;
-		max-width: 520px;
-		margin: 0 auto;
-	}
-
-	.dnz-response-questions-intro {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	}
-
-	.dnz-response-questions-fields {
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
-	}
-
-	.dnz-response-questions-field {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.dnz-response-questions-actions {
-		display: flex;
-		justify-content: flex-end;
-		padding-top: 8px;
-	}
-</style>
 
 @code {
 
-	/// <summary>
-	/// Variables requeridas para el formulario.
-	/// </summary>
+	#region Parameters
+
+	/// <summary>Variables que el servidor pide, indexadas por KeyWord.</summary>
 	[Parameter, EditorRequired] public Dictionary<string, DinaupVariableDTO> Variables { get; set; } = new();
 
 	/// <summary>
-	/// Valores actuales de las variables.
+	/// Valores ya conocidos. Se usan para sembrar el formulario y, al confirmar, se rellenan con
+	/// las respuestas: hay hosts (vistas guardadas, UpDialogs.VerInforme) que se quedan con esta
+	/// misma instancia.
 	/// </summary>
 	[Parameter] public Dictionary<string, string> VariableValues { get; set; } = new();
 
+	/// <summary>Cliente Dinaup. Necesario solo para las variables de relacion (Guid).</summary>
+	[Parameter] public DinaupClientC Client { get; set; }
+
 	/// <summary>
-	/// Callback al confirmar las variables.
+	/// Identificador con el que recordar las respuestas en el navegador (normalmente el id del
+	/// informe o del documento). Vacio = no se recuerda nada.
 	/// </summary>
+	[Parameter] public string StorageKey { get; set; } = "";
+
 	[Parameter] public EventCallback<Dictionary<string, string>> OnConfirm { get; set; }
+
+	#endregion
+
+	#region State
+
+	private readonly List<Row> _rows = new();
+	private readonly Dictionary<string, string> _values = new();
+	private ResponseQuestionsStore _store;
+	private string _signature = "";
+	private string _error = "";
+	private int _restoreToken;
+
+	#endregion
+
+	#region Lifecycle
 
 	protected override void OnParametersSet()
 	{
-		VariableValues ??= new();
+		// Los consumidores reconstruyen el diccionario en cada render; solo reconstruimos las filas
+		// cuando cambia de verdad el juego de variables.
+		var signature = Variables.IsNull() ? "" : string.Join("|", Variables.Keys);
+		if (signature == _signature) return;
+
+		_signature = signature;
+		_error = "";
+		_values.Clear();
+		BuildRows();
+		SeedFrom(VariableValues);
+		ApplySeededPeriods();
 	}
 
-	private void HandleChange(string value, string key)
+	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		VariableValues.AddOrUpdate(key, value);
+		if (firstRender == false) return;
+		if (StorageKey.IsEmpty() || _rows.IsEmpty()) return;
+
+		_store = new ResponseQuestionsStore(JS, StorageKey);
+		await _store.LoadAsync();
+		if (_store.Current.IsEmpty()) return;
+
+		// Lo recordado no pisa lo que el host paso explicitamente ni lo que el usuario ya toco.
+		SeedFrom(_store.Current, overwrite: false);
+		RestorePeriods(_store.Current);
+		StateHasChanged();
 	}
 
-	private void HandleChange(int value, string key)
-	{
-		VariableValues.AddOrUpdate(key, value.ToString());
-	}
+	#endregion
 
-	private void HandleChange(decimal value, string key)
-	{
-		VariableValues.AddOrUpdate(key, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-	}
+	#region Construccion de filas
 
-	private void HandleChange(bool value, string key)
+	private void BuildRows()
 	{
-		VariableValues.AddOrUpdate(key, value ? "1" : "0");
-	}
+		_rows.Clear();
+		if (Variables.IsEmpty()) return;
 
-	private void HandleDateChange(DateTime? value, DinaupVariableDTO variable)
-	{
-		if (value == null) return;
+		// Primera pasada: emparejar rangos. Va aparte porque el diccionario puede traer el "Hasta"
+		// antes que su "Desde", y entonces una sola pasada crearia la fila suelta y luego la del par.
+		var partnerOf = new Dictionary<string, DinaupVariableDTO>(StringComparer.OrdinalIgnoreCase);
+		var consumed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-		string formatted = variable.Format switch
+		foreach (var variable in Variables.Values)
 		{
-			FieldFormatE.TIME => variable.ShowSeconds ? value.Value.ToString("HH:mm:ss") : value.Value.ToString("HH:mm"),
-			FieldFormatE.DATE => value.Value.ToString("yyyy-MM-dd"),
-			FieldFormatE.DateAndTime => variable.ShowSeconds ? value.Value.ToString("yyyy-MM-dd HH:mm:ss") : value.Value.ToString("yyyy-MM-dd HH:mm"),
-			_ => value.Value.ToString("yyyy-MM-dd")
-		};
+			if (variable.IsNull() || variable.KeyWord.IsEmpty()) continue;
+			if (consumed.Contains(variable.KeyWord)) continue;
 
-		VariableValues.AddOrUpdate(variable.KeyWord, formatted);
+			var partner = FindRangePartner(variable);
+			if (partner.IsNull()) continue;
+
+			partnerOf[variable.KeyWord] = partner;
+			consumed.Add(variable.KeyWord);
+			consumed.Add(partner.KeyWord);
+		}
+
+		// Segunda pasada: construir en el orden en que llegaron las variables.
+		var placed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+		foreach (var variable in Variables.Values)
+		{
+			if (variable.IsNull() || variable.KeyWord.IsEmpty()) continue;
+			if (placed.Contains(variable.KeyWord)) continue;
+
+			if (partnerOf.TryGetValue(variable.KeyWord, out var partner))
+			{
+				placed.Add(variable.KeyWord);
+				placed.Add(partner.KeyWord);
+				_rows.Add(Row.Range(variable, partner));
+				continue;
+			}
+
+			// Es el "Hasta" de un par: ya lo pinta la fila de su "Desde".
+			if (consumed.Contains(variable.KeyWord)) continue;
+
+			placed.Add(variable.KeyWord);
+			_rows.Add(Row.Single(variable));
+		}
+	}
+
+	/// <summary>
+	/// Misma convencion que el terminal: "X_Desde" busca "X_Hasta", y el par de sistema
+	/// dinaup_fechadesde / dinaup_fechahasta. Solo se fusionan si ambas son de tipo fecha.
+	/// </summary>
+	private DinaupVariableDTO FindRangePartner(DinaupVariableDTO variable)
+	{
+		if (IsDateFormat(variable.Format) == false) return null;
+
+		string partnerKey = "";
+		if (variable.KeyWord.Equals("dinaup_fechadesde", StringComparison.OrdinalIgnoreCase))
+		{
+			partnerKey = "dinaup_fechahasta";
+		}
+		else if (variable.KeyWord.Length > "_Desde".Length && variable.KeyWord.EndsWith("_Desde", StringComparison.OrdinalIgnoreCase))
+		{
+			partnerKey = variable.KeyWord.Substring(0, variable.KeyWord.Length - "Desde".Length) + "Hasta";
+		}
+
+		if (partnerKey.IsEmpty()) return null;
+
+		var partner = Variables.Values.FirstOrDefault(x => x.IsNotNull() && x.KeyWord.Equals(partnerKey, StringComparison.OrdinalIgnoreCase));
+		if (partner.IsNull()) return null;
+		if (IsDateFormat(partner.Format) == false) return null;
+
+		return partner;
+	}
+
+	private static bool IsDateFormat(FieldFormatE format)
+	{
+		return format == FieldFormatE.DATE || format == FieldFormatE.DateAndTime;
+	}
+
+	#endregion
+
+	#region Lectura y escritura de valores
+
+	private string Get(string key) => _values.TryGetValue(key, out var v) ? v : "";
+
+	private void Set(string key, string value)
+	{
+		// Sin trim, un espacio colaria como dato relleno y el servidor recibiria basura.
+		_values[key] = value.IsNull() ? "" : value.Trim();
+		RefreshError();
+	}
+
+	private void SeedFrom(Dictionary<string, string> source, bool overwrite = true)
+	{
+		if (source.IsEmpty()) return;
+
+		foreach (var pair in source)
+		{
+			if (pair.Value.IsEmpty()) continue;
+			if (pair.Key.StartsWith(PeriodPrefix)) continue;
+			if (overwrite == false && Get(pair.Key).IsNotEmpty()) continue;
+			_values[pair.Key] = pair.Value;
+		}
+	}
+
+	private int? GetInt(string key) => int.TryParse(Get(key), NumberStyles.Any, CultureInfo.InvariantCulture, out var n) ? n : null;
+
+	private decimal? GetDec(string key) => decimal.TryParse(Get(key), NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : null;
+
+	private bool GetBool(string key) => Get(key) == "1";
+
+	private Guid GetGuid(string key) => Get(key).ToGUID();
+
+	private DateTime? GetDate(DinaupVariableDTO variable)
+	{
+		var parsed = ParseDate(Get(variable.KeyWord));
+		if (parsed.HasValue == false) return null;
+
+		// Fecha y hora viaja en UTC; el usuario la ve en su zona.
+		if (variable.Format == FieldFormatE.DateAndTime) return RegionService.ToLocal(parsed.Value);
+		return parsed;
+	}
+
+	private static DateTime? ParseDate(string raw)
+	{
+		if (raw.IsEmpty()) return null;
+		if (DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) == false) return null;
+		return parsed;
+	}
+
+	private void SetDate(DinaupVariableDTO variable, DateTime? value)
+	{
+		Set(variable.KeyWord, value.HasValue ? FormatDate(variable, value.Value) : "");
+	}
+
+	private string FormatDate(DinaupVariableDTO variable, DateTime value)
+	{
+		switch (variable.Format)
+		{
+			case FieldFormatE.TIME:
+				return value.ToString(variable.ShowSeconds ? "HH:mm:ss" : "HH:mm", CultureInfo.InvariantCulture);
+
+			case FieldFormatE.DateAndTime:
+				var utc = RegionService.ToUtc(value);
+				return utc.ToString(variable.ShowSeconds ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+			default:
+				return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+		}
+	}
+
+	#endregion
+
+	#region Periodos
+
+	private const string PeriodPrefix = "__periodo.";
+
+	private void OnPeriodChanged(Row row, DnzPeriodSelector.PeriodSelection period)
+	{
+		row.Grain = period.Grain;
+		row.LastStart = period.Start;
+		row.LastEnd = period.End;
+
+		// Un rango es inclusivo por los dos extremos: si la variable del extremo superior lleva
+		// hora, el ultimo dia entra entero.
+		var desde = period.Start.ToDateTime(TimeOnly.MinValue);
+		var hasta = period.End.ToDateTime(row.VariableHasta.Format == FieldFormatE.DateAndTime ? new TimeOnly(23, 59, 59) : TimeOnly.MinValue);
+
+		Set(row.Variable.KeyWord, FormatDate(row.Variable, desde));
+		Set(row.VariableHasta.KeyWord, FormatDate(row.VariableHasta, hasta));
+	}
+
+	/// <summary>Cablea al selector las fechas que ya venian puestas, para que no las pise.</summary>
+	private void ApplySeededPeriods()
+	{
+		foreach (var row in _rows.Where(x => x.IsRange))
+		{
+			var desde = ParseDate(Get(row.Variable.KeyWord));
+			var hasta = ParseDate(Get(row.VariableHasta.KeyWord));
+			if (desde.HasValue == false) continue;
+
+			row.InitialStart = DateOnly.FromDateTime(desde.Value);
+			row.InitialEnd = hasta.HasValue ? DateOnly.FromDateTime(hasta.Value) : null;
+			row.Grain = DnzPeriodSelector.PeriodGrain.Rango;
+		}
+	}
+
+	private void RestorePeriods(Dictionary<string, string> stored)
+	{
+		var restored = false;
+
+		foreach (var row in _rows.Where(x => x.IsRange))
+		{
+			if (stored.TryGetValue(PeriodPrefix + row.Key, out var raw) == false) continue;
+
+			// Formato: "Grano" o "Rango|desde|hasta".
+			var parts = raw.Split('|');
+			if (Enum.TryParse<DnzPeriodSelector.PeriodGrain>(parts[0], out var grain) == false) continue;
+
+			if (grain == DnzPeriodSelector.PeriodGrain.Rango)
+			{
+				// Un rango a medida no es una regla: sin sus fechas el selector no emitiria nada.
+				if (parts.Length < 3) continue;
+				if (DateOnly.TryParse(parts[1], CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) == false) continue;
+				if (DateOnly.TryParse(parts[2], CultureInfo.InvariantCulture, DateTimeStyles.None, out var h) == false) continue;
+				row.InitialStart = d;
+				row.InitialEnd = h;
+			}
+			else
+			{
+				row.InitialStart = null;
+				row.InitialEnd = null;
+			}
+
+			row.Grain = grain;
+			restored = true;
+		}
+
+		// DnzPeriodSelector solo lee InitialGrain al inicializarse, asi que hay que remontarlo.
+		// El token solo cambia aqui: tocar el selector a mano no lo reinicia.
+		if (restored) _restoreToken++;
+	}
+
+	private static string PeriodToStore(Row row)
+	{
+		if (row.Grain != DnzPeriodSelector.PeriodGrain.Rango) return row.Grain.ToString();
+
+		return string.Join("|",
+			row.Grain.ToString(),
+			row.LastStart?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "",
+			row.LastEnd?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "");
+	}
+
+	#endregion
+
+	#region Validacion y envio
+
+	private string RowClass(Row row) => IsMissing(row) ? "w-100 obli" : "w-100";
+
+	private bool IsMissing(Row row)
+	{
+		if (row.IsRange) return Get(row.Variable.KeyWord).IsEmpty() || Get(row.VariableHasta.KeyWord).IsEmpty();
+
+		// Un si/no siempre tiene respuesta: no marcado es "no".
+		if (row.Variable.Format == FieldFormatE.BOOL) return false;
+
+		// Variable de relacion sin origen: el usuario no puede rellenarla, no se le bloquea por ella.
+		if (row.IsBrokenRelation) return false;
+
+		return Get(row.Key).IsEmpty();
+	}
+
+	private void RefreshError()
+	{
+		var missing = _rows.Count(IsMissing);
+		_error = missing == 0
+			? ""
+			: missing == 1
+				? "Falta un dato por rellenar."
+				: $"Faltan {missing} datos por rellenar.";
 	}
 
 	private async Task OnSubmit()
 	{
-		await OnConfirm.InvokeAsync(VariableValues);
+		RefreshError();
+
+		// E1: con huecos no se llama al servidor. Es exactamente lo que hace el terminal.
+		if (_error.IsNotEmpty()) return;
+
+		foreach (var row in _rows.Where(x => x.Variable.Format == FieldFormatE.BOOL))
+		{
+			if (Get(row.Key).IsEmpty()) Set(row.Key, "0");
+		}
+
+		await SaveAnswersAsync();
+
+		// El host puede haber pasado su propio diccionario (una vista guardada, UpDialogs.VerInforme)
+		// y esperar encontrarse ahi las respuestas: se rellena y se devuelve esa misma instancia.
+		var answers = VariableValues;
+		if (answers.IsNull())
+		{
+			answers = new Dictionary<string, string>(_values);
+		}
+		else
+		{
+			foreach (var pair in _values) answers[pair.Key] = pair.Value;
+		}
+
+		await OnConfirm.InvokeAsync(answers);
 	}
+
+	private async Task SaveAnswersAsync()
+	{
+		if (_store.IsNull()) return;
+
+		var toStore = new Dictionary<string, string>(_values);
+		foreach (var row in _rows.Where(x => x.IsRange))
+		{
+			// De un periodo con granularidad se recuerda la granularidad, no las fechas: al reabrir
+			// se recalcula respecto a hoy. De un rango a medida si se guardan las fechas.
+			toStore.Remove(row.Variable.KeyWord);
+			toStore.Remove(row.VariableHasta.KeyWord);
+			toStore[PeriodPrefix + row.Key] = PeriodToStore(row);
+		}
+
+		await _store.SaveAsync(toStore);
+	}
+
+	#endregion
+
+	#region Tipos internos
+
+	private class Row
+	{
+		public DinaupVariableDTO Variable { get; init; }
+		public DinaupVariableDTO VariableHasta { get; init; }
+		public string Label { get; init; } = "";
+		public string Info { get; init; } = "";
+
+		public DnzPeriodSelector.PeriodGrain Grain { get; set; } = DnzPeriodSelector.PeriodGrain.Mes;
+		public DateOnly? InitialStart { get; set; }
+		public DateOnly? InitialEnd { get; set; }
+		public DateOnly? LastStart { get; set; }
+		public DateOnly? LastEnd { get; set; }
+
+		public bool IsRange => VariableHasta.IsNotNull();
+		public string Key => Variable.KeyWord;
+
+		/// <summary>Variable de relacion que no dice de donde sacar los registros.</summary>
+		public bool IsBrokenRelation => Variable.Format == FieldFormatE.Guid
+			&& (Variable.DropdownReport.IsNull() || Variable.DropdownReport.Id.IsGUID() == false)
+			&& (Variable.RelatedSection.IsNull() || Variable.RelatedSection.ID.IsEmpty());
+
+		public static Row Single(DinaupVariableDTO variable) => new()
+		{
+			Variable = variable,
+			Label = CleanLabel(variable),
+			Info = variable.Info
+		};
+
+		public static Row Range(DinaupVariableDTO desde, DinaupVariableDTO hasta) => new()
+		{
+			Variable = desde,
+			VariableHasta = hasta,
+			Label = RangeLabel(desde, hasta),
+			Info = desde.Info.IsNotEmpty() ? desde.Info : hasta.Info
+		};
+
+		private static string CleanLabel(DinaupVariableDTO variable)
+		{
+			return variable.Label.IsNotEmpty() ? variable.Label.Trim() : variable.KeyWord;
+		}
+
+		private static string RangeLabel(DinaupVariableDTO desde, DinaupVariableDTO hasta)
+		{
+			// "Fecha de venta desde" + "Fecha de venta hasta" -> "Fecha de venta".
+			var a = StripRangeSuffix(CleanLabel(desde));
+			var b = StripRangeSuffix(CleanLabel(hasta));
+
+			return a.Equals(b, StringComparison.OrdinalIgnoreCase) ? a : $"{a} - {b}";
+		}
+
+		private static string StripRangeSuffix(string text)
+		{
+			// Vale tanto para etiquetas ("Fecha desde") como para keywords sin etiqueta ("Fecha_Desde").
+			foreach (var suffix in new[] { " desde", " hasta", "_desde", "_hasta", "desde", "hasta" })
+			{
+				if (text.Length <= suffix.Length) continue;
+				if (text.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) return text.Substring(0, text.Length - suffix.Length).Trim(' ', '_');
+			}
+
+			return text;
+		}
+	}
+
+	#endregion
 }

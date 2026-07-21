@@ -1,0 +1,157 @@
+@namespace DinaZen.Components.DinaupFlex.Components
+
+@*
+	Desplegable con los registros de una seccion, alimentado por IAQuery.
+
+	Cuando usarlo: la variable o el campo apunta a una seccion pequena y cerrada (estados, tipos,
+	categorias) y el usuario espera abrir y elegir. Para conjuntos grandes (clientes, productos)
+	usar DnzRowSelector, que busca en servidor en vez de traerse las filas.
+
+	Portado desde play (SectionDropDownU): alli tomaba el cliente de la sesion; aqui llega por
+	parametro, que es como opera el resto de DinaupFlex.
+*@
+
+<div class="d-flex flex-column gap-1 dnz-section-dd">
+	@if (Label.IsNotEmpty())
+	{
+		<RadzenLabel Text=@Label Component=@_name />
+	}
+
+	@if (_loading)
+	{
+		<DnzSkeleton Lines="1" MaxWidth="80%" />
+	}
+	else if (_unavailable.IsNotEmpty())
+	{
+		<RadzenAlert AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Size="AlertSize.ExtraSmall" Shade="Shade.Lighter" ShowIcon="false">
+			@_unavailable
+		</RadzenAlert>
+	}
+	else
+	{
+		<RadzenDropDown Name=@_name TValue="Guid" Value=@Value Data=@_items
+						TextProperty="Title" ValueProperty="Id"
+						Change=@OnItemSelected
+						AllowFiltering="true"
+						FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+						AllowClear="true"
+						Placeholder="Seleccionar..."
+						Disabled=@Disabled
+						data-testid="section-dropdown"
+						class="w-100" />
+
+		@if (_truncated)
+		{
+			@* Honesto: el filtro solo busca entre lo que ya se ha traido, no en el servidor. *@
+			<span class="rz-text-caption text-muted">Hay más registros de los que caben aquí. Solo se muestran los @MaxItems primeros.</span>
+		}
+	}
+</div>
+
+@code {
+
+	#region Parameters
+
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+
+	/// <summary>Seccion de la que se listan los registros.</summary>
+	[Parameter, EditorRequired] public string SectionId { get; set; } = "";
+
+	[Parameter] public string Label { get; set; } = "";
+	[Parameter] public Guid Value { get; set; }
+	[Parameter] public EventCallback<Guid> ValueChanged { get; set; }
+	[Parameter] public bool Disabled { get; set; }
+	[Parameter] public int MaxItems { get; set; } = 500;
+
+	#endregion
+
+	#region State
+
+	private readonly string _name = "dnz-section-dd-" + Guid.NewGuid().ToString("N");
+	private List<SectionItem> _items = new();
+	private bool _loading = true;
+	private bool _truncated;
+	private string _unavailable = "";
+	private string _loadedSection = "";
+
+	#endregion
+
+	#region Lifecycle
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if (SectionId == _loadedSection) return;
+		_loadedSection = SectionId;
+		await LoadAsync();
+	}
+
+	#endregion
+
+	#region Methods
+
+	private async Task LoadAsync()
+	{
+		_loading = true;
+		_unavailable = "";
+		_truncated = false;
+		_items = new();
+
+		if (Client.IsNull() || SectionId.IsEmpty())
+		{
+			_unavailable = "No se ha indicado la seccion de la que elegir.";
+			_loading = false;
+			return;
+		}
+
+		try
+		{
+			// "nombre" es la columna fisica del texto principal y es nativa en cualquier seccion:
+			// el servidor la acepta sin mirar la definicion. El keyword "TextoPrincipal" NO vale aqui.
+			var req = new Dinaup.IAQueryRequestParameters(SectionId, MaxItems);
+			req.AddField("id", "");
+			req.AddField("nombre", "");
+			req.AddOrderBy("nombre", "asc");
+
+			var response = await Client.IAQuery_GetAsync(req);
+
+			if (response.IsNull() || response.Ok == false)
+			{
+				// Caso tipico: seccion base, que el servidor no deja consultar directamente.
+				_unavailable = "No se pueden listar los registros de esta seccion.";
+			}
+			else if (response.Data.IsNotEmpty())
+			{
+				_items = response.Data
+					.Select(row => new SectionItem { Id = row.GetM("id", "").ToGUID(), Title = row.GetM("nombre", "") })
+					.Where(x => x.Id.IsNotEmpty())
+					.ToList();
+
+				// Sin texto principal el usuario veria filas en blanco indistinguibles.
+				foreach (var item in _items.Where(x => x.Title.IsEmpty())) item.Title = "(sin nombre)";
+
+				_truncated = _items.Count >= MaxItems;
+			}
+		}
+		catch (Exception ex)
+		{
+			_unavailable = "No se han podido cargar los registros.";
+			Dinaup.Logs.Error(ex, "dnzsectiondropdown.load_failed {SectionId}", SectionId);
+		}
+
+		_loading = false;
+	}
+
+	private async Task OnItemSelected(object value)
+	{
+		Value = value is Guid g ? g : Guid.Empty;
+		await ValueChanged.InvokeAsync(Value);
+	}
+
+	private class SectionItem
+	{
+		public Guid Id { get; set; }
+		public string Title { get; set; } = "";
+	}
+
+	#endregion
+}

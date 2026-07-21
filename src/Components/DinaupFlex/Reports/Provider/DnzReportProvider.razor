@@ -10,6 +10,8 @@
 	{
 		<DnzResponseQuestions Variables="@_context.Report.VariableList.Variables"
 						   VariableValues="@(VariablesValues ?? new())"
+						   Client="@Client"
+						   StorageKey="@ReportId"
 						   OnConfirm="@HandleVariableConfirm" />
 	}
 	else if (_context.ErrorMessage.IsNotEmpty())
