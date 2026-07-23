@@ -69,6 +69,11 @@ public class DnzWindowManagerService : IDisposable
 	private double _viewportHeight = 0;
 	private bool _viewportReady = false;
 
+	// Por debajo de este ancho tratamos la pantalla como movil: las ventanas se
+	// abren maximizadas (una ventana flotante arrastrable no aporta en un telefono).
+	private const double MobileBreakpoint = 768.0;
+	private bool IsMobileViewport() => _viewportReady && _viewportWidth > 0 && _viewportWidth <= MobileBreakpoint;
+
 	/// <summary>
 	/// Llamar desde JS al iniciar para establecer dimensiones del viewport.
 	/// Si hay ventanas pendientes de reposicionar, las recentra.
@@ -114,6 +119,9 @@ public class DnzWindowManagerService : IDisposable
 			var w = win.Width;
 			var h = win.Height;
 
+			// Topar ancho al viewport (mismo criterio que Open)
+			w = Math.Min(w, _viewportWidth - 40);
+
 			// Recalcular altura optima
 			var usableHeight = _viewportHeight - DnzTaskbarTotalHeight;
 			var targetH = usableHeight * 0.90;
@@ -136,6 +144,10 @@ public class DnzWindowManagerService : IDisposable
 			win.Y = Math.Round(y);
 			win.Width = Math.Round(w);
 			win.Height = Math.Round(h);
+
+			// En movil la ventana va maximizada (el viewport llego despues de abrir)
+			if (IsMobileViewport())
+				win.IsMaximized = true;
 		}
 		NotifyChanged();
 	}
@@ -167,6 +179,13 @@ public class DnzWindowManagerService : IDisposable
 			h = Math.Min(h, usableHeight);
 		}
 		// Si no hay viewport, usar InitialHeight tal cual (se reposicionara cuando llegue el viewport)
+
+		// El ancho nunca debe desbordar la pantalla: se topa al viewport menos el
+		// margen lateral (20px a cada lado, igual que el posicionamiento en X). Sin esto
+		// InitialWidth (ej. 1806) se aplica literal y desborda en moviles y portatiles
+		// estrechos. La altura ya se adaptaba; el ancho no.
+		if (_viewportReady && _viewportWidth > 0)
+			w = Math.Min(w, _viewportWidth - 40);
 
 		// ── Posicion vertical: centrar en el espacio sobre el taskbar ──
 		double y;
@@ -221,6 +240,7 @@ public class DnzWindowManagerService : IDisposable
 			Y = Math.Round(y),
 			ZIndex = ++_zCounter,
 			IsActive = true,
+			IsMaximized = IsMobileViewport(),
 			AboveModal = _activeModals > 0,
 			Content = content
 		};
