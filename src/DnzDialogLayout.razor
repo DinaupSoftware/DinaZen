@@ -45,7 +45,35 @@
 	</div>
 
 	<div class="dialog-estandar-layout-content scrollable-content" style=@ContentStyle>
-		@BodyContent
+		@if (ErrorText.IsNotEmpty())
+		{
+			<div class="p-3">
+				<RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Light" AllowClose=false ShowIcon=true>
+					<div class="d-flex align-items-center justify-content-between w-100 gap-2">
+						<span>@ErrorText</span>
+						@if (OnRetry.HasDelegate)
+						{
+							<RadzenButton Text="Reintentar" Icon="refresh" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined" Click=@Reintentar />
+						}
+					</div>
+				</RadzenAlert>
+			</div>
+		}
+		else if (IsLoading && LoadingText.IsNotEmpty())
+		{
+			<div class="d-flex flex-column align-items-center gap-3 py-5">
+				<DnzLoader />
+				<span class="rz-text-caption">@LoadingText</span>
+			</div>
+		}
+		else if (IsLoading)
+		{
+			<div class="p-3"><DnzSkeleton /></div>
+		}
+		else
+		{
+			@BodyContent
+		}
 	</div>
 
 	<div class="dialog-estandar-layout-footer">
@@ -93,6 +121,29 @@
 	[Parameter] public string HeaderStyle { get; set; }
 
 	/// <summary>
+	/// Mientras es true el cuerpo muestra un esqueleto de carga en lugar de BodyContent.
+	/// </summary>
+	[Parameter] public bool IsLoading { get; set; }
+
+	/// <summary>
+	/// Mensaje de progreso durante la carga. Si se proporciona, en vez del esqueleto se muestra
+	/// un loader con este texto debajo: para esperas largas donde conviene contar qué se está haciendo.
+	/// </summary>
+	[Parameter] public string LoadingText { get; set; }
+
+	/// <summary>
+	/// Si tiene texto, el cuerpo se sustituye por un aviso de error. Manda sobre IsLoading:
+	/// si algo ha fallado no se sigue mostrando un esqueleto de carga.
+	/// </summary>
+	[Parameter] public string ErrorText { get; set; }
+
+	/// <summary>
+	/// Accion de reintento del error. Solo si se proporciona aparece el boton "Reintentar":
+	/// un error de configuracion (no se arregla reintentando) se deja sin handler.
+	/// </summary>
+	[Parameter] public EventCallback OnRetry { get; set; }
+
+	/// <summary>
 	/// Si true, el dialog es completamente blanco/plano (sin degradados ni fondo gris).
 	/// Por defecto false: header y footer con degradado sutil, contenido con fondo gris.
 	/// </summary>
@@ -105,6 +156,11 @@
 			isClosed = true;
 			DialogService.Close();
 		}
+	}
+
+	private async Task Reintentar()
+	{
+		await OnRetry.InvokeAsync();
 	}
 
 	public async Task SetWidth(string width)
