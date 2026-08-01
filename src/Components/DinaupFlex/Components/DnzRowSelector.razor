@@ -14,17 +14,19 @@
 			<ChildContent>
 
 				@if (isInitializing && DefaultID.IsNotEmpty()) {
-					<div style="width:100%;margin-top:13px;display:flex;justify-content:center;align-items:center;">
+					<div class=@_contentClass>
 						<DnzSkeleton Lines="1" MaxWidth="80%" />
 					</div>
 				} else {
 
-					<div @ref=containerRef @onclick=@(args => ToggleAsync()) class=@(_isCompact ? "dnz-rs-content" : "dnz-rs-content dnz-rs-with-label")>
-						<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;display:block;">
+					<div @ref=containerRef tabindex=@(Disabled ? null : "0") role="combobox" aria-haspopup="listbox" aria-expanded=@(_popupOpen ? "true" : "false") aria-required=@(IsRequired ? "true" : null) aria-label=@_ariaLabel @onclick=@(args => ToggleAsync()) @onkeydown=@OnKeyDown class=@_contentClass>
+						<span class="dnz-rs-text" title=@(SelectedRow.IsNotEmpty() ? SelectedRow.Label : null)>
 							@if (SelectedRow.IsNotEmpty()) {
 								@SelectedRow.Label
 							} else if (Placeholder.IsNotEmpty()) {
-								<span style="color:var(--rz-input-placeholder-color,#999)">@Placeholder</span>
+								<span class="dnz-rs-placeholder">@Placeholder</span>
+							} else if (_isCompact && Disabled == false) {
+								<span class="dnz-rs-placeholder">Seleccionar...</span>
 							}
 						</span>
 					</div>
@@ -40,73 +42,43 @@
 		</RadzenFormField>
 		<div class="dnz-rs-actions-overlay">
 			@if (SelectedRow.IsNotEmpty()) {
-				@if (Disabled == false) {
-					<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" onclick=@(() => OnClearClick()) data-testid="row-selector-remove" />
-				}
 				@if (SelectedRow.SectionID.IsNotEmpty() && (OnOpenRecord.HasDelegate || OpenInWindow)) {
-					<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover" onclick=@(() => OnOpenClick()) data-testid="row-selector-open" />
+					<RadzenIcon Icon="open_in_new" Style="font-size:16px;cursor:pointer" class="dnz-icon-hover" role="button" aria-label="Abrir ficha" onclick=@(() => OnOpenClick()) data-testid="row-selector-open" />
+				}
+				@if (Disabled == false) {
+					<RadzenIcon Icon="close" Style="font-size:16px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" role="button" aria-label="Quitar selección" onclick=@(() => OnClearClick()) data-testid="row-selector-remove" />
 				}
 			} else if (Disabled == false && OnAdd.HasDelegate) {
-				<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" onclick=@(() => OnAddClick()) data-testid="row-selector-add" />
+				<RadzenIcon Icon="add" Style="font-size:16px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" role="button" aria-label="Crear nuevo" onclick=@(() => OnAddClick()) data-testid="row-selector-add" />
 			}
 		</div>
 	</div>
 </ErrorBoundary>
 
-<RadzenPopup @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute;padding:5px;border:var(--rz-panel-border);background-color:var(--rz-panel-background-color);" class="dnz-rs-popup">
+<RadzenPopup @ref=popup Lazy=true Open="@OnPopupOpen" Close="@OnPopupClose" Style="display:none;position:absolute;padding:5px;width:min(600px,92vw);max-height:70vh;overflow:auto;" class="dnz-rs-popup">
 	<ErrorBoundary>
-		<DnzSearchInput BounceValueChanged=@OnDebouncedSearch Class="w-100" />
-		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
+		<div class="dnz-rs-popup-head">
+			<DnzSearchInput BounceValueChanged=@OnDebouncedSearch Class="flex-grow-1" />
+			@if (Disabled == false && OnAdd.HasDelegate) {
+				<RadzenButton Icon="add" Text="Crear nuevo" Size="ButtonSize.Small" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Click=@OnAddFromPopupClick data-testid="row-selector-popup-add" />
+			}
+		</div>
+		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter FetchInterceptor=@FetchInterceptor @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
 	</ErrorBoundary>
 </RadzenPopup>
-
-<style>
-	.dnz-rs-wrap { position: relative; overflow: hidden; min-width: 0; }
-	.dnz-rs-wrap .dropdown-menu-component .rz-form-field-end { padding: 0 4px 0 0 !important; }
-	.dnz-rs-wrap .rz-form-field { overflow: hidden; min-width: 0; }
-	.dnz-rs-wrap .rz-form-field-content { overflow: hidden; min-width: 0; }
-	.dnz-rs-wrap .dropdown-menu-component { overflow: hidden; min-width: 0; }
-	.dnz-rs-end { display: flex; align-items: center; height: 100%; }
-	.dnz-rs-actions-overlay {
-		position: absolute;
-		right: 24px;
-		top: 4px;
-		bottom: 4px;
-		display: flex;
-		align-items: center;
-		gap: 2px;
-		padding-left: 20px;
-		background: linear-gradient(90deg, transparent 0%, var(--rz-panel-background-color, #fff) 30%);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity .15s;
-		z-index: 1;
-	}
-	.dnz-rs-wrap:hover .dnz-rs-actions-overlay {
-		opacity: 1;
-		pointer-events: auto;
-	}
-	.dnz-rs-content { display:flex; align-items:center; padding:4px 10px; border-radius:6px; flex:1; cursor:pointer; min-height:36px; overflow:hidden; min-width:0; }
-	.dnz-rs-with-label { padding-top:20px; min-height:54px; }
-	.dnz-rs-required label { color: red !important; }
-	.dnz-rs-required label::after { content: "*"; font-size: 0.8em; margin-left: 4px; }
-	.dnz-rs-required .rz-form-field-content { background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%); border-bottom: 2px solid #ffb0b0; }
-	.dnz-icon-hover { border-radius: 50%; padding: 2px; transition: background-color 0.15s ease, transform 0.15s ease; }
-	.dnz-icon-hover:hover { background-color: rgba(0, 0, 0, 0.08); transform: scale(1.2); }
-</style>
 
 
 @code {
 
-	string _searchText = "";
 	bool _isCompact => Label.IsEmpty();
+	bool _popupOpen;
 
 	[Parameter] public string Icon { get; set; }
 	[Parameter] public bool AdminMode { get; set; } = false;
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
 
 	public async Task ToggleAsync() {
-		if (Disabled) return;
+		if (isInitializing || Disabled) return;
 		await popup.ToggleAsync(containerRef);
 	}
 
@@ -114,11 +86,8 @@
 
 	private async Task OnDebouncedSearch(string value) {
 		if (Disabled) return;
-		this._searchText = value;
 		await reportControl.UpdateSearchAsync(value ?? string.Empty);
 	}
-
-	[Parameter] public string KeyboardShortcut { get; set; }
 
 	DnzReportView reportControl;
 	ElementReference containerRef;
@@ -138,12 +107,22 @@
 	[Parameter] public EventCallback<IDinaupRow> OnOpenRecord { get; set; }
 	[Parameter] public bool OpenInWindow { get; set; } = true;
 	[Parameter] public Guid DefaultID { get; set; }
+	// Etiqueta ya conocida por el caller: pinta la seleccion inicial sin viaje al servidor y sin notificar SelectedRowChanged.
+	[Parameter] public string DefaultLabel { get; set; }
+	// Passthrough del hook de cache de DnzReportView: reabrir el popup sin cambios sirve la primera ventana desde cache.
+	[Parameter] public Func<string, bool, Func<Task<Dinaup.ReportResponse>>, Task<Dinaup.ReportResponse>> FetchInterceptor { get; set; }
 	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	string _rootClass => "dropdown-menu-component"
-		+ ((IsRequired && SelectedRow.IsEmpty()) ? " dnz-rs-required" : "")
+		+ ((IsRequired && SelectedRow.IsEmpty()) ? " obli" : "")
 		+ (Disabled ? " dropdown-menu-component-disabled" : "")
 		+ " " + Class;
+
+	string _contentClass => "dnz-rs-content"
+		+ (_isCompact ? "" : " dnz-rs-with-label")
+		+ (Disabled ? " dnz-rs-disabled" : "");
+
+	string _ariaLabel => Label.IsNotEmpty() ? Label : (Placeholder.IsNotEmpty() ? Placeholder : "Seleccionar registro");
 
 	bool isInitializing = true;
 	Guid _lastProcessedDefaultID = Guid.Empty;
@@ -152,7 +131,8 @@
 		await base.OnInitializedAsync();
 		if (DefaultID.IsNotEmpty()) {
 			_lastProcessedDefaultID = DefaultID;
-			await SelectByIdAsync(DefaultID);
+			if (DefaultLabel.IsNotEmpty()) SelectedRow = new Dinaup.DinaupBasicInformation(DefaultID, DefaultLabel);
+			else await SelectByIdAsync(DefaultID);
 		}
 		isInitializing = false;
 	}
@@ -161,7 +141,8 @@
 		await base.OnParametersSetAsync();
 		if (DefaultID != _lastProcessedDefaultID && DefaultID.IsNotEmpty() && SelectedRow.IsEmpty()) {
 			_lastProcessedDefaultID = DefaultID;
-			await SelectByIdAsync(DefaultID);
+			if (DefaultLabel.IsNotEmpty()) SelectedRow = new Dinaup.DinaupBasicInformation(DefaultID, DefaultLabel);
+			else await SelectByIdAsync(DefaultID);
 		}
 	}
 
@@ -172,7 +153,9 @@
 		if (ID.IsNotEmpty()) {
 			var paramsX = new ReportRequestParameters(ReportId, 1);
 			paramsX.AddFilter("id", "=", ID);
+			// AdminMode fijo a proposito: la precarga resuelve la etiqueta de un valor YA guardado aunque el informe filtre por permisos.
 			paramsX.AdminMode = true;
+			paramsX.GetPageSummary = false;
 			var result = await Client.Report_GetAsync(paramsX);
 			var rows = result.DataList.GetDynamicsRowsOBJ();
 			if (rows.IsNotEmpty()) await SelectAsync(rows.FirstOrDefault());
@@ -180,26 +163,44 @@
 	}
 
 	public async Task SelectAsync(IDinaupRow dataRow) {
-		if (dataRow.IsNull()) {
-			SelectedRow = null;
-			_ = InvokeAsync(this.StateHasChanged);
-			_ = SelectedRowChanged.InvokeAsync(null);
-		} else {
-			SelectedRow = dataRow;
-			_ = InvokeAsync(this.StateHasChanged);
-			_ = SelectedRowChanged.InvokeAsync(dataRow);
+		if (dataRow.IsNull()) SelectedRow = null;
+		else SelectedRow = dataRow;
+		await SelectedRowChanged.InvokeAsync(SelectedRow);
+		await InvokeAsync(this.StateHasChanged);
+		if (popup.IsNotNull() && popup.IsOpen) {
+			try { await popup.CloseAsync(); } catch { }
 		}
-		try { await popup.CloseAsync(); } catch { }
 	}
 
-	async Task OnOpen() { if (Disabled) return; }
+	async Task OnPopupOpen() {
+		if (Disabled) return;
+		_popupOpen = true;
+	}
+
+	// El render del propio evento desmonta el contenido Lazy tambien al cerrar con clic fuera: libera el informe y la proxima apertura arranca limpia.
+	async Task OnPopupClose() {
+		_popupOpen = false;
+	}
+
+	private async Task OnKeyDown(KeyboardEventArgs e) {
+		if (Disabled) return;
+		if (e.Key == "Enter" || e.Key == "ArrowDown") await ToggleAsync();
+		else if ((e.Key == "Delete" || e.Key == "Backspace") && SelectedRow.IsNotEmpty()) await SelectAsync((IDinaupRow)null);
+	}
 
 	private async Task OnAddClick() {
 		if (Disabled) return;
 		if (OnAdd.HasDelegate) await OnAdd.InvokeAsync();
 	}
 
-	private async Task OnClearClick() => _ = SelectAsync((IDinaupRow)null);
+	private async Task OnAddFromPopupClick() {
+		if (popup.IsNotNull() && popup.IsOpen) {
+			try { await popup.CloseAsync(); } catch { }
+		}
+		await OnAddClick();
+	}
+
+	private async Task OnClearClick() => await SelectAsync((IDinaupRow)null);
 
 	private async Task OnOpenClick() {
 		if (this.SelectedRow.IsNull()) return;

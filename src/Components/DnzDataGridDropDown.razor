@@ -59,12 +59,12 @@
 </RadzenFormField>
 <div class="dnz-ddgd-actions-overlay">
 	@if (Disabled == false && Value != null) {
-		<RadzenIcon Icon="close" Style="font-size:13px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" onclick=@(() => HandleRemoveClick()) />
 		@if (OnOpen.HasDelegate || (OpenInWindow && Client.IsNotNull() && Value.SectionID.IsNotEmpty())) {
-			<RadzenIcon Icon="open_in_new" Style="font-size:13px;cursor:pointer" class="dnz-icon-hover" onclick=@(() => HandleOpenClick()) />
+			<RadzenIcon Icon="open_in_new" Style="font-size:16px;cursor:pointer" class="dnz-icon-hover" role="button" aria-label="Abrir ficha" onclick=@(() => HandleOpenClick()) />
 		}
+		<RadzenIcon Icon="close" Style="font-size:16px;cursor:pointer;color:var(--rz-danger)" class="dnz-icon-hover" role="button" aria-label="Quitar selección" onclick=@(() => HandleRemoveClick()) />
 	} else if (Disabled == false && OnAdd.HasDelegate) {
-		<RadzenIcon Icon="add" Style="font-size:13px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" onclick=@(() => HandleAddClick()) />
+		<RadzenIcon Icon="add" Style="font-size:16px;cursor:pointer;color:var(--rz-success)" class="dnz-icon-hover" role="button" aria-label="Crear nuevo" onclick=@(() => HandleAddClick()) />
 	}
 </div>
 </div>
@@ -80,37 +80,39 @@
 		display: none !important;
 	}
 
-	.dnz-icon-hover {
-		border-radius: 50%;
-		padding: 2px;
-		transition: background-color 0.15s ease, transform 0.15s ease;
-	}
-
-	.dnz-icon-hover:hover {
-		background-color: rgba(0, 0, 0, 0.08);
-		transform: scale(1.2);
-	}
-
+	/* .dnz-icon-hover vive en dinazen.css (compartida). Pastillas con fondo solido:
+	   legibles sobre cualquier fondo, visibles al hover y SIEMPRE en tactil.
+	   El overlay nunca captura clics: solo los iconos. */
 	.dnz-ddgd-wrap { position: relative; }
 	.dnz-ddgd-wrap .dropdown-menu-component .rz-form-field-end { padding: 0 4px 0 0 !important; }
 	.dnz-ddgd-actions-overlay {
 		position: absolute;
-		right: 24px;
+		right: 26px;
 		top: 4px;
 		bottom: 4px;
 		display: flex;
 		align-items: center;
-		gap: 2px;
-		padding-left: 20px;
-		background: linear-gradient(90deg, transparent 0%, var(--rz-panel-background-color, #fff) 30%);
+		gap: 8px;
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity .15s;
 		z-index: 1;
 	}
+	.dnz-ddgd-actions-overlay .dnz-icon-hover {
+		pointer-events: none;
+		background: var(--rz-panel-background-color, #fff);
+		box-shadow: 0 0 0 1px var(--rz-border-color, #ddd);
+		padding: 4px;
+	}
 	.dnz-ddgd-wrap:hover .dnz-ddgd-actions-overlay {
 		opacity: 1;
+	}
+	.dnz-ddgd-wrap:hover .dnz-ddgd-actions-overlay .dnz-icon-hover {
 		pointer-events: auto;
+	}
+	@@media (hover: none) {
+		.dnz-ddgd-actions-overlay { opacity: 1; }
+		.dnz-ddgd-actions-overlay .dnz-icon-hover { pointer-events: auto; }
 	}
 </style>
 

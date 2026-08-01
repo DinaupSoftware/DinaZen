@@ -197,7 +197,7 @@
 				<span class="text-muted small" data-testid="report-pageinfo">Página @(_skip / _pageSize + 1) · @_rows.Count filas</span>
 				<RadzenButton data-testid="report-next" Variant="Variant.Text" Icon="chevron_right" Text="Siguiente" Size="ButtonSize.Small" Disabled=@(!_hasNext || _isLoading) Click="@(() => GoToPageAsync(1))" />
 				<span class="text-muted small ms-2">filas/página</span>
-				<RadzenDropDown TValue="int" data-testid="report-pagesize" Data="@_pageSizeOptions" Value="@_pageSize" Change="@OnPageSizeChanged" Style="width:84px" Disabled=@_isLoading />
+				<RadzenDropDown TValue="int" data-testid="report-pagesize" Data="@PageSizeOptionsView" Value="@_pageSize" Change="@OnPageSizeChanged" Style="width:84px" Disabled=@_isLoading />
 			</div>
 		</div>
 	</div>
@@ -262,6 +262,8 @@
 	private const int ExportPageSize = 5000;
 	// Opciones del selector "filas por página" de la barra (como el pager clásico).
 	private static readonly IEnumerable<int> _pageSizeOptions = new int[] { 25, 50, 100, 250, 500, 1000, 3000 };
+	// El _pageSize inicial viene de Limit y puede no estar en la lista (p.ej. 20 en los pickers): sin incluirlo, el dropdown arranca en blanco.
+	private IEnumerable<int> PageSizeOptionsView => _pageSizeOptions.Contains(_pageSize) ? _pageSizeOptions : new[] { _pageSize }.Concat(_pageSizeOptions).ToArray();
 	// ── Settings (persistencia columnas visibles) ──
 
 	// Flag de TEST: desactiva la persistencia de columnas/orden en localStorage. Sin ella no hay lectura JS al arrancar
@@ -435,7 +437,12 @@
 					}
 				}
 				_lastLoadedKey = key;
-			} catch (Exception ex) { _errorMessage = ex.Message; } finally {
+				_errorMessage = "";
+			} catch (Exception ex) {
+				_errorMessage = ex.Message;
+				// Con datos ya pintados el RadzenAlert de error no se alcanza (else if): sin este aviso, las filas viejas se disfrazan de resultados de la busqueda que acaba de fallar.
+				if (_dataList.IsNotNull()) NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message, TimeSpan.FromSeconds(30));
+			} finally {
 				_lastLoadMs = sw.ElapsedMilliseconds;
 				_isLoading = false;
 				_loadInFlight = false;
@@ -549,6 +556,8 @@
 	private DinaupDynamicRowDTO _contextRow;
 
 	void OnCellContextMenu(DataGridCellMouseEventArgs<DinaupDynamicRowDTO> args) {
+		// Modo picker (dentro de un selector): elegir fila, nunca administrar — sin "Eliminar" a un clic derecho de distancia.
+		if (OnItemSelect.HasDelegate) return;
 		if (_dataList?.Section == null || string.IsNullOrEmpty(args.Data?.SectionId)) return;
 		_contextRow = args.Data;
 		var items = new List<ContextMenuItem>();

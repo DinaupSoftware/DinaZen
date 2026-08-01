@@ -1,6 +1,8 @@
 .dnz-search-input {
     border-radius: 6px;
-    border: 1px solid var(--rz-input-border);
+    /* --rz-input-border es un shorthand completo ("1px solid #bdbdbd"), no un color:
+       componer "1px solid var(...)" produce CSS invalido y el buscador salia sin caja. */
+    border: 1px solid var(--rz-border-color, #bdbdbd);
 }
 
 .dnz-search-input__field {
