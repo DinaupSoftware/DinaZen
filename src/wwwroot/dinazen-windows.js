@@ -80,6 +80,26 @@ export function destroyWindow(elementId) {
 	_windows.delete(elementId);
 }
 
+// ── Modales Radzen: z-index por orden de apertura ──
+// Los wrappers de dialogo de Radzen son hermanos y aparecen en el DOM en el mismo orden en que se
+// abrieron, asi que el valor i-esimo de la lista es el del i-esimo modal. Se los estampa aqui
+// porque Radzen no ofrece forma de fijar el z-index por dialogo, y sin esto todos comparten altura:
+// una ventana no podria quedarse ENTRE dos modales (caso real: conciliar > venta > flujo).
+// Va con prioridad important porque las apps fijan .rz-dialog-wrapper con !important.
+export function applyDialogZIndex(values) {
+	const stamp = () => {
+		document.querySelectorAll('.rz-dialog-wrapper').forEach((el, i) => {
+			const z = values[i];
+			if (z) el.style.setProperty('z-index', z, 'important');
+		});
+	};
+
+	// Dos pasadas: Blazor no garantiza que el wrapper del dialogo recien abierto ya este en el DOM
+	// cuando el host termina de renderizar, y no queremos depender de ese orden.
+	stamp();
+	requestAnimationFrame(stamp);
+}
+
 export function setPosition(elementId, x, y, w, h) {
 	const state = _windows.get(elementId);
 	const el = state ? state.el : document.getElementById(elementId);

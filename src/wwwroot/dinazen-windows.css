@@ -23,34 +23,20 @@
 
 
 /* ================================================================
-   WINDOW HOST
-   ================================================================ */
-
-.dnz-window-host {
-	position: fixed;
-	inset: 0;
-	pointer-events: none;
-	overflow: hidden;
-}
-
-/* Ventanas normales — debajo de modales Radzen (1250) */
-.dnz-window-host-normal {
-	z-index: 1200;
-}
-
-/* Ventanas abiertas desde DENTRO de un modal — encima del modal activo.
-   Al cerrarse el ultimo modal, AboveModal se resetea y la ventana vuelve al host normal. */
-.dnz-window-host-above-modal {
-	z-index: 1260;
-}
-
-
-/* ================================================================
    WINDOW
    ================================================================ */
 
+/* Cada ventana va suelta en el body, sin contenedor. Aqui NO puede haber un envoltorio comun:
+   un div con `position: fixed` crea contexto de apilado el solo —aunque no lleve z-index— y
+   encerraria a todas las ventanas dentro, con lo que ninguna podria ponerse por delante de un
+   modal Radzen (1250) por mucho z-index que se le diera. Suelta, cada ventana compite de tu a tu.
+   Su z-index se lo calcula DnzWindowManagerService por orden de apertura: 1200..1205 por debajo
+   del modal de arriba, 1260..1265 por encima.
+
+   `fixed` (antes `absolute` dentro de un host con inset:0): mismas coordenadas de viewport, asi
+   que ni el posicionamiento del servicio ni el arrastre por JS cambian. */
 .dnz-window {
-	position: absolute;
+	position: fixed;
 	display: flex;
 	flex-direction: column;
 	background: var(--dnz-win-bg);

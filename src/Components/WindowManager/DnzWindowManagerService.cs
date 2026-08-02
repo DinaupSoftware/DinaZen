@@ -12,9 +12,29 @@ public class DnzWindowManagerService : IDisposable
 	private readonly List<WindowState> _windows = new();
 	private readonly List<string> _pendingReposition = new();
 	private readonly DialogService _dialogService;
-	private int _zCounter = 100;
 	private int _openCount = 0;
-	private int _activeModals = 0;
+
+	// ── Orden de apilado ──────────────────────────────────────────────────────────────────
+	// Modales Radzen y ventanas beben del MISMO contador. Es lo unico que permite decidir quien
+	// va encima cuando se alternan (modal -> ventana -> modal -> ventana...): manda el ultimo en
+	// abrirse o en recibir foco, sin importar de que tipo sea.
+	private int _orderCounter = 0;
+
+	// Orden de cada modal abierto, en pila: el ultimo es el modal de mas arriba. Radzen cierra
+	// siempre el ultimo que abrio, por eso basta con quitar el final.
+	private readonly List<int> _modalOrders = new();
+
+	// Escalera UNICA: modales y ventanas se mezclan en una sola fila y cada uno recibe su peldano.
+	// Con bandas fijas (ventanas a 1200 o a 1260, modales todos a 1250) una ventana no puede
+	// quedarse ENTRE dos modales: al abrir el segundo modal se iba al fondo, por debajo del primero.
+	// Escala completa documentada en play/wwwroot/css/z-index.css.
+	private const int ZFloatingBase = 1240;
+	private const int ZFloatingMax = 1298;   // por debajo del ContextMenu de Radzen (1300)
+
+	// z-index que le toca a cada modal abierto, en su orden de apertura (= su orden en el DOM).
+	// Lo estampa DnzWindowHost sobre los .rz-dialog-wrapper: Radzen no ofrece forma de fijarlo.
+	private IReadOnlyList<int> _modalZIndexes = Array.Empty<int>();
+	public IReadOnlyList<int> ModalZIndexes => _modalZIndexes;
 
 	public const int MaxWindows = 6;
 	public IReadOnlyList<WindowState> Windows => _windows;
@@ -33,23 +53,48 @@ public class DnzWindowManagerService : IDisposable
 
 	private void HandleDialogOpen(string title, Type type, Dictionary<string, object> parameters, DialogOptions options)
 	{
-		_activeModals++;
+		// El modal recien abierto es lo mas nuevo que hay: se pone el ultimo de la fila.
+		_modalOrders.Add(++_orderCounter);
+		Restack();
+		NotifyChanged();
 	}
 
 	private void HandleDialogClose(dynamic result)
 	{
-		if (_activeModals > 0) _activeModals--;
-		// Al cerrar el ultimo modal, las ventanas que estaban encima ya no necesitan estarlo:
-		// si luego aparece otro modal, debe tapar a esas ventanas preexistentes.
-		if (_activeModals == 0)
+		if (_modalOrders.Count > 0) _modalOrders.RemoveAt(_modalOrders.Count - 1);
+		// Al cerrarse un modal, todo lo que estaba por encima baja un peldano y recupera su sitio.
+		Restack();
+		NotifyChanged();
+	}
+
+	/// <summary>
+	/// Reparte los peldanos de la escalera. Ventanas y modales van en la MISMA fila, ordenados por
+	/// su orden de apertura: la ultima cosa abierta (o la ultima ventana enfocada) arriba del todo.
+	/// Las ventanas se llevan su z-index puesto; los modales, en <see cref="ModalZIndexes"/>, que
+	/// DnzWindowHost estampa sobre el DOM de Radzen.
+	/// </summary>
+	private void Restack()
+	{
+		// null en Window = es un modal. Se mezclan para que un modal pueda quedar por debajo de una
+		// ventana que se abrio despues que el, y por encima de otra que se abrio antes.
+		var fila = _windows.Select(w => (w.Order, Window: w))
+			.Concat(_modalOrders.Select(o => (Order: o, Window: (WindowState)null)))
+			.OrderBy(s => s.Order)
+			.ToList();
+
+		var modalZ = new List<int>();
+
+		for (var i = 0; i < fila.Count; i++)
 		{
-			var reseted = false;
-			foreach (var win in _windows)
-			{
-				if (win.AboveModal) { win.AboveModal = false; reseted = true; }
-			}
-			if (reseted) NotifyChanged();
+			var zIndex = Math.Min(ZFloatingBase + i, ZFloatingMax);
+
+			if (fila[i].Window == null)
+				modalZ.Add(zIndex);
+			else
+				fila[i].Window.ZIndex = zIndex;
 		}
+
+		_modalZIndexes = modalZ;
 	}
 
 	public void Dispose()
@@ -238,10 +283,9 @@ public class DnzWindowManagerService : IDisposable
 			Height = Math.Round(h),
 			X = Math.Round(x),
 			Y = Math.Round(y),
-			ZIndex = ++_zCounter,
+			Order = ++_orderCounter,
 			IsActive = true,
 			IsMaximized = IsMobileViewport(),
-			AboveModal = _activeModals > 0,
 			Content = content
 		};
 
@@ -254,6 +298,7 @@ public class DnzWindowManagerService : IDisposable
 			win.IsActive = false;
 
 		_windows.Add(state);
+		Restack();
 		NotifyChanged();
 		return state.Id;
 	}
@@ -268,12 +313,13 @@ public class DnzWindowManagerService : IDisposable
 		// Activar la ultima ventana visible
 		var topWindow = _windows
 			.Where(w => w.IsMinimized == false)
-			.OrderByDescending(w => w.ZIndex)
+			.OrderByDescending(w => w.Order)
 			.FirstOrDefault();
 
 		if (topWindow != null)
 			topWindow.IsActive = true;
 
+		Restack();
 		NotifyChanged();
 	}
 
@@ -297,7 +343,10 @@ public class DnzWindowManagerService : IDisposable
 
 		win.IsActive = true;
 		win.IsMinimized = false;
-		win.ZIndex = ++_zCounter;
+		// Traer al frente es traer al frente de verdad: la ventana pasa a ser la ultima de la fila,
+		// tambien por delante de los modales que ya estaban abiertos.
+		win.Order = ++_orderCounter;
+		Restack();
 		NotifyChanged();
 	}
 
@@ -312,7 +361,7 @@ public class DnzWindowManagerService : IDisposable
 		// Activar la siguiente ventana visible
 		var topWindow = _windows
 			.Where(w => w.IsMinimized == false)
-			.OrderByDescending(w => w.ZIndex)
+			.OrderByDescending(w => w.Order)
 			.FirstOrDefault();
 
 		if (topWindow != null)

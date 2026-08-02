@@ -20,5 +20,8 @@
 		0 2px 8px rgba(0, 0, 0, 0.06),
 		0 8px 32px rgba(0, 0, 0, 0.08);
 	pointer-events: auto;
-	z-index: 1201;
+	/* 1210: por encima de la banda de ventanas que estan debajo del modal (1200..1205) y por
+	   debajo de los modales Radzen (1250). Antes era 1201, cuando las ventanas compartian un
+	   unico host con z-index 1200 fijo. */
+	z-index: 1210;
 }

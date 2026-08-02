@@ -4,20 +4,19 @@
 @inject IJSRuntime JS
 @inject Radzen.NotificationService NotificationService
 
-<div class="dnz-window-host dnz-window-host-normal">
-	@foreach (var win in WM.Windows)
-	{
-		if (win.AboveModal) continue;
-		<DnzWindow @key="win.Id" State="win" OnCloseRequest="HandleClose" OnMinimizeRequest="HandleMinimize" OnMaximizeRequest="HandleMaximize" OnFocusRequest="HandleFocus" />
-	}
-</div>
-<div class="dnz-window-host dnz-window-host-above-modal">
-	@foreach (var win in WM.Windows)
-	{
-		if (win.AboveModal == false) continue;
-		<DnzWindow @key="win.Id" State="win" OnCloseRequest="HandleClose" OnMinimizeRequest="HandleMinimize" OnMaximizeRequest="HandleMaximize" OnFocusRequest="HandleFocus" />
-	}
-</div>
+@* Las ventanas van SUELTAS, sin div que las envuelva. Dos razones, las dos duras:
+   1) Cualquier envoltorio con `position: fixed` crea contexto de apilado el solo —aunque no lleve
+      z-index— y encierra dentro a sus ventanas: ninguna podria ponerse por delante de un modal
+      Radzen (1250) por mucho z-index que se le pusiera. Sueltas, cada una compite de tu a tu.
+   2) Repartirlas en dos divs (uno por banda) obliga a MOVERLAS de div al cambiar de altura, y
+      moverlas las destruye y las vuelve a crear (Blazor no reutiliza el componente entre listas
+      distintas): se perderia lo tecleado dentro. Cambiar de altura tiene que ser cambiar un
+      numero, nunca cambiar de sitio.
+   El z-index de cada ventana lo calcula DnzWindowManagerService por orden de apertura. *@
+@foreach (var win in WM.Windows)
+{
+	<DnzWindow @key="win.Id" State="win" OnCloseRequest="HandleClose" OnMinimizeRequest="HandleMinimize" OnMaximizeRequest="HandleMaximize" OnFocusRequest="HandleFocus" />
+}
 @if (WM.Windows.Any())
 {
 	<DnzTaskbar />
@@ -71,6 +70,15 @@
 
 				_viewportInitialized = true;
 			}
+			catch { }
+		}
+
+		// En cada render: los modales de Radzen reciben el z-index que les toca en la fila. Tiene
+		// que ser aqui y no en el servicio porque el z-index de un dialogo solo se puede tocar
+		// sobre su DOM ya renderizado.
+		if (_jsModule != null)
+		{
+			try { await _jsModule.InvokeVoidAsync("applyDialogZIndex", WM.ModalZIndexes); }
 			catch { }
 		}
 	}
