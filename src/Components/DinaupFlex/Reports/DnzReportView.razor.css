@@ -27,12 +27,74 @@
     .dnz-report-body ::deep .rz-data-row { animation: none; }
 }
 
-/* Barra de paginación prev/next: sin total (sin COUNT), solo Anterior · Página N · Siguiente. */
+/* Barra de paginación prev/next: sin total (sin COUNT), solo Anterior · Página N · Siguiente.
+   Pegada a la derecha, en el mismo eje que la barra de herramientas de la cabecera (que va con
+   ms-auto): el mismo tipo de controles apoyado en dos bordes distintos se lee como dos diseños. */
 .dnz-report-pager {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: .5rem;
-    padding: .35rem 0;
+    padding: .35rem .5rem;
     border-top: 1px solid var(--rz-base-300);
+}
+
+/* En oscuro la escala se invierte: base-300 es tinta (#949494), no superficie, así que ese mismo
+   divisor pasa de raya fina a subrayado que se ve más que la propia barra. Baja a la escala de
+   bordes del tema (base-600 = el --bs-border-color de la app). */
+[data-bs-theme="dark"] .dnz-report-pager {
+    border-top-color: var(--rz-base-600);
+}
+
+/* El tamaño de página ES su propia etiqueta ("25 por página"): se lee como un rótulo y solo al
+   acercarse se ve que se abre. Sin caja en reposo porque es un ajuste que se toca una vez y no
+   tiene que competir con Anterior/Siguiente, que es lo que se pulsa el 90% del tiempo. Mismo molde
+   que .dnz-mns-drop (DnzMonthNavSelector): dos desplegables sutiles distintos en la misma app se
+   leen como un error, no como dos controles. */
+.dnz-report-size ::deep .rz-dropdown {
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 8px;
+    padding-inline: .4rem;
+    /* El rótulo crece con el número ("25 por página" 122px -> "3000 por página" 138px) y la barra va
+       alineada a la derecha: sin un suelo, elegir otro tamaño movería de sitio todo lo que hay a su
+       izquierda. 8.7rem es el más ancho de los siete, así que ninguno lo mueve. */
+    min-width: 8.7rem;
+    transition: background .12s;
+}
+
+.dnz-report-size ::deep .rz-dropdown-label {
+    color: var(--rz-text-secondary-color);
+    /* .875rem = el small de Bootstrap del "Página N · M filas" de al lado: una sola línea de texto. */
+    font-size: .875rem;
+    white-space: nowrap;
+}
+
+/* El triángulo, discreto: está para decir "esto se abre", no para pedir que lo abras. */
+.dnz-report-size ::deep .rz-dropdown-trigger {
+    color: var(--rz-text-tertiary-color);
+    opacity: .75;
+}
+
+/* Al acercarse (o al abrirlo) se enciende el fondo, y solo el fondo: el borde se queda transparente
+   porque aquí al lado no hay nada con caja —al revés que en DnzMonthNavSelector, donde el borde del
+   hover existe para igualar a las flechas— y un recuadro que aparece y desaparece llama más que el
+   propio control. El :not(.rz-state-disabled) no es decorativo: sube la especificidad lo justo para
+   ganar al :hover del tema de Radzen, que devolvería la caja gris de formulario. */
+.dnz-report-size ::deep .rz-dropdown:not(.rz-state-disabled):hover,
+.dnz-report-size ::deep .rz-dropdown:not(.rz-state-disabled).rz-dropdown-open {
+    background: var(--rz-base-100);
+}
+
+/* Resaltar al pasar por encima es separarse del fondo. En claro eso es un gris más claro; en oscuro
+   ese mismo gris sería un parche blanco, así que allí se sube un escalón de superficie en vez de
+   bajarlo (mismo criterio que DnzMonthNavSelector). */
+[data-bs-theme="dark"] .dnz-report-size ::deep .rz-dropdown:not(.rz-state-disabled):hover,
+[data-bs-theme="dark"] .dnz-report-size ::deep .rz-dropdown:not(.rz-state-disabled).rz-dropdown-open {
+    background: var(--rz-base-700);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dnz-report-size ::deep .rz-dropdown { transition: none; }
 }

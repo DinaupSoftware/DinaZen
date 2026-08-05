@@ -196,8 +196,14 @@
 				<RadzenButton data-testid="report-prev" Variant="Variant.Text" Icon="chevron_left" Text="Anterior" Size="ButtonSize.Small" Disabled=@(_skip == 0 || _isLoading) Click="@(() => GoToPageAsync(-1))" />
 				<span class="text-muted small" data-testid="report-pageinfo">Página @(_skip / _pageSize + 1) · @_rows.Count filas</span>
 				<RadzenButton data-testid="report-next" Variant="Variant.Text" Icon="chevron_right" Text="Siguiente" Size="ButtonSize.Small" Disabled=@(!_hasNext || _isLoading) Click="@(() => GoToPageAsync(1))" />
-				<span class="text-muted small ms-2">filas/página</span>
-				<RadzenDropDown TValue="int" data-testid="report-pagesize" Data="@PageSizeOptionsView" Value="@_pageSize" Change="@OnPageSizeChanged" Style="width:84px" Disabled=@_isLoading />
+				@* El desplegable dice su propia unidad ("25 por página"), así que ya no lleva etiqueta al lado:
+				   la etiqueta suelta + la caja gris eran dos cosas para decir una. El <span> está para que el
+				   CSS aislado alcance al .rz-dropdown, que lo pinta otro componente (igual que .dnz-ps-grain). *@
+				<span class="dnz-report-size">
+					<RadzenDropDown TValue="int" data-testid="report-pagesize" Data="@PageSizeOptionsView" Value="@_pageSize" Change="@OnPageSizeChanged" Style="width:auto" Disabled=@_isLoading title="Filas que se cargan en cada página">
+						<ValueTemplate Context="filas">@filas por página</ValueTemplate>
+					</RadzenDropDown>
+				</span>
 			</div>
 		</div>
 	</div>
