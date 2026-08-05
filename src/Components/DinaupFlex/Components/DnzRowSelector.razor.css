@@ -49,8 +49,12 @@
 }
 
 .dnz-rs-content:focus-visible {
-    outline: 2px solid var(--rz-primary, #4340d2);
+    outline: 2px solid #4340d2;
     outline-offset: -2px;
+}
+
+[data-bs-theme="dark"] .dnz-rs-content:focus-visible {
+    outline-color: var(--rz-primary);
 }
 
 /* Skeleton de precarga: vive dentro de la misma caja que el valor (misma geometria, cero salto). */

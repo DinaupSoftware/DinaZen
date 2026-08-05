@@ -73,7 +73,7 @@
     font-size: 12px;
     line-height: 48px;
     white-space: nowrap;
-    color: #475569;
+    color: var(--rz-text-secondary-color, #475569);
 }
 
 .gantt-rows {
@@ -90,8 +90,11 @@
     position: absolute;
     top: 6px;
     height: 28px;
-    background: var(--rz-primary, #2196F3);
-    color: var(--dnz-surface, #fff);
+    background: #2196F3;
+    /* El texto de la barra iba atado al color de fondo del panel: coincidia con
+       el blanco por casualidad. Va atado al azul que lleva debajo, que en oscuro
+       se aclara y pide tinta oscura encima. */
+    color: var(--rz-on-primary, #fff);
     font-size: 12px;
     border-radius: 4px;
     padding: 4px 8px;
@@ -107,3 +110,18 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
     }
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .gantt-group-row {
+    color: var(--rz-text-color);
+}
+
+[data-bs-theme="dark"] .gantt-item {
+    background: var(--rz-primary);
+}

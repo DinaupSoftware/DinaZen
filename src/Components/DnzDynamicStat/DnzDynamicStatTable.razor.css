@@ -1,4 +1,4 @@
-.dnz-stat-ranking {
+﻿.dnz-stat-ranking {
     padding: 8px;
     display: flex;
     flex-direction: column;
@@ -33,7 +33,7 @@
     border-radius: 50%;
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--rz-text-tertiary-color, #8b95a5);
+    color: #8b95a5;
     background: var(--rz-base-200, #f0f3f6);
     flex-shrink: 0;
 }
@@ -84,7 +84,7 @@
 
 .dnz-stat-pct {
     font-size: 0.75rem;
-    color: var(--rz-text-tertiary-color, #8b95a5);
+    color: #8b95a5;
     font-weight: 500;
     min-width: 45px;
     text-align: right;
@@ -128,7 +128,7 @@
     gap: 6px;
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--rz-text-tertiary-color, #8b95a5);
+    color: #8b95a5;
 }
 
 .dnz-stat-total-value {
@@ -146,4 +146,50 @@
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+/* ── En oscuro, los grises de arriba de la escala son TINTA, no fondo ──
+   Este ranking usa base-100 y base-200 como superficies (fila resaltada, circulo
+   del puesto, carril de la barra). En claro son grises casi blancos y funcionan;
+   en oscuro esos mismos numeros son el color del texto, asi que la fila se
+   pintaria casi blanca. Aqui van los tonos de fondo equivalentes. */
+[data-bs-theme="dark"] .dnz-stat-row:hover {
+    background: var(--rz-base-700);
+}
+
+[data-bs-theme="dark"] .dnz-stat-row.top-rank {
+    background: linear-gradient(90deg, var(--rz-base-700) 0%, transparent 100%);
+}
+
+/* El numero del puesto sube un escalon de tinta: sobre el circulo gris el tono
+   terciario se queda en 3,6:1 y no llega a leerse. */
+[data-bs-theme="dark"] .dnz-stat-rank {
+    background: var(--rz-base-600);
+    color: var(--rz-text-secondary-color);
+}
+
+[data-bs-theme="dark"] .dnz-stat-bar-bg {
+    background: var(--rz-base-600);
+}
+
+[data-bs-theme="dark"] .dnz-stat-total {
+    border-top-color: var(--rz-base-600);
+    background: var(--rz-base-700);
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+
+
+[data-bs-theme="dark"] .dnz-stat-pct {
+    color: var(--rz-text-tertiary-color);
+}
+
+[data-bs-theme="dark"] .dnz-stat-total-label {
+    color: var(--rz-text-tertiary-color);
 }

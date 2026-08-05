@@ -219,3 +219,65 @@
 
 /* Hide resize handles when maximized */
 .dnz-win-maximized .dnz-win-resize { display: none; }
+
+
+/* ================================================================
+   TEMA OSCURO
+   ================================================================
+   Una ventana FLOTA por encima de la pagina. En oscuro no puede pintarse
+   del mismo color que el lienzo: si lo hiciera se perderia el limite y
+   dejaria de leerse como ventana. Se pinta un escalon por encima, como un
+   papel levantado sobre la mesa.
+
+   Y el separador cambia de naturaleza: en claro lo daba la sombra negra,
+   que sobre fondo oscuro no se ve. Pasa a darlo un filo claro de un pixel;
+   la sombra se queda solo para dar profundidad.
+   ================================================================ */
+
+[data-bs-theme="dark"] {
+	--dnz-win-bg: var(--rz-base-700, #2d2d2d);
+	--dnz-win-border: rgba(255, 255, 255, .10);
+	--dnz-win-shadow: 0 4px 16px rgba(0, 0, 0, .45), 0 1px 4px rgba(0, 0, 0, .35);
+	--dnz-win-shadow-focused: 0 8px 32px rgba(0, 0, 0, .60), 0 2px 8px rgba(0, 0, 0, .45);
+	/* Se conserva la relacion del tema claro: la barra de la ventana activa es
+	   del color de la ventana, y la de las de atras, un tono aparte. */
+	--dnz-win-titlebar-bg: var(--rz-base-800, #252525);
+	--dnz-win-titlebar-bg-active: var(--rz-base-700, #2d2d2d);
+	--dnz-win-titlebar-border: rgba(255, 255, 255, .08);
+}
+
+/* Botones minimizar / maximizar / cerrar: el gris medio del tema claro se
+   hunde en la barra oscura, asi que la tinta sale de la punta clara de la
+   escala. Se mantiene el mismo salto al pasar el raton. */
+[data-bs-theme="dark"] .dnz-win-btn {
+	color: var(--rz-base-300, #949494);
+}
+
+[data-bs-theme="dark"] .dnz-win-btn:hover {
+	/* Sobre fondo oscuro un velo negro no existe: el realce ilumina, no oscurece */
+	background: rgba(255, 255, 255, .08);
+	color: var(--rz-base-100, #d4d4d4);
+}
+
+[data-bs-theme="dark"] .dnz-window:not(.dnz-win-focused) .dnz-win-btn {
+	color: var(--rz-base-400, #6e6e6e);
+}
+
+/* Titulo. Se respeta la jerarquia de siempre —ventana activa fuerte, ventanas
+   de atras apagadas— porque es como el usuario sabe de un vistazo en cual esta
+   escribiendo. */
+[data-bs-theme="dark"] .dnz-win-title-main {
+	color: var(--rz-base-50, #f5f5f5);
+}
+
+[data-bs-theme="dark"] .dnz-win-title-sub {
+	color: var(--rz-base-200, #b3b3b3);
+}
+
+[data-bs-theme="dark"] .dnz-window:not(.dnz-win-focused) .dnz-win-title-main {
+	color: var(--rz-base-300, #949494);
+}
+
+[data-bs-theme="dark"] .dnz-window:not(.dnz-win-focused) .dnz-win-title-sub {
+	color: var(--rz-base-400, #6e6e6e);
+}

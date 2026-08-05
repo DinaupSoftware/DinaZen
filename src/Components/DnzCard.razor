@@ -1,0 +1,73 @@
+@* DnzCard - A card that knows how deep it is nested.
+
+   RadzenCard always renders the same elevated surface, so a card inside a card
+   inside a card stacks shadow on shadow and the grouping stops reading. DnzCard
+   cascades its own depth to its children, so nesting resolves itself. The levels
+   alternate rather than pile up, which is what lets it survive any depth:
+
+       level 0      the usual elevated card
+       odd levels   a faint neutral veil, no border
+       even levels  back to the card background, separated by a hairline
+
+   So a veil never sits on a veil and the tone never keeps darkening.
+
+   Set Variant explicitly to opt out at any level. Everything else (Style, class,
+   title, data-* ...) is forwarded to RadzenCard untouched. *@
+
+<CascadingValue Value="@ChildDepth" Name="DnzCardDepth" IsFixed="true">
+	<RadzenCard Variant="@ResolvedVariant" Style="@Style" @attributes="@mergedAttributes">
+		@ChildContent
+	</RadzenCard>
+</CascadingValue>
+
+@code {
+	/// <summary>Nesting level, supplied by the enclosing DnzCard. 0 when there is none.</summary>
+	[CascadingParameter(Name = "DnzCardDepth")]
+	public int Depth { get; set; }
+
+	/// <summary>
+	/// Forces a specific appearance. Leave unset to let the nesting level pick it.
+	/// </summary>
+	[Parameter] public Radzen.Variant? Variant { get; set; }
+
+	/// <summary>Inline styles, forwarded to the underlying card.</summary>
+	[Parameter] public string Style { get; set; } = string.Empty;
+
+	/// <summary>Card content.</summary>
+	[Parameter] public RenderFragment ChildContent { get; set; }
+
+	/// <summary>Any other attribute (class, title, data-*) is passed straight through.</summary>
+	[Parameter(CaptureUnmatchedValues = true)]
+	public IReadOnlyDictionary<string, object> Attributes { get; set; }
+
+	private Dictionary<string, object> mergedAttributes = new();
+
+	/// <summary>Depth handed down to nested cards.</summary>
+	private int ChildDepth => Depth + 1;
+
+	// Every nested level is Flat. Outlined would not work for the even ones:
+	// Radzen paints it with a transparent background, so instead of returning to
+	// the card surface it would let the parent's veil show through.
+	private Radzen.Variant ResolvedVariant =>
+		Variant ?? (Depth == 0 ? Radzen.Variant.Filled : Radzen.Variant.Flat);
+
+	private string LevelClass =>
+		Depth == 0 ? "dnz-card-level-0"
+		: Depth % 2 == 1 ? "dnz-card-veil"
+		: "dnz-card-plain";
+
+	protected override void OnParametersSet()
+	{
+		// The caller's class has to be merged rather than replaced: passing both an
+		// explicit class and a splat containing one renders the attribute twice.
+		mergedAttributes = Attributes == null
+			? new Dictionary<string, object>()
+			: new Dictionary<string, object>(Attributes);
+
+		string callerClass = mergedAttributes.ContainsKey("class")
+			? mergedAttributes["class"]?.ToString() ?? string.Empty
+			: string.Empty;
+
+		mergedAttributes["class"] = $"dnz-card {LevelClass} {callerClass}".TrimEnd();
+	}
+}

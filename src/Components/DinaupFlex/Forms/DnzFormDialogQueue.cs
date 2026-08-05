@@ -19,9 +19,9 @@ namespace DinaZen.Components.DinaupFlex.Forms;
 /// ejecuta: las encola y las manda en el JSON de cada respuesta. Esta clase es
 /// el consumidor de esas colas.
 ///
-/// Vive aparte porque la comparten DnzFormView y DnzFormByTokenView; los
+/// Vive aparte de DnzFormView porque tambien la usan sus subventanas; los
 /// mensajes (DialogList_Msgbox) NO se procesan aqui, se pintan en el markup de
-/// cada vista porque son estado declarativo, no eventos.
+/// la vista porque son estado declarativo, no eventos.
 ///
 /// Escenarios cubiertos:
 ///   E1 - abrirregistros  -> interceptor del host, o formulario por seccion+registro
@@ -85,10 +85,10 @@ internal static class DnzFormDialogQueue
 			// Sin el padre el server no la materializa y responde "caducada".
 			var tokenCompuesto = actual.Token.STR() + "|" + form.Token;
 
-			await dialogService.OpenAsync<DnzFormByTokenView>("", new Dictionary<string, object>
+			await dialogService.OpenAsync<DnzFormView>("", new Dictionary<string, object>
 			{
-				{ nameof(DnzFormByTokenView.Client), client },
-				{ nameof(DnzFormByTokenView.Token), tokenCompuesto }
+				{ nameof(DnzFormView.Client), client },
+				{ nameof(DnzFormView.Token), tokenCompuesto }
 			}, new DialogOptions
 			{
 				Width = "90%",

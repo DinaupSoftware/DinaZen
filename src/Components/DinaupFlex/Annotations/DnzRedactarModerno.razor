@@ -1,13 +1,13 @@
 @namespace DinaZen.Components.DinaupFlex.Annotations
 
 <div class="d-flex gap-1" @attributes="AdditionalAttributes">
-	<RadzenCard Variant="Variant.Outlined" class="flex-grow-1">
+	<DnzCard Variant="Variant.Outlined" class="flex-grow-1">
 		<h6 class="mb-2">Agregar un comentario</h6>
 		<RadzenTextArea @bind-Value=@mensaje Placeholder="Escribe un comentario..." Style="min-height: 100px; width: 100%;" data-testid="modern-compose-textarea" />
 		<div class="d-flex justify-content-end mt-2">
 			<RadzenButton Icon="send" Text="Comentar" Click=@GuardarComentarioAsync IsBusy=@enviando Variant="Variant.Text" data-testid="modern-compose-send" />
 		</div>
-	</RadzenCard>
+	</DnzCard>
 </div>
 
 

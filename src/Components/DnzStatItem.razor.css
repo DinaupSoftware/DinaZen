@@ -4,7 +4,12 @@
 
 .dz-stat-label {
 	font-size: 0.75rem;
-	color: var(--rz-text-disabled-color, #6c757d);
+	color: #6c757d;
 	margin: 0;
 	padding: 0;
+}
+
+/* En claro el gris de siempre; solo el tema oscuro pasa por el token. */
+[data-bs-theme="dark"] .dz-stat-label {
+	color: var(--rz-text-disabled-color);
 }

@@ -25,3 +25,23 @@
 	   unico host con z-index 1200 fijo. */
 	z-index: 1210;
 }
+
+
+/* ================================================================
+   TEMA OSCURO
+   ================================================================
+   La barra flota sobre la pagina y su fondo es un cristal esmerilado. Se
+   mantiene el mismo cristal y la MISMA transparencia (0,82): lo unico que
+   cambia es que el blanco pasa a ser la tinta de las superficies elevadas,
+   para que la barra siga estando por encima de todo y no se funda con el
+   lienzo. Con fondo oscuro la sombra negra ya no separa nada, asi que el
+   limite lo marca un filo claro y la sombra solo da profundidad.
+   ================================================================ */
+
+[data-bs-theme="dark"] .dnz-taskbar {
+	background: rgba(45, 45, 45, 0.82);
+	border-color: rgba(255, 255, 255, 0.10);
+	box-shadow:
+		0 2px 8px rgba(0, 0, 0, 0.35),
+		0 8px 32px rgba(0, 0, 0, 0.50);
+}

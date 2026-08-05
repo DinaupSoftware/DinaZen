@@ -155,6 +155,7 @@ Editor visual key/value que serializa a JSON plano. Botones Copy/Paste (acepta J
 - `DnzDateRangeSelector`: presets (Hoy, Ayer, Últimos 7/30 días, mes, trimestre, año, Personalizado) emitiendo `OnRangeChanged:(DateOnly From, DateOnly To)`. Two-way en `SelectedPreset:DateRangePreset`.
 - `DnzDateTimeRangeSelector`: igual pero con `DateTime` (To = fin de día).
 - `DnzDateRangeCard` (~5 usos): card completo = `DnzCardTitle` + selector de rango + área de contenido con `Loading:bool` + resumen del rango. Emite `OnRangeChanged:(DateTime,DateTime)` (To = fin de día).
+- `DnzMonthNavSelector`: tira mínima `[<] Enero [>]` para navegar mes a mes (el año solo se escribe si no es el actual; etiqueta pulsable = volver a hoy). Two-way `Value:DateOnly` + `ValueChanged` (emite siempre el día 1); flechas sin límites.
 
 ### DnzStepper / DnzStepperStep
 Stepper vertical con línea conectora. `DnzStepper` envuelve N `DnzStepperStep` (`Index:int`, `ChildContent`).

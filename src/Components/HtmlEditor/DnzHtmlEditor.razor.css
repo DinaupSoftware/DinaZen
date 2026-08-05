@@ -5,3 +5,10 @@
     border-radius: 0 0 4px 4px;
     background: var(--rz-base-100);
 }
+
+/* La barra de acciones va un escalón por encima del editor. En claro eso es un
+   gris muy suave; en oscuro la misma escala da casi blanco, así que baja a la
+   superficie elevada del tema. */
+[data-bs-theme="dark"] .dnz-html-editor-toolbar {
+    background: var(--rz-base-700);
+}

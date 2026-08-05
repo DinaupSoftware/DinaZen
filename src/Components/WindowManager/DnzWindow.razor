@@ -17,7 +17,9 @@
 			}
 			else if (State.Icon.IsNotEmpty())
 			{
-				<RadzenIcon Icon="@State.Icon" Style="font-size:16px; color:#555;" />
+				@* El gris va por token: es el mismo tono en claro y en oscuro se
+				   invierte solo, sin lo cual el icono desaparece en la barra oscura *@
+				<RadzenIcon Icon="@State.Icon" Style="font-size:16px; color:var(--rz-text-secondary-color, #555);" />
 			}
 			<div class="dnz-win-title-text">
 				@if (State.Subtitle.IsNotEmpty())

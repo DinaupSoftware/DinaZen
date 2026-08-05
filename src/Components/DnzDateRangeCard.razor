@@ -1,6 +1,6 @@
 @* DnzDateRangeCard - Card with integrated date range selector and loading state *@
 
-<RadzenCard @attributes="AdditionalAttributes">
+<DnzCard @attributes="AdditionalAttributes">
 	<DnzCardTitle Title="@Title" Icon="@Icon" />
 
 	<DnzDateRangeSelector OnRangeChanged="@HandleRangeChanged"
@@ -42,7 +42,7 @@
 			</div>
 		</div>
 	}
-</RadzenCard>
+</DnzCard>
 
 @code {
 	[Parameter] public string Title { get; set; } = "";

@@ -259,6 +259,12 @@ window.dnzUppy_initDashboard = function (selector, dotNetRef, options) {
         inline: false,
         target: document.body,
         trigger: selector,
+        // Uppy trae su propio modo oscuro; solo hay que decirle cual toca. Se lee
+        // el tema de la propia pagina en vez de usar 'auto', porque 'auto' sigue
+        // la preferencia del SISTEMA operativo y aqui manda el interruptor de la
+        // aplicacion: con el sistema en claro y la app en oscuro, la ventana de
+        // subir archivos saldria blanca en medio de todo lo demas.
+        theme: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light',
         showProgressDetails: true,
         proudlyDisplayPoweredByUppy: false,
         closeModalOnClickOutside: true,

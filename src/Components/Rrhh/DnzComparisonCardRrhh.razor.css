@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════════════════════
    ComparisonCardRrhh - Timeline visual layout
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -6,10 +6,18 @@
     display: flex;
     flex-direction: column;
     border-radius: 10px;
-    border: 1px solid var(--dnz-header-border, #eef1f5);
-    background: var(--dnz-surface, #fff);
+    border: 1px solid var(--rz-base-200, #eef1f5);
+    background: var(--rz-base-background-color, #fff);
     overflow: hidden;
     transition: box-shadow 0.2s ease;
+}
+
+/* La ficha es una superficie, no tinta. En oscuro la escala de grises se lee al
+   revés, así que hay que bajarla a los tonos de fondo o la ficha saldría clara
+   sobre una pantalla oscura. */
+[data-bs-theme="dark"] .comparison-card {
+    background: var(--rz-base-800);
+    border-color: var(--rz-base-600);
 }
 
 .comparison-card:hover {
@@ -18,10 +26,10 @@
 
 /* ═══════════ Status accent ═══════════ */
 
-.comparison-status-match  { border-left: 3px solid var(--dnz-success-color-soft, #4caf50); }
-.comparison-status-absent { border-left: 3px solid var(--dnz-danger-color-alt, #ef4444); }
-.comparison-status-warning { border-left: 3px solid var(--dnz-warning-color, #f59e0b); }
-.comparison-status-unknown { border-left: 3px solid var(--dnz-header-border, #ddd); }
+.comparison-status-match  { border-left: 3px solid #4caf50; }
+.comparison-status-absent { border-left: 3px solid #ef4444; }
+.comparison-status-warning { border-left: 3px solid #f59e0b; }
+.comparison-status-unknown { border-left: 3px solid var(--rz-base-300, #ddd); }
 
 /* ═══════════ Header ═══════════ */
 
@@ -31,8 +39,16 @@
     justify-content: space-between;
     gap: 8px;
     padding: 10px 16px;
-    background: linear-gradient(135deg, var(--dnz-surface-raised, #f8fafb) 0%, var(--dnz-header-bg, #fff) 100%);
-    border-bottom: 1px solid var(--dnz-header-border, #eef1f5);
+    background: linear-gradient(135deg, var(--rz-base-50, #f8fafb) 0%, var(--rz-base-background-color, #fff) 100%);
+    border-bottom: 1px solid var(--rz-base-200, #eef1f5);
+}
+
+/* En oscuro el degradado clarísimo de la cabecera se cambia por la superficie
+   elevada del tema: sigue destacando sobre el cuerpo de la ficha sin encender
+   media pantalla. */
+[data-bs-theme="dark"] .comparison-header {
+    background: var(--rz-base-700);
+    border-bottom-color: var(--rz-base-600);
 }
 
 .comparison-header-left {
@@ -56,10 +72,10 @@
     flex-shrink: 0;
 }
 
-.comparison-status-match  .comparison-status-dot { background: var(--dnz-success-color-soft, #4caf50); box-shadow: 0 0 0 3px rgba(76,175,80,.15); }
-.comparison-status-absent .comparison-status-dot { background: var(--dnz-danger-color-alt, #ef4444); box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
-.comparison-status-warning .comparison-status-dot { background: var(--dnz-warning-color, #f59e0b); box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
-.comparison-status-unknown .comparison-status-dot { background: #cbd5e1; }
+.comparison-status-match  .comparison-status-dot { background: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,.15); }
+.comparison-status-absent .comparison-status-dot { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
+.comparison-status-warning .comparison-status-dot { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+.comparison-status-unknown .comparison-status-dot { background: var(--rz-base-300, #cbd5e1); }
 
 .comparison-title {
     font-size: 13px;
@@ -78,10 +94,16 @@
     font-weight: 600;
     padding: 2px 8px;
     color: var(--dnz-label-color, #6b7280);
-    background: var(--dnz-tab-content-bg, #f0f1f3);
-    border: 1px solid var(--dnz-header-border, #eef1f5);
+    background: var(--rz-base-100, #f0f1f3);
+    border: 1px solid var(--rz-base-200, #eef1f5);
     letter-spacing: 0.03em;
     white-space: nowrap;
+}
+
+/* El chip de categoría también es superficie: en oscuro toma el gris de chip. */
+[data-bs-theme="dark"] .comparison-category-badge {
+    background: var(--rz-base-600);
+    border-color: var(--rz-base-500);
 }
 
 /* ═══════════ Badges ═══════════ */
@@ -102,7 +124,17 @@
 .comparison-badge-danger  { color: #b91c1c; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
 .comparison-badge-warning { color: #92400e; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
 .comparison-badge-info    { color: #0369a1; background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); }
-.comparison-badge-neutral { color: var(--dnz-label-color, #6b7280); background: var(--dnz-tab-content-bg, #f0f1f3); }
+.comparison-badge-neutral { color: var(--dnz-label-color, #6b7280); background: var(--rz-base-100, #f0f1f3); }
+
+/* Los pastel de estado no se tocan en claro: son la identidad de la ficha y el
+   tono exacto está elegido. Lo que no sirve en oscuro es el fondo casi blanco,
+   así que cada estado pasa a su tinte translúcido del tema, con la tinta que le
+   corresponde. Esa pareja ya viene medida y se lee sobre gris. */
+[data-bs-theme="dark"] .comparison-badge-success { color: var(--rz-on-success-lighter); background: var(--rz-success-lighter); }
+[data-bs-theme="dark"] .comparison-badge-danger  { color: var(--rz-on-danger-lighter);  background: var(--rz-danger-lighter); }
+[data-bs-theme="dark"] .comparison-badge-warning { color: var(--rz-on-warning-lighter); background: var(--rz-warning-lighter); }
+[data-bs-theme="dark"] .comparison-badge-info    { color: var(--rz-on-info-lighter);    background: var(--rz-info-lighter); }
+[data-bs-theme="dark"] .comparison-badge-neutral { background: var(--rz-base-600); }
 
 /* ═══════════ Timeline area ═══════════ */
 
@@ -137,9 +169,15 @@
 .tl-track {
     position: relative;
     height: 36px;
-    background: var(--dnz-tab-content-bg, #f0f1f3);
+    background: var(--rz-base-100, #f0f1f3);
     border-radius: 6px;
     overflow: hidden;
+}
+
+/* La pista donde caen las barras es fondo, no tinta: en oscuro se hunde al gris
+   de campo para que las barras de color sigan destacando encima. */
+[data-bs-theme="dark"] .tl-track {
+    background: var(--rz-base-600);
 }
 
 /* Grid lines */
@@ -149,9 +187,15 @@
     top: 0;
     bottom: 0;
     width: 1px;
-    background: var(--dnz-header-border, #e2e8f0);
+    background: var(--rz-base-200, #e2e8f0);
     opacity: 0.5;
     pointer-events: none;
+}
+
+/* Las guías son una referencia de fondo: sobre la pista oscura hay que apagarlas
+   un escalón, si no se convierten en el elemento más llamativo de la ficha. */
+[data-bs-theme="dark"] .tl-gridline {
+    background: var(--rz-base-400);
 }
 
 /* Bars */
@@ -199,7 +243,11 @@
     gap: 12px;
     margin-top: 10px;
     padding-top: 8px;
-    border-top: 1px solid var(--dnz-header-border, #eef1f5);
+    border-top: 1px solid var(--rz-base-200, #eef1f5);
+}
+
+[data-bs-theme="dark"] .tl-legend {
+    border-top-color: var(--rz-base-600);
 }
 
 .tl-legend-item {
@@ -271,6 +319,10 @@
 .diff-chip-early   { color: #0369a1; background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); }
 .diff-chip-late    { color: #92400e; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
 
+[data-bs-theme="dark"] .diff-chip-success { color: var(--rz-on-success-lighter); background: var(--rz-success-lighter); }
+[data-bs-theme="dark"] .diff-chip-early   { color: var(--rz-on-info-lighter);    background: var(--rz-info-lighter); }
+[data-bs-theme="dark"] .diff-chip-late    { color: var(--rz-on-warning-lighter); background: var(--rz-warning-lighter); }
+
 /* ═══════════ Empty states ═══════════ */
 
 .comparison-empty-state {
@@ -293,6 +345,17 @@
     font-style: normal;
 }
 
+/* Aquí el aviso va suelto sobre la ficha, sin pastel detrás. En claro se deja el
+   tono apagado de siempre: el amarillo del tema no se leería sobre blanco. En
+   oscuro sí es el color del tema el que se lee. */
+[data-bs-theme="dark"] .comparison-empty-danger {
+    color: var(--rz-danger);
+}
+
+[data-bs-theme="dark"] .comparison-empty-warning {
+    color: var(--rz-warning);
+}
+
 /* ═══════════ Contextual alerts ═══════════ */
 
 .comparison-alert {
@@ -302,7 +365,11 @@
     padding: 8px 16px;
     font-size: 12px;
     font-weight: 500;
-    border-top: 1px solid var(--dnz-header-border, #eef1f5);
+    border-top: 1px solid var(--rz-base-200, #eef1f5);
+}
+
+[data-bs-theme="dark"] .comparison-alert {
+    border-top-color: var(--rz-base-600);
 }
 
 .comparison-alert-danger {
@@ -315,6 +382,18 @@
     color: #92400e;
 }
 
+/* Mismo criterio que en las píldoras: el pastel de claro se respeta, y en oscuro
+   la franja pasa al tinte del tema. */
+[data-bs-theme="dark"] .comparison-alert-danger {
+    background: var(--rz-danger-lighter);
+    color: var(--rz-on-danger-lighter);
+}
+
+[data-bs-theme="dark"] .comparison-alert-warning {
+    background: var(--rz-warning-lighter);
+    color: var(--rz-on-warning-lighter);
+}
+
 /* ═══════════ Responsive ═══════════ */
 
 @media (max-width: 480px) {
@@ -322,4 +401,42 @@
         flex-direction: column;
         gap: 6px;
     }
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .comparison-status-match  .comparison-status-dot {
+    background: var(--rz-success);
+}
+
+[data-bs-theme="dark"] .comparison-status-absent .comparison-status-dot {
+    background: var(--rz-danger);
+}
+
+[data-bs-theme="dark"] .comparison-status-warning .comparison-status-dot {
+    background: var(--rz-warning);
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .comparison-status-match {
+    border-left-color: var(--rz-success);
+}
+
+[data-bs-theme="dark"] .comparison-status-absent {
+    border-left-color: var(--rz-danger);
+}
+
+[data-bs-theme="dark"] .comparison-status-warning {
+    border-left-color: var(--rz-warning);
 }

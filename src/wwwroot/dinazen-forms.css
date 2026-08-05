@@ -1,4 +1,4 @@
-/* ================================================================
+﻿/* ================================================================
    DinaZen Forms — dinazen-forms.css
    ================================================================
    Single source of truth for all dynamic-form styling.
@@ -55,9 +55,9 @@
     --dnz-input-bg:            #fff;
     --dnz-input-border:        #dfe5ec;
     --dnz-input-border-hover:  #c4ccda;
-    --dnz-input-color:         var(--rz-text-color, #1b1d20);
-    --dnz-input-placeholder:   var(--rz-text-disabled-color, #bdbdbd);
-    --dnz-label-color:         var(--rz-text-secondary-color, #6b7280);
+    --dnz-input-color: #1b1d20;
+    --dnz-input-placeholder: #bdbdbd;
+    --dnz-label-color: #6b7280;
     --dnz-surface:             #fff;
     --dnz-surface-raised:      #f8fafb;
 
@@ -136,6 +136,115 @@
 }
 
 
+/* ╔═══════════════════════════════════════════════════════════════════════════
+   ║  1-bis. LOS MISMOS TOKENS, EN TEMA OSCURO
+   ╚═══════════════════════════════════════════════════════════════════════════
+   Los 42 tokens de arriba están escritos en claro y fijos, y de ellos cuelgan
+   231 reglas: todos los campos, etiquetas, estados y superficies del sistema de
+   formularios de la plataforma. Sin este bloque, con el tema oscuro puesto el
+   formulario entero se pinta en claro — y el caso peor no es que se vea raro:
+   `--dnz-input-bg` vale blanco y el valor del campo hereda la tinta del tema,
+   que en oscuro es clara, así que **se escribe en blanco sobre blanco**.
+
+   Se repinta aquí la paleta, no las 231 reglas. Es el mismo truco que usa
+   Radzen con su hoja oscura, y por eso cabe en una pantalla.
+
+   El tema claro no se toca: estas reglas solo se activan cuando la aplicación
+   pone data-bs-theme="dark" en el <html>. Las apps que no lo hacen no ven nada.
+
+   Contraste medido de las parejas que importan (AA pide 4,5:1 en texto y 3:1 en
+   iconos y bordes): valor del campo 7,4:1 · pista 5,3:1 · etiqueta 7,3:1 ·
+   texto de ayuda 5,1:1 · campo bloqueado 5,5:1 · icono de bloqueo 3,3:1 · y los
+   cuatro estados sobre su propio velo, entre 6,3:1 y 7,0:1. */
+[data-bs-theme="dark"] {
+    /* ── Superficies: de más honda a más cercana ── */
+    --dnz-tab-content-bg:      var(--rz-base-900);   /* lienzo bajo las pestañas */
+    --dnz-surface:             var(--rz-base-800);   /* tarjeta de campos       */
+    --dnz-header-bg:           var(--rz-base-800);
+    --dnz-surface-raised:      var(--rz-base-700);   /* lo que se despega       */
+    --dnz-tab-hover-bg:        var(--rz-base-700);
+    --dnz-input-bg:            var(--rz-base-600);   /* el campo, un punto más claro */
+
+    /* ── Bordes ── */
+    --dnz-input-border:        var(--rz-base-500);
+    --dnz-input-border-hover:  var(--rz-base-400);
+    --dnz-header-border:       var(--rz-base-600);
+
+    /* ── Tintas ── */
+    --dnz-input-color:         var(--rz-text-color);
+    --dnz-input-placeholder:   var(--rz-base-200);
+    --dnz-label-color:         var(--rz-text-secondary-color);
+    --dnz-muted-color:         var(--rz-text-secondary-color);
+    --dnz-text-faint:          var(--rz-text-tertiary-color);
+    --dnz-neutral-color:       var(--rz-base-300);
+    --dnz-neutral-color-dark:  var(--rz-base-200);
+
+    /* ── Campo modificado: el lavado azul se convierte en velo azul ── */
+    --dnz-modified-bg:         rgba(77, 171, 245, .16);
+    --dnz-modified-border:     var(--rz-info);
+    --dnz-modified-color:      var(--rz-info-light);
+    --dnz-modified-dot:        var(--rz-info);
+
+    /* ── Campo bloqueado: se HUNDE respecto al resto, igual que en claro ──
+          El rayado diagonal estaba hecho con sombra; sobre tinta no se ve, así
+          que pasa a hacerse con luz de la misma fuerza. */
+    --dnz-locked-bg:           var(--rz-base-900);
+    --dnz-locked-bg-stripe:    repeating-linear-gradient(
+                                   -45deg,
+                                   transparent,
+                                   transparent 4px,
+                                   rgba(255, 255, 255, .03) 4px,
+                                   rgba(255, 255, 255, .03) 8px
+                               );
+    --dnz-locked-border:       var(--rz-base-600);
+    --dnz-locked-color:        var(--rz-base-300);
+    --dnz-locked-label:        var(--rz-base-300);
+    --dnz-locked-icon-color:   var(--rz-base-400);
+
+    /* ── Campo erróneo ── */
+    --dnz-error-bg:            rgba(248, 113, 113, .16);
+    --dnz-error-border:        var(--rz-danger);
+    --dnz-error-color:         var(--rz-danger-light);
+    --dnz-error-ring:          0 0 0 3px rgba(248, 113, 113, .22);
+
+    /* ── Paleta de estado (la usan spans, badges, progreso y gráficas) ──
+          Los tonos "-dark" están pensados para leerse sobre papel blanco; sobre
+          tinta hay que subirlos, no bajarlos. Por eso apuntan a la variante
+          clara del color, que es lo contrario de su nombre — a propósito. */
+    --dnz-success-color:       var(--rz-success);
+    --dnz-success-color-soft:  var(--rz-success);
+    --dnz-success-color-dark:  var(--rz-success-light);
+    --dnz-success-bg:          rgba(102, 187, 106, .16);
+    --dnz-danger-color:        var(--rz-danger);
+    --dnz-danger-color-alt:    var(--rz-danger);
+    --dnz-danger-color-soft:   var(--rz-danger);
+    --dnz-danger-color-dark:   var(--rz-danger-light);
+    --dnz-warning-color:       var(--rz-warning);
+    --dnz-warning-color-alt:   var(--rz-warning);
+    --dnz-warning-color-dark:  var(--rz-warning-light);
+    --dnz-info-color:          var(--rz-info);
+    --dnz-info-color-dark:     var(--rz-info-light);
+
+    /* ── Sombras y anillos: sobre tinta el negro suave no separa nada ── */
+    --dnz-input-shadow:        0 1px 2px rgba(0, 0, 0, .35);
+    --dnz-focus-ring:          0 0 0 3px rgba(91, 160, 242, .30);
+    --dnz-card-shadow:         0 1px 3px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .35);
+    --dnz-popup-shadow:        0 8px 30px rgba(0, 0, 0, .60), 0 2px 8px rgba(0, 0, 0, .45);
+
+    /* El puente con los nombres antiguos que usa play, igual que en claro. */
+    --controlu-background:            var(--dnz-input-bg);
+    --controlu-color:                 var(--dnz-input-color);
+    --controlu-background-modified:   var(--dnz-modified-bg);
+    --controlu-color-modified:        var(--dnz-modified-color);
+    --controlu-background-locked:     var(--dnz-locked-bg);
+    --controlu-color-locked:          var(--dnz-locked-color);
+    --controlu-border-locked:         1px solid var(--dnz-locked-border);
+    --controlu-background-incorrect:  var(--dnz-error-bg);
+    --controlu-color-incorrect:       var(--dnz-error-color);
+    --controlu-border-incorrect:      1px solid var(--dnz-error-border);
+}
+
+
 /* ================================================================
    2. SCROLLBAR
    ================================================================ */
@@ -158,6 +267,18 @@
     background: rgba(0, 0, 0, .25);
 }
 
+/* La barra de desplazamiento es una sombra negra suave sobre el papel del
+   formulario. Con el tema oscuro esa sombra cae sobre un fondo ya oscuro y el
+   tirador desaparecía: no se veía por dónde iba el scroll. Se invierte el
+   sentido y se sube a los grises de la escala. */
+[data-bs-theme="dark"] .dnz-form-view ::-webkit-scrollbar-thumb {
+    background: var(--rz-base-500);
+}
+
+[data-bs-theme="dark"] .dnz-form-view ::-webkit-scrollbar-thumb:hover {
+    background: var(--rz-base-400);
+}
+
 
 /* ================================================================
    3. FORM VIEW LAYOUT  (.dnz-form-view)
@@ -173,6 +294,14 @@
     border-radius: var(--dnz-container-radius);
     border: 1px solid var(--dnz-header-border);
     box-shadow: var(--dnz-card-shadow);
+}
+
+/* El formulario es el LIENZO sobre el que se posan las tarjetas de campos, así
+   que va un escalón por debajo de ellas: en claro es el gris de fondo de
+   siempre y en oscuro, la superficie más honda. Si se queda en #f4f4f4, con el
+   tema oscuro el formulario entero sale en un rectángulo claro. */
+[data-bs-theme="dark"] .dnz-form-view {
+    background: var(--rz-base-900, #1e1e1e);
 }
 
 .dnz-form-header {
@@ -955,6 +1084,19 @@ textarea.rz-textarea {
     background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
 }
 
+/* La cabecera avisa de si estás dando de alta o editando con un lavado de color
+   que se apaga hacia el blanco. En oscuro se conserva el mismo lavado y lo que
+   cambia es hacia dónde se apaga: hacia la superficie del formulario en vez de
+   hacia el blanco, que dejaba una banda clara arriba de todo. La franja de 2px
+   de abajo no se toca: es la señal, y en color vivo se ve igual de bien. */
+[data-bs-theme="dark"] .dnz-form-view.dnz-form-mode-new .dnz-form-header {
+    background: linear-gradient(180deg, rgba(134, 239, 172, .14) 0%, var(--rz-base-800, #252525) 100%);
+}
+
+[data-bs-theme="dark"] .dnz-form-view.dnz-form-mode-edit .dnz-form-header {
+    background: linear-gradient(180deg, rgba(147, 197, 253, .14) 0%, var(--rz-base-800, #252525) 100%);
+}
+
 
 /* ================================================================
    19. ANNOTATION BUTTONS  (.dnz-form-annotations)
@@ -980,6 +1122,13 @@ textarea.rz-textarea {
 .dnz-annotation-btn-wrap:hover {
     opacity: 1;
     background: rgba(0, 0, 0, 0.04);
+}
+
+/* Mismo caso que el scroll: oscurecer un poco sobre papel blanco se nota, pero
+   sobre la cabecera ya oscura no se ve nada y el botón de anotaciones perdía
+   la respuesta al ratón. Se aclara en vez de oscurecer, con la misma fuerza. */
+[data-bs-theme="dark"] .dnz-annotation-btn-wrap:hover {
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .dnz-annotation-btn-wrap .rz-badge {
@@ -1752,4 +1901,17 @@ textarea.rz-textarea {
 .obli .rz-form-field-content {
     background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
     border-bottom: 2px solid #ffb0b0;
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] :root {
+    --dnz-input-color: var(--rz-text-color);
+    --dnz-input-placeholder: var(--rz-text-disabled-color);
+    --dnz-label-color: var(--rz-text-secondary-color);
 }

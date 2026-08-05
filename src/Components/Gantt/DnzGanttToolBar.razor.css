@@ -9,7 +9,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 24px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(135deg, var(--rz-base-background-color, #ffffff) 0%, var(--rz-base-50, #f8fafc) 100%);
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
     gap: 24px;
@@ -27,6 +27,14 @@
         height: 3px;
     }
 
+/* La barra de mando del Gantt es una superficie: en oscuro sube al gris elevado.
+   Su filo también se rehace, porque la línea negra al 6% que la separa del
+   calendario deja de verse en cuanto el fondo es oscuro. */
+[data-bs-theme="dark"] .gantt-header {
+    background: var(--rz-base-700);
+    border-bottom-color: var(--rz-base-600);
+}
+
 /* ═══════════════════════════════════════════════════════════════
 								   📅 NAVIGATION SECTION
 								   ═══════════════════════════════════════════════════════════════ */
@@ -40,10 +48,16 @@
 .nav-controls {
     display: flex;
     align-items: center;
-    background: #f1f5f9;
+    background: var(--rz-base-100, #f1f5f9);
     border-radius: 12px;
     padding: 4px;
     gap: 2px;
+}
+
+/* Los tres grupos de botones se hunden respecto a la barra para leerse como un
+   bloque. En claro con un gris más claro; en oscuro, con uno más oscuro. */
+[data-bs-theme="dark"] .nav-controls {
+    background: var(--rz-base-800);
 }
 
 .nav-btn {
@@ -62,11 +76,17 @@
 }
 
     .nav-btn:hover {
-        background: #ffffff;
+        background: var(--rz-base-background-color, #ffffff);
         color: #6366f1;
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
         transform: translateY(-1px);
     }
+
+/* Al pasar por encima el botón se despega del grupo. En oscuro despegarse es
+   aclararse, no blanquearse. */
+[data-bs-theme="dark"] .nav-btn:hover {
+    background: var(--rz-base-600);
+}
 
     .nav-btn:active {
         transform: translateY(0);
@@ -98,7 +118,9 @@
 .title-main {
     font-size: 18px;
     font-weight: 700;
-    background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+    /* El degradado no es un fondo: es el relleno del propio texto del periodo.
+       Si se queda en gris oscuro clavado, en tema oscuro el título desaparece. */
+    background: linear-gradient(135deg, var(--rz-text-title-color, #1e293b) 0%, var(--rz-text-secondary-color, #475569) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -192,10 +214,14 @@
 
 .modes-container {
     display: flex;
-    background: #f1f5f9;
+    background: var(--rz-base-100, #f1f5f9);
     border-radius: 12px;
     padding: 4px;
     gap: 4px;
+}
+
+[data-bs-theme="dark"] .modes-container {
+    background: var(--rz-base-800);
 }
 
 .mode-btn {
@@ -222,9 +248,15 @@
     }
 
     .mode-btn:hover:not(.active) {
-        color: #475569;
+        color: var(--rz-text-color, #475569);
         background: rgba(255, 255, 255, 0.6);
     }
+
+/* El velo blanco translúcido del hover sirve sobre un gris claro; sobre el gris
+   oscuro deslumbra, así que allí el realce se hace con el gris de chip. */
+[data-bs-theme="dark"] .mode-btn:hover:not(.active) {
+    background: var(--rz-base-600);
+}
 
     .mode-btn:hover svg {
         opacity: 1;
@@ -262,10 +294,14 @@
 .zoom-container {
     display: flex;
     align-items: center;
-    background: #f1f5f9;
+    background: var(--rz-base-100, #f1f5f9);
     border-radius: 12px;
     padding: 4px;
     gap: 4px;
+}
+
+[data-bs-theme="dark"] .zoom-container {
+    background: var(--rz-base-800);
 }
 
 .zoom-btn {
@@ -285,10 +321,14 @@
 }
 
     .zoom-btn:hover:not(:disabled) {
-        background: #ffffff;
+        background: var(--rz-base-background-color, #ffffff);
         color: #6366f1;
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
     }
+
+[data-bs-theme="dark"] .zoom-btn:hover:not(:disabled) {
+    background: var(--rz-base-600);
+}
 
     .zoom-btn:disabled {
         opacity: 0.4;
@@ -318,11 +358,18 @@
 .zoom-slider-container {
     width: 100%;
     height: 4px;
-    background: #e2e8f0;
+    background: var(--rz-base-200, #e2e8f0);
     border-radius: 2px;
     margin-top: 6px;
     position: relative;
     overflow: hidden;
+}
+
+/* El carril vacío del zoom baja hasta el fondo de página: es lo único que hace
+   que se distinga cuánto zoom hay puesto, y contra un gris intermedio el relleno
+   violeta se perdía. */
+[data-bs-theme="dark"] .zoom-slider-container {
+    background: var(--rz-base-900);
 }
 
 .zoom-slider-fill {
@@ -373,4 +420,47 @@
     .title-container {
         min-width: auto;
     }
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .nav-btn {
+    color: var(--rz-text-secondary-color);
+}
+
+[data-bs-theme="dark"] .nav-btn:hover {
+    color: var(--rz-primary);
+}
+
+[data-bs-theme="dark"] .title-label {
+    color: var(--rz-text-tertiary-color);
+}
+
+[data-bs-theme="dark"] .modes-label {
+    color: var(--rz-text-tertiary-color);
+}
+
+[data-bs-theme="dark"] .mode-btn {
+    color: var(--rz-text-secondary-color);
+}
+
+[data-bs-theme="dark"] .zoom-label {
+    color: var(--rz-text-tertiary-color);
+}
+
+[data-bs-theme="dark"] .zoom-btn {
+    color: var(--rz-text-secondary-color);
+}
+
+[data-bs-theme="dark"] .zoom-btn:hover:not(:disabled) {
+    color: var(--rz-primary);
+}
+
+[data-bs-theme="dark"] .zoom-value {
+    color: var(--rz-text-color);
 }

@@ -1,0 +1,235 @@
+@* DnzMonthNavSelector - Tira mínima para moverse mes a mes:   [<]  Enero ▾  [>]  (↩)
+
+   Contrato:
+     Value          cualquier día del mes; dentro SIEMPRE se trabaja con el día 1.
+                    Si llega sin asignar (DateOnly por defecto, año 1) arranca en el mes actual
+                    y se lo emite al padre, para que consumidor y componente no discrepen.
+     ValueChanged   emite SIEMPRE el día 1 del mes elegido -> sirve tal cual con @bind-Value.
+     DelaySalto     ms que espera antes de emitir un salto de flecha (0 = al instante).
+     Class / Style  se suman a los del componente; el resto de atributos van a la raíz.
+
+   El año solo se escribe cuando NO es el actual ("Enero" vs "Diciembre 2025"): dentro del año en
+   curso repetirlo es ruido, fuera de él callarlo sería mentir.
+   Las flechas NUNCA se deshabilitan: no hay mínimo ni máximo, el consumidor decide qué hacer con
+   el mes que reciba.
+
+   ── Por qué las flechas esperan y el desplegable no ──
+   Si el consumidor recarga con cada mes, pulsar la flecha dos veces seguidas es imposible: la
+   primera se lo lleva por delante. Las flechas son un BARRIDO —se pulsan varias veces buscando
+   dónde hay trabajo— así que se acumulan y se emite una sola vez al parar. El desplegable es lo
+   contrario: una decisión tomada, y hacer esperar a una decisión es hacer esperar por nada.
+   Mientras hay un salto acumulado la etiqueta ya enseña el mes al que vas, aunque el padre siga
+   sin saberlo: quien pulsa tiene que ver a dónde ha llegado antes de soltar. *@
+@namespace DinaZen.Components
+@implements IDisposable
+
+@* @attributes va ANTES de class/style a propósito: en Blazor gana el último atributo escrito, así
+   que un class suelto colado por los atributos sueltos no puede dejar la tira sin estilos, pero el
+   consumidor sí puede sobrescribir role o aria-label si lo necesita. *@
+<div role="group"
+	 aria-label="Selector de mes"
+	 @attributes="AdditionalAttributes"
+	 class=@("dnz-mns d-flex align-items-center gap-1 " + Class)
+	 style=@Style>
+
+	<button type="button" class="dnz-mns-step" @onclick="() => Saltar(-1)" title="@TituloAnterior" aria-label="@TituloAnterior">
+		<RadzenIcon Icon="chevron_left" />
+	</button>
+
+	@* El desplegable ES la etiqueta: enseña el mes en el que estás y, al abrirlo, lleva a cualquier
+	   otro del mismo año sin dar once clics de flecha. Los meses del año que se está viendo, con su
+	   año escrito si no es el actual — dentro del desplegable no hay contexto que lo supla. *@
+	<RadzenDropDown TValue="int" Value=@Mostrado.Month Data=@Opciones
+					TextProperty="Texto" ValueProperty="Numero"
+					Change=@ElegirMes
+					class="dnz-mns-drop" Style="width:auto;"
+					aria-live="polite" aria-atomic="true"
+					title="@TituloMes" />
+
+	<button type="button" class="dnz-mns-step" @onclick="() => Saltar(1)" title="@TituloSiguiente" aria-label="@TituloSiguiente">
+		<RadzenIcon Icon="chevron_right" />
+	</button>
+
+	@* ── El hueco de la derecha: o la espera, o el atajo de vuelta ──
+	   Mientras hay un salto sin confirmar gira un spinner, y ese es el punto: sin él, pulsar la flecha
+	   parecía no hacer nada durante dos segundos y el usuario pulsaba otra vez o se iba. Con él, la tira
+	   dice «te he oído, sigue pulsando si quieres, cargo cuando pares».
+	   Se apaga en cuanto el consumidor acepta el mes —o sea, al emitir—, y a partir de ahí la espera la
+	   cuenta él con su propio cargando. Este spinner cubre exactamente el hueco que nadie cubría: los dos
+	   segundos en los que la pantalla no había cambiado todavía. *@
+	@if (Esperando)
+	{
+		<span class="dnz-mns-step dnz-mns-wait" role="status" aria-live="polite" title="@TituloEsperando">
+			@* «sync» y no «progress_activity»: el segundo es de Material Symbols nuevo y en los sets clásicos
+			   sale como un hueco en blanco, que es el peor spinner posible. *@
+			<RadzenIcon Icon="sync" />
+		</span>
+	}
+	else if (EsMesActual == false)
+	{
+		<button type="button" class="dnz-mns-step dnz-mns-hoy" @onclick="VolverAlMesActual" title="@TituloHoy" aria-label="@TituloHoy">
+			<RadzenIcon Icon="undo" />
+		</button>
+	}
+
+</div>
+
+@code {
+
+	#region Parameters
+
+	/// <summary>Mes mostrado. Admite cualquier día del mes: el componente lo normaliza al día 1.</summary>
+	[Parameter] public DateOnly Value { get; set; }
+
+	/// <summary>Emite siempre el día 1 del mes elegido, para que el consumidor pueda comparar y filtrar sin normalizar nada. Pensado para @bind-Value.</summary>
+	[Parameter] public EventCallback<DateOnly> ValueChanged { get; set; }
+
+	/// <summary>Milisegundos que se acumulan los saltos de flecha antes de emitir. 0 = emitir al instante.</summary>
+	// Dos segundos, y no los 300-500 de un buscador: aquí no se teclea, se pulsa. Con menos tiempo, dar tres
+	// clics seguidos exige una velocidad que no tiene por qué tener nadie, y el que va despacio se come una
+	// carga por mes que ni siquiera quería ver. Se avisa con el spinner, así que la espera no es un misterio.
+	[Parameter] public int DelaySalto { get; set; } = 2000;
+
+	[Parameter] public string Class { get; set; } = "";
+
+	[Parameter] public string Style { get; set; } = "";
+
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+	#endregion
+
+	#region Estado
+
+	private static readonly string[] _mFull = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+
+	private static DateOnly Hoy => DateOnly.FromDateTime(DateTime.Today);
+	private static DateOnly MesDeHoy => new DateOnly(Hoy.Year, Hoy.Month, 1);
+
+	// El mes que el PADRE tiene. Year < 2 es el DateOnly sin asignar (año 1): ahí se cae al mes actual
+	// en vez de pintar "Enero 1".
+	private DateOnly Mes => Value.Year < 2 ? MesDeHoy : new DateOnly(Value.Year, Value.Month, 1);
+
+	// Lo que el usuario lleva pulsado y todavía no se ha emitido. Vacío = no hay nada acumulado y manda
+	// el padre. Es el único estado del componente, y existe solo por el debounce de las flechas.
+	private DateOnly _acumulado;
+
+	// Lo que se PINTA: lo acumulado si lo hay, y si no lo del padre.
+	private DateOnly Mostrado => _acumulado.Year < 2 ? Mes : _acumulado;
+
+	private bool EsMesActual => Mostrado == MesDeHoy;
+
+	// Hay un mes elegido que el consumidor todavía no ha confirmado: o se están acumulando clics, o ya se
+	// emitió y está cargando. Para quien mira es lo mismo —está esperando— y por eso es una sola señal.
+	private bool Esperando => 1 < _acumulado.Year;
+
+	private Dinaup.Debouncer _debouncer;
+
+	// Los doce meses del año que se está viendo. Se reconstruye solo cuando cambia el año mostrado:
+	// dentro del mismo año la lista es la misma y no hay por qué fabricarla en cada render.
+	private int _anoOpciones;
+	private List<OpcionMes> _opciones = new();
+
+	private List<OpcionMes> Opciones
+	{
+		get
+		{
+			if (_anoOpciones != Mostrado.Year)
+			{
+				_anoOpciones = Mostrado.Year;
+				_opciones = Enumerable.Range(1, 12).Select(m => new OpcionMes(m, Texto(new DateOnly(_anoOpciones, m, 1)))).ToList();
+			}
+			return _opciones;
+		}
+	}
+
+	// El año solo si no es el actual, tanto en la etiqueta como en cada opción del desplegable.
+	private string Texto(DateOnly m) => m.Year == Hoy.Year ? _mFull[m.Month - 1] : $"{_mFull[m.Month - 1]} {m.Year}";
+
+	// En tooltips el año va SIEMPRE: ahí no hay contexto visual que lo supla.
+	private static string Completo(DateOnly m) => $"{_mFull[m.Month - 1]} {m.Year}";
+
+	private string TituloMes => $"{Completo(Mostrado)}. Ábrelo para saltar a otro mes de {Mostrado.Year}.";
+	private string TituloAnterior => $"Mes anterior: {Completo(Vecino(Mostrado, -1))}";
+	private string TituloSiguiente => $"Mes siguiente: {Completo(Vecino(Mostrado, 1))}";
+	private string TituloHoy => $"Volver al mes actual ({Completo(MesDeHoy)})";
+	private string TituloEsperando => $"Cargando {Completo(Mostrado)}... Puedes seguir pulsando las flechas: se carga el último que elijas.";
+
+	public record OpcionMes(int Numero, string Texto);
+
+	#endregion
+
+	#region Navegación
+
+	// Saltar sobre el día 1 esquiva el clásico "31 de marzo menos un mes": el día no participa en el
+	// cálculo, así que marzo siempre cae en febrero. El tope de año es porque las flechas nunca se
+	// deshabilitan y los tooltips ya calculan el mes vecino en cada render: fuera del rango de
+	// DateOnly esto sería una excepción pintando, no un clic fallido.
+	private static DateOnly Vecino(DateOnly mes, int dir)
+	{
+		if (dir < 0 && mes.Year < 2) return mes;
+		if (0 < dir && mes.Year == 9999 && mes.Month == 12) return mes;
+		return mes.AddMonths(dir);
+	}
+
+	// La flecha acumula y espera. Se pinta al instante —el usuario ve a dónde va— pero el padre no se
+	// entera hasta que se para: es lo que permite dar cuatro clics seguidos cuando cada mes recarga.
+	private void Saltar(int dir)
+	{
+		_acumulado = Vecino(Mostrado, dir);
+		if (DelaySalto < 1) { _ = EmitirAcumulado(); return; }
+		_debouncer.Debounce();
+	}
+
+	private async Task EmitirAcumulado()
+	{
+		var destino = _acumulado;
+		if (destino.Year < 2) return;
+		await ValueChanged.InvokeAsync(destino);
+	}
+
+	// El Debouncer dispara desde un Task.Run (fuera del Dispatcher del circuito): sin InvokeAsync, el
+	// StateHasChanged del padre lanza InvalidOperationException.
+	private Task Disparar() => InvokeAsync(EmitirAcumulado);
+
+	// El desplegable NO espera: elegir un mes es una decisión tomada, no un barrido. Si había un salto
+	// acumulado se descarta, porque acabas de decir a dónde quieres ir.
+	private async Task ElegirMes(object valor)
+	{
+		if (valor is not int mes) return;
+		_acumulado = default;
+		await ValueChanged.InvokeAsync(new DateOnly(Mostrado.Year, mes, 1));
+	}
+
+	private async Task VolverAlMesActual()
+	{
+		_acumulado = default;
+		await ValueChanged.InvokeAsync(MesDeHoy);
+	}
+
+	protected override void OnInitialized() => _debouncer = new Dinaup.Debouncer(Disparar, DelaySalto);
+
+	// Cuando el padre confirma el mes al que habíamos saltado, lo acumulado deja de tener sentido: si
+	// no se suelta, un Value que venga de fuera (otra parte de la app cambiando el mes) se quedaría
+	// tapado por lo último que se pulsó aquí.
+	protected override void OnParametersSet()
+	{
+		if (1 < _acumulado.Year && _acumulado == Mes) _acumulado = default;
+	}
+
+	// Si nadie asignó Value, la pantalla ya dice "mes actual"; hay que decírselo también al padre o
+	// su filtro estaría consultando el año 1 mientras el usuario lee "Enero". Se avisa tras el primer
+	// render y no en OnInitialized porque tocar al padre mientras se monta el árbol lo obliga a
+	// re-renderizar a medio construir.
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && Value.Year < 2) await ValueChanged.InvokeAsync(MesDeHoy);
+	}
+
+	void IDisposable.Dispose()
+	{
+		_debouncer?.Dispose();
+		_debouncer = null;
+	}
+
+	#endregion
+}

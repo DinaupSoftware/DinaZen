@@ -1,4 +1,4 @@
-.timeline-rrhh {
+﻿.timeline-rrhh {
     display: flex;
     flex-direction: column;
     gap: 0;
@@ -70,4 +70,15 @@
     z-index: 5;
     pointer-events: none;
     box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .timeline-rrhh-now {
+    background: var(--rz-danger);
 }

@@ -9,7 +9,7 @@
 	@if (DataControl.InputType == "file") {
 
 
-		<RadzenCard class="w-100 h-100 d-flex flex-column ">
+		<DnzCard class="w-100 h-100 d-flex flex-column ">
 
 
 			@if (subiendoArchivo) {
@@ -68,7 +68,7 @@
 				}
 
 			}
-		</RadzenCard>
+		</DnzCard>
 
 	} else if (DataControl.TokenList != "" || (DataControl.DropDowList != null && DataControl.DropDowList.Any())) {
 
@@ -158,7 +158,10 @@
 
 <RadzenPopup @key=@(DataControl.Token + "-6") @ref=popup Lazy=true Open="@OnOpen" Style="display:none;position:absolute; max-width:600px;">
 
-	<div class="desplegablecontent d-flex flex-column" data-testid=@($"dnz-selector-popup-{DataControl.Token}") style="background:white; max-height:min(60vh, 480px)">
+	@* El desplegable flota sobre la pantalla, así que necesita fondo propio y opaco.
+	   Estaba en blanco fijo: con el tema oscuro salía un panel blanco encima de todo.
+	   El token del menú ya vale blanco en el tema claro, así que ahí no cambia nada. *@
+	<div class="desplegablecontent d-flex flex-column" data-testid=@($"dnz-selector-popup-{DataControl.Token}") style="background:var(--rz-menu-background-color, white); max-height:min(60vh, 480px)">
 
 		<div class="d-flex gap-2 flex-shrink-0">
 			@if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) {
@@ -322,10 +325,10 @@
 					ShowTitle = false
 				};
 
-				await DialogService.OpenAsync<DnzFormByTokenView>("", new Dictionary<string, object>
+				await DialogService.OpenAsync<DnzFormView>("", new Dictionary<string, object>
 				{
-					{ nameof(DnzFormByTokenView.Client), Client },
-					{ nameof(DnzFormByTokenView.Token), tokenForm }
+					{ nameof(DnzFormView.Client), Client },
+					{ nameof(DnzFormView.Token), tokenForm }
 				}, options);
 			}
 		} catch (Exception ex) {

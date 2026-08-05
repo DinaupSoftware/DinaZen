@@ -24,3 +24,15 @@
 	border-radius: 3px;
 	transition: width 0.3s ease;
 }
+
+/* El carril vacío y la marca del objetivo son cromo, no dato: hay que invertirlos
+   los dos a la vez. En oscuro, el gris del carril pintaría una barra casi blanca,
+   y sobre ella la marca gris oscuro se quedaría en 1,9:1 — el usuario dejaría de
+   ver dónde tenía que llegar. El relleno de progreso no se toca: es el dato. */
+[data-bs-theme="dark"] .dz-progress-track {
+	background-color: var(--rz-base-600);
+}
+
+[data-bs-theme="dark"] .dz-progress-marker {
+	background-color: var(--rz-base-200);
+}

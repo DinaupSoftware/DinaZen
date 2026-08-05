@@ -1,6 +1,8 @@
 @if (Container.IsNull()) return;
 
-<RadzenCard  @key=@(Container.Token + "1742963010") style="@cardStyle" class="ctrlucont dnp-form-container">
+@* Style con mayuscula: DnzCard lo declara como parametro. En minuscula caeria en
+   el splat de atributos y se emitiria dos veces sobre el mismo elemento. *@
+<DnzCard @key=@(Container.Token + "1742963010") Style="@cardStyle" class="ctrlucont dnp-form-container">
 
 	@if (Container.Icon.IsNotEmpty())
 	{
@@ -37,7 +39,7 @@
 						 Client="Client"
 						 List="@Container.ParentForm.List" />
 	}
-</RadzenCard>
+</DnzCard>
 
 @code {
 

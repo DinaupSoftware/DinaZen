@@ -10,7 +10,7 @@
 }
 else if (_virtualForm.IsNotNull())
 {
-	<div class="dnz-form-view @(_isNewRecord ? "dnz-form-mode-new" : "dnz-form-mode-edit")">
+	<div class="dnz-form-view @(_isNewRecord ? "dnz-form-mode-new" : "dnz-form-mode-edit")" @attributes="AdditionalAttributes">
 		@* ── Header ── *@
 		<div class="dnz-form-header">
 			<div class="dnz-form-header-info">
@@ -200,14 +200,26 @@ else if (_errorMessage.IsNotEmpty())
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
 
 	/// <summary>
-	/// GUID de la seccion a cargar.
+	/// GUID de la seccion a cargar. Obligatorio salvo que se informe <see cref="Token"/>.
 	/// </summary>
-	[Parameter, EditorRequired] public string SectionId { get; set; } = "";
+	[Parameter] public string SectionId { get; set; } = "";
 
 	/// <summary>
 	/// GUID del registro (opcional). Vacio = formulario nuevo.
 	/// </summary>
 	[Parameter] public string DatoId { get; set; } = "";
+
+	/// <summary>
+	/// Token de una ventana que el server YA tiene abierta.
+	/// Con Token el formulario no se abre: se adopta el que ya existe (subventana de alta,
+	/// cola de agregado, selector de relacion). Excluyente con SectionId.
+	/// </summary>
+	[Parameter] public string Token { get; set; } = "";
+
+	/// <summary>
+	/// Atributos HTML sueltos (class, style, data-*) que se vuelcan en el elemento raiz.
+	/// </summary>
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	/// <summary>
 	/// ID del usuario (opcional).
@@ -262,6 +274,7 @@ else if (_errorMessage.IsNotEmpty())
 	private string _successMessage = "";
 	private string _loadedSectionId;
 	private string _loadedDatoId;
+	private string _loadedToken;
 	private bool _hasChanges = false;
 	private bool _sessionExpired = false;
 	private bool _isNewRecord = false;
@@ -273,10 +286,12 @@ else if (_errorMessage.IsNotEmpty())
 	{
 		await base.OnParametersSetAsync();
 
-		if (Client.IsNotNull() && SectionId.IsNotEmpty())
+		if (Client.IsNotNull() && (SectionId.IsNotEmpty() || Token.IsNotEmpty()))
 		{
-			// Cargar si es la primera vez o si cambiaron los parametros
-			if (_loadedSectionId != SectionId || _loadedDatoId != (DatoId ?? ""))
+			// Cargar si es la primera vez o si cambiaron los parametros.
+			// El Token entra en la comparacion: en modo token SectionId y DatoId van vacios,
+			// asi que sin el la condicion nunca se cumpliria y el form no recargaria jamas.
+			if (_loadedToken != (Token ?? "") || _loadedSectionId != SectionId || _loadedDatoId != (DatoId ?? ""))
 			{
 				await LoadForm();
 			}
@@ -294,9 +309,9 @@ else if (_errorMessage.IsNotEmpty())
 			return;
 		}
 
-		if (SectionId.IsEmpty())
+		if (SectionId.IsEmpty() && Token.IsEmpty())
 		{
-			_errorMessage = "SectionId es obligatorio.";
+			_errorMessage = "SectionId o Token es obligatorio.";
 			return;
 		}
 
@@ -309,20 +324,43 @@ else if (_errorMessage.IsNotEmpty())
 
 		try
 		{
-			_virtualForm = await Client.FormOpenAsync(
-				SectionId,
-				DatoId ?? "",
-				null,
-				PreFillValues,
-				PreFillList,
-				AttachFileId.IsEmpty() ? "" : AttachFileId.STR()
-			);
-			_loadedSectionId = SectionId;
-			_loadedDatoId = DatoId ?? "";
+			if (Token.IsNotEmpty())
+			{
+				// Modo token: el server ya tiene la ventana abierta, aqui solo se adopta.
+				// Seccion y registro se leen del propio formulario recibido, porque el
+				// guardado y el resultado de cierre los necesitan y aqui no vienen dados.
+				_virtualForm = await Client.GetOpenedWindows(Token, null);
+
+				if (_virtualForm.IsNull())
+				{
+					_errorMessage = "La ventana ya no esta abierta en el servidor.";
+					return;
+				}
+
+				_loadedToken = Token;
+				_loadedSectionId = _virtualForm.MainForm.Section.ID.STR();
+				_loadedDatoId = _virtualForm.MainForm.RowID ?? "";
+			}
+			else
+			{
+				_virtualForm = await Client.FormOpenAsync(
+					SectionId,
+					DatoId ?? "",
+					null,
+					PreFillValues,
+					PreFillList,
+					AttachFileId.IsEmpty() ? "" : AttachFileId.STR()
+				);
+				_loadedToken = "";
+				_loadedSectionId = SectionId;
+				_loadedDatoId = DatoId ?? "";
+			}
+
 			_isNewRecord = _virtualForm.MainForm.RowID.IsEmpty();
 
-			// Actualizar titulo/icono de la ventana si esta dentro de una
-			if (IsInsideWindow)
+			// Actualizar titulo/icono de la ventana si esta dentro de una.
+			// En modo token no: una subventana de alta no debe renombrar a su anfitriona.
+			if (IsInsideWindow && Token.IsEmpty())
 			{
 				var sectionLabel = _virtualForm.MainForm.Section?.Label ?? "";
 				var formTitle = _virtualForm.Title ?? "";
@@ -349,7 +387,7 @@ else if (_errorMessage.IsNotEmpty())
 			_extensionButtons = await Interceptor.GetFormExtensionsAsync(new FormExtensionsRequest
 			{
 				SectionId = _loadedSectionId ?? "",
-				RowId = DatoId ?? "",
+				RowId = _loadedDatoId ?? "",
 				IsNew = _isNewRecord,
 				Client = Client
 			});
@@ -488,6 +526,7 @@ else if (_errorMessage.IsNotEmpty())
 				_virtualForm = null;
 				_loadedSectionId = null;
 				_loadedDatoId = null;
+				_loadedToken = null;
 				_hasChanges = false;
 
 				if (IsInsideWindow)
@@ -660,6 +699,7 @@ else if (_errorMessage.IsNotEmpty())
 		_virtualForm = null;
 		_loadedSectionId = null;
 		_loadedDatoId = null;
+		_loadedToken = null;
 		_errorMessage = "";
 		_hasChanges = false;
 

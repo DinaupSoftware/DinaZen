@@ -1,5 +1,5 @@
-.email-preview-wrapper {
-	border: 1px solid var(--rz-border-color, #e2e8f0);
+﻿.email-preview-wrapper {
+	border: 1px solid var(--rz-base-300, #e2e8f0);
 	border-radius: 8px;
 	overflow: hidden;
 	display: flex;
@@ -10,13 +10,16 @@
 .email-preview-header {
 	background: var(--rz-base-background-color, #f8fafc);
 	padding: 10px 16px;
-	border-bottom: 1px solid var(--rz-border-color, #e2e8f0);
+	border-bottom: 1px solid var(--rz-base-300, #e2e8f0);
 	font-size: 0.82em;
-	color: var(--rz-text-secondary-color, #64748b);
+	color: #64748b;
 	line-height: 1.6;
 	flex-shrink: 0;
 }
 
+/* Este blanco NO se tematiza a proposito: dentro va el email tal cual lo va a
+   recibir el destinatario, y su cliente de correo lo pintara sobre blanco. Si
+   aqui se oscurece, la vista previa deja de enseñar la verdad. */
 .email-preview-frame {
 	width: 100%;
 	border: none;
@@ -24,4 +27,15 @@
 	background: #fff;
 	flex: 1;
 	min-height: 200px;
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .email-preview-header {
+    color: var(--rz-text-secondary-color);
 }

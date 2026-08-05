@@ -90,6 +90,26 @@
     background: #fb8c00;
 }
 
+/* ── Las barras en tema oscuro ────────────────────────────────────────────
+   Las ocho barras se pintan su propio color opaco, así que la letra blanca de
+   encima vale igual en los dos temas y NO se tocan: el color aquí es dato (qué
+   tipo de jornada es), no decoración.
+
+   Las dos únicas que sí fallan son las pizarras, y solo en oscuro: la de
+   ausencia (#37474f) queda a 1,73:1 contra el carril oscuro, o sea que la barra
+   desaparece del todo. Se suben las dos un escalón, conservando el salto que
+   había entre ellas (1,6:1) para que se sigan distinguiendo de un vistazo:
+     ausencia 3,1:1 · baja 5,0:1 contra el carril, ambas por encima del 3:1 que
+     pide un elemento gráfico.
+   El resto de barras van de 3,9:1 a 7,0:1 y se ven sin tocarlas. */
+[data-bs-theme="dark"] .timeline-bar-rrhh.tlbar-absence {
+    background: #546e7a;
+}
+
+[data-bs-theme="dark"] .timeline-bar-rrhh.tlbar-sick-leave {
+    background: #78909c;
+}
+
 /* ── Phantom (in-progress): hourglass spin ── */
 @keyframes tlbar-phantom-spin {
     from { transform: rotate(0deg); }

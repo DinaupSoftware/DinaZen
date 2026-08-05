@@ -67,6 +67,13 @@
 	transition: background .12s;
 }
 .dnz-ps-label:hover { background: var(--rz-base-100); }
+
+/* Resaltar al pasar por encima es separarse del fondo de la barra. En claro eso
+   es un gris más claro; en oscuro ese mismo gris sería un parche blanco, así que
+   allí se sube un escalón de superficie en vez de bajarlo. */
+[data-bs-theme="dark"] .dnz-ps-step:hover,
+[data-bs-theme="dark"] .dnz-ps-label:hover { background: var(--rz-base-700); }
+
 .dnz-ps-label-txt { white-space: nowrap; }
 
 .dnz-ps-sub {
@@ -122,7 +129,10 @@
 .dnz-ps-cell:hover { border-color: var(--rz-text-tertiary-color); }
 .dnz-ps-cell.on {
 	border-color: var(--rz-primary);
-	background: var(--rz-base-100);
+	/* Respaldo para navegadores sin color-mix: el tinte del propio color de marca, que
+	   cada tema resuelve hacia donde le toca. Con el gris de la escala clara, ahí el
+	   periodo elegido salía en blanco sobre el panel oscuro. */
+	background: var(--rz-primary-lighter);
 	background: color-mix(in srgb, var(--rz-primary) 12%, var(--rz-base-background-color, #fff));
 }
 .dnz-ps-cell.on .dnz-ps-cell-t { color: var(--rz-primary); }

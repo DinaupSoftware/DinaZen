@@ -33,6 +33,10 @@
 
 .dz-kpi-compact-title {
 	font-size: 0.78rem;
-	color: var(--rz-text-tertiary-color, #6b7280);
+	color: #6b7280;
 	line-height: 1.2;
+}
+
+[data-bs-theme="dark"] .dz-kpi-compact-title {
+	color: var(--rz-text-tertiary-color);
 }

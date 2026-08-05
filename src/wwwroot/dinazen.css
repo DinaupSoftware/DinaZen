@@ -294,11 +294,105 @@
     box-shadow: 0 1px 2px rgba(239, 68, 68, 0.15);
 }
 
+/* ╔═══════════════════════════════════════════════════════════════════════════
+   ║  BADGES EN TEMA OSCURO
+   ╚═══════════════════════════════════════════════════════════════════════════
+   Las 27 variantes de arriba son pastel claro con letra oscura. Sobre una app
+   oscura serían 27 parches de luz, así que aquí se le da la vuelta: el color se
+   queda de fondo teñido al 20% y la letra pasa a ser ese MISMO color aclarado.
+   Cada badge sigue siendo "su" color; lo único que cambia es de qué lado está.
+
+   Los tonos de letra no están elegidos a ojo: se ha subido la luminosidad del
+   color original en pasos hasta que el contraste medido contra su propio fondo
+   llega a 4,5:1 (AA). El ratio real de cada uno va anotado. Amarillo y lima ya
+   pasaban sin tocarlos, por eso conservan su valor exacto.
+
+   OJO AL TOCAR ESTO: DinaZen lo usan varias apps. Estas reglas solo se activan
+   si la app pone data-bs-theme="dark" en el <html>; las que no lo hacen (hoy,
+   dinaup.com) no ven ningún cambio. Por eso no se usa aquí ningún token propio
+   de play: no existirían fuera de play. */
+
+/* ── Las siete semánticas van por tokens de Radzen, que cada tema ya resuelve ── */
+[data-bs-theme="dark"] .badge-success {
+    color: var(--rz-on-success-lighter);
+    background: var(--rz-success-lighter);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .badge-danger {
+    color: var(--rz-on-danger-lighter);
+    background: var(--rz-danger-lighter);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .badge-warning {
+    color: var(--rz-on-warning-lighter);
+    background: var(--rz-warning-lighter);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .badge-info {
+    color: var(--rz-on-info-lighter);
+    background: var(--rz-info-lighter);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .badge-primary {
+    color: var(--rz-on-primary-lighter);
+    background: var(--rz-primary-lighter);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .badge-secondary {
+    color: var(--rz-on-secondary-lighter);
+    background: var(--rz-secondary-lighter);
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .badge-default,
+[data-bs-theme="dark"] .badge-type.e0,
+[data-bs-theme="dark"] .badge.e0 {
+    color: var(--rz-text-secondary-color);
+    background: var(--rz-base-600);
+    box-shadow: none;
+}
+
+/* ── Los veinte de paleta no tienen token: van con su pareja calculada ──
+      El borde toma el color de la letra, que es el que se ve sobre oscuro. */
+[data-bs-theme="dark"] .badge-type.e1,  [data-bs-theme="dark"] .badge.e1  { color: #8797ae; background: rgba(71, 85, 105, .20);   border-color: #8797ae; box-shadow: none; } /* Slate  4,5:1 */
+[data-bs-theme="dark"] .badge-type.e2,  [data-bs-theme="dark"] .badge.e2  { color: #fa8534; background: rgba(249, 115, 22, .20);  border-color: #fa8534; box-shadow: none; } /* Orange 4,5:1 */
+[data-bs-theme="dark"] .badge-type.e3,  [data-bs-theme="dark"] .badge.e3  { color: #facc15; background: rgba(250, 204, 21, .20);  border-color: #facc15; box-shadow: none; } /* Yellow 6,1:1 */
+[data-bs-theme="dark"] .badge-type.e4,  [data-bs-theme="dark"] .badge.e4  { color: #84cc16; background: rgba(132, 204, 22, .20);  border-color: #84cc16; box-shadow: none; } /* Lime   5,1:1 */
+[data-bs-theme="dark"] .badge-type.e5,  [data-bs-theme="dark"] .badge.e5  { color: #24b2f2; background: rgba(14, 165, 233, .20);  border-color: #24b2f2; box-shadow: none; } /* Sky    4,7:1 */
+[data-bs-theme="dark"] .badge-type.e6,  [data-bs-theme="dark"] .badge.e6  { color: #b69ffb; background: rgba(167, 139, 250, .20); border-color: #b69ffb; box-shadow: none; } /* Violet 4,9:1 */
+[data-bs-theme="dark"] .badge-type.e7,  [data-bs-theme="dark"] .badge.e7  { color: #f176b3; background: rgba(236, 72, 153, .20);  border-color: #f176b3; box-shadow: none; } /* Pink   4,6:1 */
+[data-bs-theme="dark"] .badge-type.e8,  [data-bs-theme="dark"] .badge.e8  { color: #a0aec0; background: rgba(148, 163, 184, .20); border-color: #a0aec0; box-shadow: none; } /* Gray   4,7:1 */
+[data-bs-theme="dark"] .badge-type.e9,  [data-bs-theme="dark"] .badge.e9  { color: #06bfde; background: rgba(6, 182, 212, .20);   border-color: #06bfde; box-shadow: none; } /* Cyan   4,9:1 */
+[data-bs-theme="dark"] .badge-type.e10, [data-bs-theme="dark"] .badge.e10 { color: #f47c7c; background: rgba(239, 68, 68, .20);   border-color: #f47c7c; box-shadow: none; } /* Red    4,7:1 */
+
+/* e11..e20 son los mismos diez colores en versión rellena */
+[data-bs-theme="dark"] .badge.e11 { color: #8797ae; background: rgba(71, 85, 105, .20);   box-shadow: none; }
+[data-bs-theme="dark"] .badge.e12 { color: #fa8534; background: rgba(249, 115, 22, .20);  box-shadow: none; }
+[data-bs-theme="dark"] .badge.e13 { color: #facc15; background: rgba(250, 204, 21, .20);  box-shadow: none; }
+[data-bs-theme="dark"] .badge.e14 { color: #84cc16; background: rgba(132, 204, 22, .20);  box-shadow: none; }
+[data-bs-theme="dark"] .badge.e15 { color: #24b2f2; background: rgba(14, 165, 233, .20);  box-shadow: none; }
+[data-bs-theme="dark"] .badge.e16 { color: #b69ffb; background: rgba(167, 139, 250, .20); box-shadow: none; }
+[data-bs-theme="dark"] .badge.e17 { color: #f176b3; background: rgba(236, 72, 153, .20);  box-shadow: none; }
+[data-bs-theme="dark"] .badge.e18 { color: #a0aec0; background: rgba(148, 163, 184, .20); box-shadow: none; }
+[data-bs-theme="dark"] .badge.e19 { color: #06bfde; background: rgba(6, 182, 212, .20);   box-shadow: none; }
+[data-bs-theme="dark"] .badge.e20 { color: #f47c7c; background: rgba(239, 68, 68, .20);   box-shadow: none; }
+
 /* ═══════════ HOVER STATES ═══════════ */
 .badge:hover,
 .badge-type:hover {
     filter: brightness(0.97);
     transition: filter 0.15s ease;
+}
+
+/* Oscurecer un badge que ya es oscuro lo apaga; sobre tinta el gesto es aclarar. */
+[data-bs-theme="dark"] .badge:hover,
+[data-bs-theme="dark"] .badge-type:hover {
+    filter: brightness(1.25);
 }
 
 /* ═══════════ TAMANOS ALTERNATIVOS ═══════════ */
@@ -361,6 +455,27 @@ header:has(+ .dnz-card-body) {
 .dnz-imged-side-panel { width:200px; background:var(--rz-base-100); border-left:1px solid var(--rz-base-300); flex-shrink:0; overflow-y:auto; }
 .dnz-imged-footer { display:flex; align-items:center; padding:4px 10px; background:var(--rz-base-100); border-top:1px solid var(--rz-base-300); font:10px/1 monospace; color:var(--rz-text-tertiary-color); min-height:24px; flex-shrink:0; }
 
+/* ── El editor de imagen en tema oscuro ──
+   En claro el lienzo es el tono MAS claro del editor y las herramientas (barra,
+   panel lateral, pie) quedan un punto por debajo. En oscuro se invierte el orden,
+   no la idea: el lienzo pasa a ser la superficie mas honda y la herramienta se
+   apoya un escalon por encima. Si no se invirtiera, el editor entero saldria
+   blanco porque base-50/100 son casi blancos en los dos temas.
+   Los grises de borde tambien cambian de sentido: base-300 desaparece sobre
+   tinta, y base-400 es el primer tono que llega a 3:1 sobre estas superficies. */
+[data-bs-theme="dark"] .dnz-imged-canvas-area { background:var(--rz-base-900); }
+[data-bs-theme="dark"] .dnz-imged-toolbar { background:var(--rz-base-800); border-bottom-color:var(--rz-base-400); }
+[data-bs-theme="dark"] .dnz-imged-side-panel { background:var(--rz-base-800); border-left-color:var(--rz-base-400); }
+[data-bs-theme="dark"] .dnz-imged-footer { background:var(--rz-base-800); border-top-color:var(--rz-base-400); }
+[data-bs-theme="dark"] .dnz-imged-sep { background:var(--rz-base-400); }
+[data-bs-theme="dark"] .dnz-imged-dropzone { border-color:var(--rz-base-400); }
+/* La barra de recorte flota sobre la foto: va un escalon mas alta que el resto
+   del editor, como cualquier elemento flotante, y su sombra tiene que notarse. */
+[data-bs-theme="dark"] .dnz-imged-crop-bar { background:var(--rz-base-700); border-color:var(--rz-base-400); box-shadow:0 4px 16px rgba(0,0,0,.5); }
+/* Esta sombra era lo unico que despegaba la imagen del lienzo; sobre tinta una
+   sombra negra al 15% no se ve y la foto queda flotando sin borde. */
+[data-bs-theme="dark"] .dnz-imged-canvas-wrap canvas { box-shadow:0 4px 20px rgba(0,0,0,.5); }
+
 /* DnzConfirmDialog — evita que se corte cuando se abre encima de otros diálogos */
 .rz-dialog.dnz-confirm-dialog,
 .rz-dialog-wrapper.dnz-confirm-dialog {
@@ -392,4 +507,154 @@ header:has(+ .dnz-card-body) {
 .dnz-icon-hover:hover {
     background-color: var(--rz-base-200, rgba(0, 0, 0, 0.08));
     transform: scale(1.2);
+}
+
+/* base-200 es un gris casi blanco en los dos temas: sobre tinta el halo del icono
+   se convertiria en una pastilla luminosa. El gesto de "resaltar" cambia de
+   sentido y pasa a ser un gris un punto por encima de la fila. */
+[data-bs-theme="dark"] .dnz-icon-hover:hover {
+    background-color: var(--rz-base-500);
+}
+
+/* ── DnzCard: la anidacion se resuelve sola ───────────────────────────────
+   Los niveles ALTERNAN en vez de acumular: velo / fondo de tarjeta / velo...
+   Asi un velo nunca cae sobre otro velo y el tono no se va oscureciendo por
+   profunda que sea la anidacion.
+
+   El velo es neutro y translucido (negro al 2,8%): al no llevar tono no compite
+   con ningun color de marca, y al ser translucido compone sobre lo que haya
+   detras en vez de imponer un gris fijo.
+
+   Se sobrescriben las VARIABLES que consumen las reglas de Radzen, no las
+   reglas: `.rz-card.rz-variant-flat` pinta con --rz-card-flat-background-color
+   y su hoja se carga DESPUES que esta, asi que competir por especificidad
+   obligaria a encadenar clases o a !important. Redefinir la variable en el
+   elemento gana siempre, porque se resuelve en el punto de uso. ── */
+
+.dnz-card-veil,
+.dnz-card-plain {
+    --rz-card-padding: 0.875rem;
+}
+
+.dnz-card-veil {
+    --rz-card-flat-background-color: rgba(0, 0, 0, 0.028);
+}
+
+.dnz-card-plain {
+    --rz-card-flat-background-color: var(--rz-base-background-color);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Sobre tinta el velo tiene que ser luz, no sombra: negro sobre negro no se ve.
+   Es la convencion de elevacion de Material. */
+[data-bs-theme="dark"] .dnz-card-veil {
+    --rz-card-flat-background-color: rgba(255, 255, 255, 0.045);
+}
+
+[data-bs-theme="dark"] .dnz-card-plain {
+    border-color: rgba(255, 255, 255, 0.13);
+}
+
+/* ── Utilidades de layout ─────────────────────────────────────────────────
+   Los componentes de DinaZen usan clases de utilidad tipo Bootstrap en su
+   markup (148 d-flex, 77 align-items-center, 17 flex-grow-1...), pero la
+   libreria NO declaraba esa dependencia: daba por hecho que la app consumidora
+   cargaba Bootstrap entero. Cualquier app que no lo hiciera renderizaba los
+   componentes rotos y en silencio.
+
+   Van dentro de @layer A PROPOSITO. Una regla dentro de una capa SIEMPRE pierde
+   frente a una regla sin capa, pase lo que pase con la especificidad y el orden.
+   Eso las convierte en un puro respaldo:
+
+     · App que ya carga Bootstrap (play.dinaup.com carga bootstrap.min.css sin
+       capa): gana Bootstrap y aqui no cambia absolutamente nada. Importa,
+       porque dinazen.css se carga DESPUES que su bootstrap y que su CSS propio,
+       asi que sin la capa estas reglas les pisarian las suyas — .text-muted
+       tiene 233 usos alli y no pinta igual con --rz-text-secondary-color.
+     · App que no carga Bootstrap: no compite nadie y estas aplican.
+
+   Valores identicos a Bootstrap 5. Escala de espaciado:
+   0 = 0 · 1 = .25rem · 2 = .5rem · 3 = 1rem · 4 = 1.5rem · 5 = 3rem ── */
+
+@layer dinazen-utilities {
+    .d-flex { display: flex; }
+    .d-inline-flex { display: inline-flex; }
+
+    .flex-column { flex-direction: column; }
+    .flex-wrap { flex-wrap: wrap; }
+    .flex-fill { flex: 1 1 auto; }
+    .flex-grow-1 { flex-grow: 1; }
+    .flex-shrink-0 { flex-shrink: 0; }
+
+    .align-items-start { align-items: flex-start; }
+    .align-items-center { align-items: center; }
+    .align-items-end { align-items: flex-end; }
+    .align-content-start { align-content: flex-start; }
+    .align-content-center { align-content: center; }
+    .align-self-start { align-self: flex-start; }
+    .align-self-center { align-self: center; }
+
+    .justify-content-start { justify-content: flex-start; }
+    .justify-content-center { justify-content: center; }
+    .justify-content-end { justify-content: flex-end; }
+    .justify-content-between { justify-content: space-between; }
+    .justify-content-around { justify-content: space-around; }
+
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 1rem; }
+    .gap-4 { gap: 1.5rem; }
+
+    .w-100 { width: 100%; }
+    .h-100 { height: 100%; }
+    .h-auto { height: auto; }
+
+    .m-0 { margin: 0; }
+    .m-2 { margin: 0.5rem; }
+    .m-4 { margin: 1.5rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .ms-auto { margin-left: auto; }
+    .ms-2 { margin-left: 0.5rem; }
+    .me-2 { margin-right: 0.5rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 1rem; }
+    .mt-4 { margin-top: 1.5rem; }
+    .mb-1 { margin-bottom: 0.25rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .my-1 { margin-top: 0.25rem; margin-bottom: 0.25rem; }
+    .my-2 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    .my-3 { margin-top: 1rem; margin-bottom: 1rem; }
+    .my-4 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+
+    .p-0 { padding: 0; }
+    .p-1 { padding: 0.25rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 1rem; }
+    .pt-2 { padding-top: 0.5rem; }
+    .pb-2 { padding-bottom: 0.5rem; }
+    .pe-2 { padding-right: 0.5rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .px-3 { padding-left: 1rem; padding-right: 1rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+
+    .overflow-auto { overflow: auto; }
+
+    .small { font-size: 0.875em; }
+    .fw-medium { font-weight: 500; }
+    .text-center { text-align: center; }
+    .text-end { text-align: right; }
+
+    .text-muted { color: var(--rz-text-secondary-color); }
+    .text-success { color: var(--rz-success); }
+    .text-warning { color: var(--rz-warning); }
+    .text-danger { color: var(--rz-danger); }
+
+    .bg-primary { background-color: var(--rz-primary); color: var(--rz-on-primary, #fff); }
+    .bg-secondary { background-color: var(--rz-secondary); color: var(--rz-on-secondary, #fff); }
+    .bg-success { background-color: var(--rz-success); color: var(--rz-on-success, #fff); }
+    .bg-warning { background-color: var(--rz-warning); color: var(--rz-on-warning, #fff); }
+    .bg-info { background-color: var(--rz-info); color: var(--rz-on-info, #fff); }
+    .bg-dark { background-color: var(--rz-base-800); color: var(--rz-base-50); }
 }

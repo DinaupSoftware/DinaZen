@@ -22,9 +22,14 @@
 }
 
 .dnz-filename-compact-size {
-    color: var(--rz-text-secondary-color, #888);
+    color: #888;
     flex-shrink: 0;
     font-size: 11px;
+}
+
+/* En claro el token vale casi negro, asi que el gris de siempre se queda literal. */
+[data-bs-theme="dark"] .dnz-filename-compact-size {
+    color: var(--rz-text-secondary-color);
 }
 
 .dnz-filename-compact-action {

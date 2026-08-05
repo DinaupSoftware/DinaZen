@@ -30,6 +30,13 @@
     overflow: hidden;
 }
 
+/* El carril por el que corre la barra es un hueco. En oscuro base-200 pasa a ser
+   tinta y el carril saldria casi blanco, tapando el destello de color que indica
+   que la IA esta trabajando. */
+[data-bs-theme="dark"] .dnz-ia-loader-bar {
+    background: var(--rz-base-600);
+}
+
 .dnz-ia-loader-bar-fill {
     width: 40%;
     height: 100%;

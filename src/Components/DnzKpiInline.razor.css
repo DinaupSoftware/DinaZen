@@ -22,7 +22,11 @@
 }
 
 .dz-kpi-inline-label {
-	color: var(--rz-text-secondary-color, #6b7280);
+	color: #6b7280;
+}
+
+[data-bs-theme="dark"] .dz-kpi-inline-label {
+	color: var(--rz-text-secondary-color);
 }
 
 .dz-kpi-inline-value {

@@ -1,4 +1,4 @@
-/* ================================================================
+﻿/* ================================================================
    TaskbarItem — Scoped CSS
    ================================================================ */
 
@@ -182,11 +182,75 @@
 }
 
 .dnz-taskbar-close:hover {
-	background: rgba(239, 68, 68, 0.1);
+	background: var(--rz-danger-lighter, rgba(239, 68, 68, 0.1));
 	color: #dc2626;
 	opacity: 1;
 }
 
 .dnz-taskbar-close:active {
 	transform: scale(.9);
+}
+
+
+/* ================================================================
+   TEMA OSCURO
+   ================================================================
+   Toda la jerarquia del chip esta escrita como negro con transparencia
+   (0,75 el titulo, 0,45 el subtitulo, 0,3 el minimizado). Sobre una barra
+   clara eso da la escala correcta; sobre una barra gris el nombre de la
+   ventana simplemente desaparece. Se replica la MISMA escala en blanco,
+   asi el usuario sigue distinguiendo de un vistazo la ventana activa, las
+   abiertas y las minimizadas. Los cuatro puntos de marca no se tocan:
+   son identidad y cantan igual sobre los dos fondos.
+   ================================================================ */
+
+[data-bs-theme="dark"] .dnz-taskbar-item:hover {
+	background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-item.active {
+	background: rgba(255, 255, 255, 0.10);
+	border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-label,
+[data-bs-theme="dark"] .dnz-taskbar-label-single {
+	color: rgba(255, 255, 255, 0.80);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-sublabel {
+	color: rgba(255, 255, 255, 0.55);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-item.active .dnz-taskbar-label,
+[data-bs-theme="dark"] .dnz-taskbar-item.active .dnz-taskbar-label-single {
+	color: rgba(255, 255, 255, 0.92);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-item.active .dnz-taskbar-sublabel {
+	color: rgba(255, 255, 255, 0.60);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-item.minimized .dnz-taskbar-label,
+[data-bs-theme="dark"] .dnz-taskbar-item.minimized .dnz-taskbar-label-single {
+	color: rgba(255, 255, 255, 0.45);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-item.minimized .dnz-taskbar-sublabel {
+	color: rgba(255, 255, 255, 0.28);
+}
+
+[data-bs-theme="dark"] .dnz-taskbar-close {
+	color: rgba(255, 255, 255, 0.30);
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .dnz-taskbar-close:hover {
+    color: var(--rz-danger);
 }

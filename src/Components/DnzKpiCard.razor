@@ -1,6 +1,6 @@
-@if (HighlightColor != HighlightColorType.Undefined)
+﻿@if (HighlightColor != HighlightColorType.Undefined)
 {
-	<RadzenCard Variant="Variant.Filled" Style="@GetGradient()" class="@($"h-100 {Class}")" title="@Tooltip">
+	<DnzCard Variant="Radzen.Variant.Filled" Style="@GetGradient()" class="@($"h-100 {Class}")" title="@Tooltip">
 		<div class="d-flex flex-column justify-content-between h-100 gap-3" style="@($"color: {GetTextColor()}; ")">
 			<div class="d-flex justify-content-between align-items-start gap-2">
 				<div class="flex-grow-1">
@@ -57,11 +57,11 @@
 				</div>
 			}
 		</div>
-	</RadzenCard>
+	</DnzCard>
 }
 else if (IsCompact)
 {
-	<RadzenCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style" title="@Tooltip">
+	<DnzCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style" title="@Tooltip">
 		<div class="dz-kpi-compact">
 			@if (string.IsNullOrEmpty(Icon) == false)
 			{
@@ -72,11 +72,11 @@ else if (IsCompact)
 				<span class="dz-kpi-compact-title">@Title</span>
 			</div>
 		</div>
-	</RadzenCard>
+	</DnzCard>
 }
 else
 {
-	<RadzenCard Variant="@Variant" class="@Class" Style="@Style" title="@Tooltip">
+	<DnzCard Variant="@Variant" class="@Class" Style="@Style" title="@Tooltip">
 		<div class="dz-kpi-content">
 			@if (string.IsNullOrEmpty(Icon) == false)
 			{
@@ -119,10 +119,10 @@ else
 
 			@if (string.IsNullOrEmpty(ButtonText) == false)
 			{
-				<RadzenButton Text="@ButtonText" Variant="Variant.Text" Click="@OnClick" Icon="@ButtonIcon" />
+				<RadzenButton Text="@ButtonText" Variant="Radzen.Variant.Text" Click="@OnClick" Icon="@ButtonIcon" />
 			}
 		</div>
-	</RadzenCard>
+	</DnzCard>
 }
 
 @code {
@@ -130,7 +130,11 @@ else
 	[Parameter] public string Style { get; set; } = "";
 	[Parameter] public string Title { get; set; } = "";
 	[Parameter] public string Icon { get; set; } = "";
-	[Parameter] public string Color { get; set; } = "black";
+	// El valor de la tarjeta se pinta con este color. Estaba en negro literal, así que
+	// una tarjeta sin Color propio salía en negro sobre negro con el tema oscuro. Con
+	// light-dark() el primer valor es el negro de siempre —el tema claro no se mueve— y
+	// el segundo lo lee solo el navegador cuando la app está en oscuro.
+	[Parameter] public string Color { get; set; } = "light-dark(black, var(--rz-text-color))";
 	[Parameter] public string Value { get; set; } = "";
 	[Parameter] public string Description { get; set; } = "";
 	[Parameter] public bool IsCompact { get; set; } = false;
@@ -139,7 +143,11 @@ else
 	[Parameter] public string ButtonIcon { get; set; } = "";
 	[Parameter] public HighlightColorType HighlightColor { get; set; } = HighlightColorType.Undefined;
 	[Parameter] public string Tooltip { get; set; } = "";
-	[Parameter] public Radzen.Variant Variant { get; set; } = Radzen.Variant.Filled;
+	// Nullable a proposito: null significa "que lo decida la profundidad".
+	// El default anterior era Filled, que es exactamente lo que DnzCard resuelve
+	// en el nivel 0, asi que una tarjeta suelta se ve igual que siempre; solo
+	// cambia cuando va dentro de otro DnzCard, que es cuando queremos que cambie.
+	[Parameter] public Radzen.Variant? Variant { get; set; }
 	[Parameter] public decimal? DeltaPercent { get; set; }
 	[Parameter] public string DeltaLabel { get; set; } = "";
 	[Parameter] public bool DeltaInvertColors { get; set; } = false;
@@ -184,7 +192,10 @@ else
 			HighlightColorType.Red => "background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)",
 			HighlightColorType.Blue => "background: linear-gradient(135deg, #64b5f6 0%, #2196F3 100%)",
 			HighlightColorType.Yellow => "background: linear-gradient(135deg, #fff176 0%, #FFEB3B 100%)",
-			HighlightColorType.Orange => "background: linear-gradient(135deg, #ffb74d 0%, #FF9800 100%)",
+			// Oscurecido a proposito: sobre el naranja claro anterior el texto blanco
+			// daba 1,73:1 y hubo que pintarlo negro, lo que rompia la coherencia con
+			// el resto de tarjetas. Asi el blanco llega a 4,98:1 y pasa AA.
+			HighlightColorType.Orange => "background: linear-gradient(135deg, #c8410f 0%, #a62f08 100%)",
 			HighlightColorType.Purple => "background: linear-gradient(135deg, #ba68c8 0%, #9C27B0 100%)",
 			HighlightColorType.Black => "background: linear-gradient(135deg, #757575 0%, #212121 100%)",
 			HighlightColorType.White => "background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%)",
@@ -195,12 +206,14 @@ else
 
 	private string GetTextColor()
 	{
+		// Texto oscuro solo en los degradados que son genuinamente claros: ahi el
+		// blanco no puede pasar contraste por mucho que se ajuste. El resto, todos
+		// saturados, van en blanco.
 		return GetResolvedColor() switch
 		{
 			HighlightColorType.Yellow => "#212121",
 			HighlightColorType.White => "#212121",
 			HighlightColorType.Gray => "#212121",
-			HighlightColorType.Orange => "#212121",
 			_ => "#ffffff"
 		};
 	}

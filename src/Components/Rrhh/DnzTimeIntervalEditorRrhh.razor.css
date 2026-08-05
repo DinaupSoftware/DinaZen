@@ -1,4 +1,4 @@
-/* ── Container ── */
+﻿/* ── Container ── */
 .tie-container {
     border: 1px solid var(--dnz-header-border, #eef1f5);
     border-radius: var(--dnz-container-radius, 8px);
@@ -45,6 +45,13 @@
     color: var(--dnz-input-color, #1b1d20);
 }
 
+/* El realce del boton es una sombra negra translucida: sobre una barra oscura no
+   se ve nada y el usuario deja de saber donde tiene el raton. Misma intensidad,
+   en blanco. */
+[data-bs-theme="dark"] .tie-toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
 .tie-toolbar-btn:focus-visible {
     box-shadow: var(--dnz-focus-ring, 0 0 0 3px rgba(52, 129, 229, .15));
 }
@@ -70,7 +77,7 @@
 }
 
 .tie-toolbar-btn-dropdown.active {
-    background: rgba(52, 129, 229, 0.08);
+    background: var(--rz-primary-lighter, rgba(52, 129, 229, 0.08));
     color: var(--rz-primary, #3481e5);
 }
 
@@ -206,7 +213,7 @@
 }
 
 .tie-btn-remove:hover {
-    background: rgba(244, 67, 54, 0.1);
+    background: var(--rz-danger-lighter, rgba(244, 67, 54, 0.1));
     color: #f44336;
     opacity: 1 !important;
 }
@@ -435,7 +442,7 @@
 }
 
 .tie-category-item.active {
-    background: rgba(52, 129, 229, 0.1);
+    background: var(--rz-primary-lighter, rgba(52, 129, 229, 0.1));
     color: var(--rz-primary, #3481e5);
     font-weight: 600;
 }
@@ -467,12 +474,12 @@
 
 .tie-cat-standard,
 .tie-cat-ordinarias {
-    background: rgba(52, 129, 229, 0.1);
+    background: var(--rz-primary-lighter, rgba(52, 129, 229, 0.1));
     color: #2563a8;
 }
 
 .tie-cat-extra {
-    background: rgba(245, 158, 11, 0.12);
+    background: var(--rz-warning-lighter, rgba(245, 158, 11, 0.12));
     color: #b45309;
 }
 
@@ -482,10 +489,19 @@
     color: #6d28d9;
 }
 
+/* El violeta de las complementarias no tiene token en la paleta, asi que el
+   tinte de fondo se aclara solo (es translucido) pero la letra no: el violeta
+   oscuro sobre ese tinte se quedaba en 1,9:1, o sea la palabra no se leia.
+   Mismo violeta, aclarado a mano hasta 7,5:1. */
+[data-bs-theme="dark"] .tie-cat-supplementary,
+[data-bs-theme="dark"] .tie-cat-complementarias {
+    color: #c4b5fd;
+}
+
 .tie-cat-rest,
 .tie-cat-descanso {
     background: rgba(107, 114, 128, 0.1);
-    color: #4b5563;
+    color: var(--rz-text-secondary-color, #4b5563);
 }
 
 /* ── Empty state ── */
@@ -501,4 +517,34 @@
     position: fixed;
     inset: 0;
     z-index: 99;
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .tie-toolbar-btn.copied {
+    color: var(--rz-success);
+}
+
+[data-bs-theme="dark"] .tie-btn-remove:hover {
+    color: var(--rz-danger);
+}
+
+
+/* ── Tema oscuro ─────────────────────────────────────────────────────────
+   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
+   ese token en el tema CLARO vale un color bastante distinto del que había
+   —la escala clara de play tiene los grises colapsados—, así que el claro
+   se movía. Se ha devuelto arriba su color literal exacto y el color del
+   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+[data-bs-theme="dark"] .tie-cat-ordinarias {
+    color: var(--rz-on-primary-lighter);
+}
+
+[data-bs-theme="dark"] .tie-cat-extra {
+    color: var(--rz-on-warning-lighter);
 }

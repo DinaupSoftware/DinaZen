@@ -67,11 +67,15 @@
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--rz-text-tertiary-color, #888);
+		color: #888;
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		margin: 0;
+	}
+
+	[data-bs-theme="dark"] .dnz-inspector-title {
+		color: var(--rz-text-tertiary-color);
 	}
 
 	.dnz-inspector-table {
@@ -86,9 +90,13 @@
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
-		color: var(--rz-text-tertiary-color, #888);
+		color: #888;
 		padding: 6px 8px;
 		border-bottom: 2px solid var(--rz-border-color);
+	}
+
+	[data-bs-theme="dark"] .dnz-inspector-table th {
+		color: var(--rz-text-tertiary-color);
 	}
 
 	.dnz-inspector-table td {
@@ -106,7 +114,11 @@
 
 	.dnz-inspector-val {
 		word-break: break-all;
-		color: var(--rz-text-color, #1b1d20);
+		color: #1b1d20;
+	}
+
+	[data-bs-theme="dark"] .dnz-inspector-val {
+		color: var(--rz-text-color);
 	}
 
 	.dnz-inspector-val.mono,
