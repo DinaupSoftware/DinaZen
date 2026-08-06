@@ -4,7 +4,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>10.15.0.41</Version>
+		<Version>10.15.0.42</Version>
 		<Description>Dinaup es una biblioteca para facilitar la compatibilidad entre Dinaup y Radzen</Description>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
@@ -45,8 +45,8 @@
 
 	<!-- NuGet packages -->
 	<ItemGroup Condition="'$(UseLocalProjects)' != 'true'">
-		<PackageReference Include="Dinaup.MyDinaup0" Version="10.15.0.6" />
-		<PackageReference Include="DemoUp.MyDinaup" Version="10.15.0.11" />
+		<PackageReference Include="Dinaup.MyDinaup0" Version="10.15.0.14" />
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.15.0.28" />
 		<PackageReference Include="Dinaup" Version="10.15.0.*" />
 	</ItemGroup>
 	<ItemGroup>
