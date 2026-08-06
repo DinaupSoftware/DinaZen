@@ -1,13 +1,19 @@
 @namespace DinaZen.Components
 
+@* Ancla de test: MISMO data-testid en las dos franjas, y el entorno concreto en data-testname.
+   Asi un test hace una sola pregunta —"existe dnz-env-bar?"— y con la respuesta sabe las dos
+   cosas que importan: si esto es un entorno de pruebas, y cual. En produccion no hay franja
+   ninguna, que es justo lo que se quiere poder afirmar. Mismo patron que el data-testname de
+   la licencia en la cabecera de play. *@
+
 @if (Dinaup.EnvExtensions.GetCurrentEnv() == Dinaup.Env.Staging) {
-	<div class="env-bar env-staging">
+	<div class="env-bar env-staging" data-testid="dnz-env-bar" data-testname="staging">
 		<RadzenIcon Icon="science" /> Entorno de <b>pre-producción</b> — la aplicación puede contener errores.
 	</div>
 }
 
 @if (Dinaup.EnvExtensions.GetCurrentEnv() == Dinaup.Env.Dev) {
-	<div class="env-bar env-dev">
+	<div class="env-bar env-dev" data-testid="dnz-env-bar" data-testname="dev">
 		<RadzenIcon Icon="code" /> Entorno de <b>desarrollo</b> — la aplicación puede contener errores.
 	</div>
 }
