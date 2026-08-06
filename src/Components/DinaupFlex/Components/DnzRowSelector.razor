@@ -19,8 +19,12 @@
 					</div>
 				} else {
 
-					<div @ref=containerRef tabindex=@(Disabled ? null : "0") role="combobox" aria-haspopup="listbox" aria-expanded=@(_popupOpen ? "true" : "false") aria-required=@(IsRequired ? "true" : null) aria-label=@_ariaLabel @onclick=@(args => ToggleAsync()) @onkeydown=@OnKeyDown class=@_contentClass>
-						<span class="dnz-rs-text" title=@(SelectedRow.IsNotEmpty() ? SelectedRow.Label : null)>
+					@* Dos anclas fijas dentro del envoltorio, igual que row-selector-open/-remove/-add:
+					   -content es lo que se pulsa para abrir el desplegable, -text es el valor elegido.
+					   Fijas y no derivadas porque el envoltorio ya lleva el data-testid del consumidor
+					   (viaja en AdditionalAttributes), asi que el test acota por el y dentro busca estas. *@
+					<div @ref=containerRef tabindex=@(Disabled ? null : "0") role="combobox" aria-haspopup="listbox" aria-expanded=@(_popupOpen ? "true" : "false") aria-required=@(IsRequired ? "true" : null) aria-label=@_ariaLabel @onclick=@(args => ToggleAsync()) @onkeydown=@OnKeyDown class=@_contentClass data-testid="row-selector-content">
+						<span class="dnz-rs-text" data-testid="row-selector-text" title=@(SelectedRow.IsNotEmpty() ? SelectedRow.Label : null)>
 							@if (SelectedRow.IsNotEmpty()) {
 								@SelectedRow.Label
 							} else if (Placeholder.IsNotEmpty()) {
@@ -55,7 +59,7 @@
 	</div>
 </ErrorBoundary>
 
-<RadzenPopup @ref=popup Lazy=true Open="@OnPopupOpen" Close="@OnPopupClose" Style="display:none;position:absolute;padding:5px;width:min(600px,92vw);max-height:70vh;overflow:auto;" class="dnz-rs-popup">
+<RadzenPopup @ref=popup Lazy=true Open="@OnPopupOpen" Close="@OnPopupClose" Style="display:none;position:absolute;padding:5px;width:min(600px,92vw);max-height:70vh;overflow:auto;" class="dnz-rs-popup" data-testid="row-selector-popup">
 	<ErrorBoundary>
 		<div class="dnz-rs-popup-head">
 			<DnzSearchInput BounceValueChanged=@OnDebouncedSearch Class="flex-grow-1" />

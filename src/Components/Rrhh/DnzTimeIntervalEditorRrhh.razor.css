@@ -402,13 +402,89 @@
     filter: none;
 }
 
+/* ── Reason chip (sub-category of the row's category) ── */
+.tie-reason-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 22px;
+    max-width: 170px;
+    padding: 0 4px 0 8px;
+    border: none;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all var(--dnz-transition, 150ms ease);
+    outline: none;
+    user-select: none;
+    background: var(--dnz-tab-content-bg, #f0f1f3);
+    color: var(--dnz-label-color, #6b7280);
+}
+
+.tie-reason-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tie-reason-chip ::deep .rzi {
+    font-size: 14px;
+    opacity: 0.4;
+    flex-shrink: 0;
+    transition: opacity var(--dnz-transition, 150ms ease);
+}
+
+.tie-reason-chip:hover {
+    filter: brightness(0.93);
+}
+
+.tie-reason-chip:hover ::deep .rzi {
+    opacity: 0.7;
+}
+
+.tie-reason-chip:focus-visible {
+    box-shadow: var(--dnz-focus-ring, 0 0 0 3px rgba(52, 129, 229, .15));
+}
+
+.tie-reason-chip:active {
+    transform: scale(0.96);
+}
+
+.tie-reason-chip-readonly {
+    cursor: default;
+    padding: 0 8px;
+}
+
+.tie-reason-chip-readonly:hover {
+    filter: none;
+}
+
+/* Un tramo de esa categoria SIN motivo no se puede guardar, asi que se ve rojo desde el
+   primer momento en vez de esperar a que el usuario pulse Guardar para enterarse. */
+.tie-reason-missing {
+    background: var(--rz-danger-lighter, rgba(244, 67, 54, 0.12));
+    color: var(--rz-danger, #b3261e);
+}
+
+[data-bs-theme="dark"] .tie-reason-missing {
+    color: var(--rz-on-danger-lighter);
+}
+
+.tie-reason-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
 /* ── Category dropdown popover ── */
 .tie-category-wrap {
     position: relative;
     display: inline-flex;
 }
 
-.tie-category-popover {
+.tie-category-popover,
+.tie-reason-popover {
     position: absolute;
     top: calc(100% + 4px);
     right: 0;
@@ -421,7 +497,14 @@
     padding: 4px;
 }
 
-.tie-category-item {
+/* Los motivos son frases ("Refuerzo por pico de campana"), no una palabra como el tipo:
+   con el ancho del popover de tipos cada uno caia en dos lineas. */
+.tie-reason-popover {
+    min-width: 220px;
+}
+
+.tie-category-item,
+.tie-reason-item {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -437,21 +520,25 @@
     text-align: left;
 }
 
-.tie-category-item:hover {
+.tie-category-item:hover,
+.tie-reason-item:hover {
     background: rgba(52, 129, 229, 0.07);
 }
 
-.tie-category-item.active {
+.tie-category-item.active,
+.tie-reason-item.active {
     background: var(--rz-primary-lighter, rgba(52, 129, 229, 0.1));
     color: var(--rz-primary, #3481e5);
     font-weight: 600;
 }
 
-.tie-category-item-label {
+.tie-category-item-label,
+.tie-reason-item-label {
     flex: 1;
 }
 
-.tie-category-item ::deep .rzi {
+.tie-category-item ::deep .rzi,
+.tie-reason-item ::deep .rzi {
     font-size: 16px;
     color: var(--rz-primary, #3481e5);
 }

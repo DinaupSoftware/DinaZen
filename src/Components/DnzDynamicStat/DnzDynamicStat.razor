@@ -1,20 +1,21 @@
-@if (IsLoading)
+@* Las dos esperas (aun sin disparar la consulta y consulta en vuelo) comparten cuerpo: el
+   esqueleto va dentro del mismo contenedor que los demas estados para que el data-testid
+   este en el DOM tambien mientras carga. *@
+@if (IsLoading || Data.IsNull() || Data.IsLoaded == false)
 {
-	<DnzSkeleton Height="80px" />
-}
-else if (Data.IsNull() || Data.IsLoaded == false)
-{
-	<DnzSkeleton Height="80px" />
+	<div class=@($"dnz-dynamic-stat {Class}") style=@Style @attributes="@Attributes">
+		<DnzSkeleton Height="80px" />
+	</div>
 }
 else if (Data.ErrorMessage.IsNotEmpty())
 {
-	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" ShowIcon="true">
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" ShowIcon="true" @attributes="@Attributes">
 		@Data.ErrorMessage
 	</RadzenAlert>
 }
 else if (Data.Series.IsEmpty() || (Data.Series.All(s => s.SingleValue.HasValue == false && s.Items.IsEmpty()) && Data.RawRows.IsEmpty()))
 {
-	<div class=@($"dnz-dynamic-stat {Class}") style=@Style>
+	<div class=@($"dnz-dynamic-stat {Class}") style=@Style @attributes="@Attributes">
 		<div class="d-flex flex-column align-items-center justify-content-center py-4 gap-2" style="color:var(--rz-text-tertiary-color);">
 			@if (Title.IsNotEmpty())
 			{
@@ -27,7 +28,7 @@ else if (Data.Series.IsEmpty() || (Data.Series.All(s => s.SingleValue.HasValue =
 }
 else
 {
-	<div class=@($"dnz-dynamic-stat autofade {Class}") style=@Style>
+	<div class=@($"dnz-dynamic-stat autofade {Class}") style=@Style @attributes="@Attributes">
 
 		@* ── View switcher toolbar ── *@
 		@if (AllowViewSwitch && Data.HasGroupedData)
@@ -105,6 +106,10 @@ else
 	[Parameter] public EventCallback OnClick { get; set; }
 	[Parameter] public string Class { get; set; } = "";
 	[Parameter] public string Style { get; set; } = "";
+
+	// Cualquier otro atributo (data-testid, aria-*) cae en el elemento raiz de cada estado.
+	// Sin esto, un data-testid encima del componente revienta en runtime. Mismo patron que DnzCard.
+	[Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> Attributes { get; set; }
 
 	#endregion
 

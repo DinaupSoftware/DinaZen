@@ -1,6 +1,8 @@
 @* DnzKpiInline - Compact horizontal KPI strip for footers, card summaries or meta lines (GitHub-style). *@
 
-<span class="dz-kpi-inline @Class" style="@Style">
+@* La tira entera se identifica con TestId (null cuando no se pasa, para no emitir el atributo vacio);
+   cada KPI, al ser elemento repetido, lleva su etiqueta como identidad para poder afirmar SU numero. *@
+<span class="dz-kpi-inline @Class" style="@Style" data-testid="@(TestId.IsNotEmpty() ? TestId : null)">
 	@for (int i = 0; i < Items.Count; i++)
 	{
 		var item = Items[i];
@@ -8,7 +10,7 @@
 		{
 			<span class="dz-kpi-inline-sep">@_separatorChar</span>
 		}
-		<span class="dz-kpi-inline-item" title="@item.Tooltip">
+		<span class="dz-kpi-inline-item" title="@item.Tooltip" data-testid="dnz-kpi-item" data-testid-id="@item.Label" data-testname="@item.Label">
 			@if (string.IsNullOrEmpty(item.Icon) == false)
 			{
 				var iconColor = string.IsNullOrEmpty(item.IconColor) ? item.ValueColor : item.IconColor;
@@ -18,7 +20,7 @@
 			{
 				<span class="dz-kpi-inline-label">@item.Label</span>
 			}
-			<span class="dz-kpi-inline-value" style="@($"color: {item.ValueColor};")">@item.Value</span>
+			<span class="dz-kpi-inline-value" data-testid="dnz-kpi-value" data-testid-id="@item.Label" style="@($"color: {item.ValueColor};")">@item.Value</span>
 		</span>
 	}
 </span>
@@ -28,6 +30,13 @@
 	[Parameter] public SeparatorType Separator { get; set; } = SeparatorType.MiddleDot;
 	[Parameter] public string Class { get; set; } = "";
 	[Parameter] public string Style { get; set; } = "";
+
+	/// <summary>
+	/// Value of the <c>data-testid</c> attribute of the root element. Empty (the default) emits no
+	/// attribute at all, so existing consumers render exactly the same markup as before.
+	/// Needed because the same screen can show several KPI strips (per employee, per card).
+	/// </summary>
+	[Parameter] public string TestId { get; set; } = "";
 
 	private string _separatorChar => Separator switch
 	{

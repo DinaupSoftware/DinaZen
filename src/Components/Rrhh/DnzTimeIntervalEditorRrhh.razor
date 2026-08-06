@@ -2,6 +2,8 @@
     DnzTimeIntervalEditorRrhh - Multiple time intervals editor.
     Compact custom inputs (no RadzenDatePicker), auto-sort ASC, ghost row,
     rest/gap indicator between intervals, toolbar with copy/paste/templates.
+    Each row carries its own category chip and, when the SubCategories catalog has entries for
+    that category, a second chip to pick the reason (stored in TimeIntervalRrhh.SubCategoryId).
 
     Origin: play.dinaup.com HumanResources/Dialog/Componentes/MultiIntervalEditorEsperadasU.razor
 *@
@@ -9,7 +11,10 @@
 @using DinaZen.Components.Rrhh.Models
 @inject IJSRuntime JS
 
-<div class="tie-container">
+@* El mismo editor se pinta dos veces en la misma pantalla (esperado y realizado): sin el
+   TestId de la raiz los dos son indistinguibles para un test. Null cuando no se pasa, para
+   que Blazor no emita un data-testid vacio. *@
+<div class="tie-container" data-testid="@(TestId.IsNotEmpty() ? TestId : null)">
 
     @* ── TOOLBAR ── *@
     @if (ShowToolbar)
@@ -85,8 +90,17 @@
             var idx = i;
             var interval = Intervals[idx];
             EnsureEditText(interval);
+            // El motivo depende de la categoria del tramo: se resuelve aqui, con el resto de
+            // variables de la fila, porque dentro del marcado una declaracion suelta no compila.
+            var reasons = SubCategoriesFor(interval.Category);
+            var reasonName = SubCategoryName(interval, reasons);
 
-            <div class="tie-row" @key="interval">
+            @* El ancla de la fila es la hora de inicio, no el indice: con AutoSort activo, editar
+               una hora reordena la lista y el indice de una fila se mueve bajo los pies del test. *@
+            <div class="tie-row" @key="interval"
+                 data-testid="dnz-time-interval-row"
+                 data-testid-id="@FormatTime(interval.Start)"
+                 data-testname="@($"{FormatTime(interval.Start)}-{FormatTime(interval.End)}")">
                 <input type="text"
                        class="tie-time-input"
                        value="@GetEditText(interval, true)"
@@ -119,7 +133,10 @@
                     <span class="tie-vr"></span>
                     @if (ReadOnly)
                     {
-                        <span class="tie-category-chip tie-category-chip-readonly @GetCategoryClass(interval.Category)">
+                        <span class="tie-category-chip tie-category-chip-readonly @GetCategoryClass(interval.Category)"
+                              data-testid="dnz-time-interval-category"
+                              data-testid-id="@FormatTime(interval.Start)"
+                              data-testname="@interval.Category">
                             @(string.IsNullOrEmpty(interval.Category) ? "Sin tipo" : interval.Category)
                         </span>
                     }
@@ -128,6 +145,9 @@
                         <span class="tie-category-wrap">
                             <button type="button"
                                     class="tie-category-chip @GetCategoryClass(interval.Category)"
+                                    data-testid="dnz-time-interval-category"
+                                    data-testid-id="@FormatTime(interval.Start)"
+                                    data-testname="@interval.Category"
                                     @onclick="() => ToggleCategoryPopover(idx)"
                                     title="Cambiar tipo">
                                 @(string.IsNullOrEmpty(interval.Category) ? "Sin tipo" : interval.Category)
@@ -142,6 +162,9 @@
                                         var isActive = cat == interval.Category;
                                         <button type="button"
                                                 class="tie-category-item @(isActive ? "active" : "")"
+                                                data-testid="dnz-time-interval-category-row"
+                                                data-testid-id="@cat"
+                                                data-testname="@cat"
                                                 @onclick="() => SetCategoryAsync(interval, cat)">
                                             <span class="tie-category-dot @GetCategoryClass(cat)"></span>
                                             <span class="tie-category-item-label">@cat</span>
@@ -160,6 +183,58 @@
                 {
                     <span class="tie-vr"></span>
                     @IntervalTypeTemplate(interval)
+                }
+
+                @* ── REASON (sub-category of the current category) ── *@
+                @if (reasons.IsNotEmpty())
+                {
+                    <span class="tie-vr"></span>
+                    @if (ReadOnly)
+                    {
+                        <span class="tie-reason-chip tie-reason-chip-readonly @(reasonName.IsEmpty() ? "tie-reason-missing" : "")"
+                              data-testid="dnz-time-interval-reason"
+                              data-testid-id="@FormatTime(interval.Start)"
+                              data-testname="@reasonName">
+                            <span class="tie-reason-label">@(reasonName.IsEmpty() ? "Sin motivo" : reasonName)</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="tie-reason-wrap">
+                            <button type="button"
+                                    class="tie-reason-chip @(reasonName.IsEmpty() ? "tie-reason-missing" : "")"
+                                    data-testid="dnz-time-interval-reason"
+                                    data-testid-id="@FormatTime(interval.Start)"
+                                    data-testname="@reasonName"
+                                    @onclick="() => ToggleReasonPopover(idx)"
+                                    title="Motivo">
+                                <span class="tie-reason-label">@(reasonName.IsEmpty() ? "Sin motivo" : reasonName)</span>
+                                <RadzenIcon Icon="@(_openReasonRowIdx == idx ? "arrow_drop_up" : "arrow_drop_down")" />
+                            </button>
+                            @if (_openReasonRowIdx == idx)
+                            {
+                                <div class="tie-backdrop" @onclick="() => _openReasonRowIdx = -1"></div>
+                                <div class="tie-reason-popover">
+                                    @foreach (var reason in reasons)
+                                    {
+                                        var isReasonActive = reason.Id == interval.SubCategoryId;
+                                        <button type="button"
+                                                class="tie-reason-item @(isReasonActive ? "active" : "")"
+                                                data-testid="dnz-time-interval-reason-row"
+                                                data-testid-id="@reason.Id"
+                                                data-testname="@reason.Name"
+                                                @onclick="() => SetSubCategoryAsync(interval, reason)">
+                                            <span class="tie-reason-item-label">@reason.Name</span>
+                                            @if (isReasonActive)
+                                            {
+                                                <RadzenIcon Icon="check" />
+                                            }
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </span>
+                    }
                 }
 
                 @if (AllowRemove)
@@ -280,6 +355,20 @@
     /// Typical use: pass "Descanso" / "Rest" so the user can convert idle time into a rest interval in one click.
     /// </summary>
     [Parameter] public string GapFillCategory { get; set; } = "";
+
+    /// <summary>
+    /// Catalog of reasons available per category, supplied by the consumer — the editor knows no domain.
+    /// A row whose category has at least one reason in the catalog shows a second chip to pick it;
+    /// a row whose category has none shows nothing, so "which categories need a reason" is decided
+    /// by the catalog and never hardcoded here.
+    /// </summary>
+    [Parameter] public List<TimeIntervalSubCategoryRrhh> SubCategories { get; set; }
+
+    /// <summary>
+    /// Value of the <c>data-testid</c> attribute of the root element. Needed when two editors are
+    /// rendered on the same screen, because otherwise they are identical to a test.
+    /// </summary>
+    [Parameter] public string TestId { get; set; } = "";
 
     // ── Internal state ──
 
@@ -535,7 +624,41 @@
             return;
         }
         interval.Category = category;
+        // Un motivo pertenece a UNA categoria: si no se soltara al cambiar de tipo, el tramo se
+        // guardaria con el motivo de la categoria anterior y nadie lo veria (el chip ya no lo pinta).
+        if (SubCategoriesFor(category).Exists(s => s.Id == interval.SubCategoryId) == false)
+            interval.SubCategoryId = null;
         _openCategoryRowIdx = null;
+        await OnIntervalChangedAsync();
+        StateHasChanged();
+    }
+
+    // ── Reason chip (sub-category) ──
+
+    private int _openReasonRowIdx = -1;
+    private static readonly List<TimeIntervalSubCategoryRrhh> _noSubCategories = new();
+
+    private void ToggleReasonPopover(int idx)
+    {
+        _openReasonRowIdx = (_openReasonRowIdx == idx) ? -1 : idx;
+    }
+
+    private List<TimeIntervalSubCategoryRrhh> SubCategoriesFor(string category)
+    {
+        if (SubCategories.IsEmpty()) return _noSubCategories;
+        return SubCategories.FindAll(s => s.Category == category);
+    }
+
+    private static string SubCategoryName(TimeIntervalRrhh interval, List<TimeIntervalSubCategoryRrhh> available)
+    {
+        return available.Find(s => s.Id == interval.SubCategoryId)?.Name ?? "";
+    }
+
+    private async Task SetSubCategoryAsync(TimeIntervalRrhh interval, TimeIntervalSubCategoryRrhh subCategory)
+    {
+        _openReasonRowIdx = -1;
+        if (interval.SubCategoryId == subCategory.Id) return;
+        interval.SubCategoryId = subCategory.Id;
         await OnIntervalChangedAsync();
         StateHasChanged();
     }

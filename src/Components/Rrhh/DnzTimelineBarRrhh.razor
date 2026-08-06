@@ -8,7 +8,14 @@
 
 @if (Start != null)
 {
-    <div title="@_tooltip"    @onclick="OnClick"      class="@CssClasses"    style="left:@(_leftPct.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))%; width:@(_widthPct.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))%">
+    @* Las barras se pintan en bucle sobre la misma linea de tiempo: el TestId dice de que tira es
+       la barra, y el par id/name (hora de inicio + tipo) distingue una barra de otra dentro de la tira.
+       Null cuando no se pasa TestId, para que Blazor no emita atributos vacios en los consumidores de hoy. *@
+    <div title="@_tooltip"
+         data-testid="@(TestId.IsNotEmpty() ? TestId : null)"
+         data-testid-id="@(TestId.IsNotEmpty() ? Start.Value.ToString("HH:mm") : null)"
+         data-testname="@(TestId.IsNotEmpty() ? StyleDisplayName : null)"
+         @onclick="OnClick"      class="@CssClasses"    style="left:@(_leftPct.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))%; width:@(_widthPct.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))%">
         <RadzenIcon Icon="@StyleIcon" class="tlbar-icon" />
         @if (ShowLabel && _widthPct > 8)
         {
@@ -55,6 +62,16 @@
     /// <summary>Show time range label inside the bar when there's enough room.</summary>
     [Parameter]
     public bool ShowLabel { get; set; } = true;
+
+    /// <summary>
+    /// Value of the <c>data-testid</c> attribute of the root element. Empty (the default) emits no
+    /// attribute at all, so existing consumers render exactly the same markup as before.
+    /// When set, the bar also emits <c>data-testid-id</c> (start time, HH:mm) and
+    /// <c>data-testname</c> (bar type: Festivo, Ausencia, Turno oficial…), because several bars
+    /// share one timeline and otherwise they are indistinguishable to a test.
+    /// </summary>
+    [Parameter]
+    public string TestId { get; set; } = "";
 
     /// <summary>First hour of the axis range (must match the parent DnzTimelineRrhh.StartHour).</summary>
     [Parameter]

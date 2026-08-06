@@ -10,6 +10,7 @@
                 Style="@Style"
                 Placeholder="@Placeholder"
                 Disabled="@Disabled"
+                ItemRender="@MarcarOpcion"
                 @attributes="AdditionalAttributes" />
 
 @code {
@@ -26,15 +27,63 @@
 		.Select(e => new EnumItem(GetDisplayName(e!), e))
 		.ToList();
 
+	// ── Anclas de test ──────────────────────────────────────────────────────────────────
+	// Cada OPCION del desplegable sale marcada con el valor del enum, para poder elegirla
+	// sin leer la etiqueta visible (que se traduce). Radzen pone estos atributos tal cual
+	// en el <li> de la opcion (ItemRender -> RadzenDropDownItem), asi que NO hace falta
+	// <Template> y el aspecto no cambia ni un pixel.
+	//   data-testid     "<testid del desplegable>-option", o "dnz-enum-option" si no lleva.
+	//   data-testid-id  el nombre del miembro del enum: "Impedir".
+	//   data-value      el valor subyacente: "2". Es lo que se guarda.
+	//   data-testname   la etiqueta visible, solo para que el fallo del test se lea.
+	private void MarcarOpcion(DropDownItemRenderEventArgs<TEnum> args)
+	{
+		if (args.Item is EnumItem opcion)
+		{
+			args.Attributes["data-testid"] = OptionTestId;
+			args.Attributes["data-testid-id"] = Enum.GetName(typeof(TEnum), opcion.Value).STR();
+			args.Attributes["data-value"] = Convert.ToInt64(opcion.Value).STR();
+			args.Attributes["data-testname"] = opcion.Text;
+		}
+	}
+
+	// El testid de la opcion cuelga del testid del propio desplegable a proposito: el panel
+	// de opciones de TODOS los desplegables de la pantalla ya esta en el DOM (Radzen lo pinta
+	// con display:none y solo lo mueve al body al abrirlo), asi que un testid unico y global
+	// chocaria entre dos campos del mismo dialogo.
+	private string OptionTestId
+	{
+		get
+		{
+			var propio = AdditionalAttributes.IsNull() ? "" : (AdditionalAttributes.GetM("data-testid")?.ToString() ?? "");
+			return propio.IsEmpty() ? "dnz-enum-option" : propio + "-option";
+		}
+	}
+
+	// Conviven dos convenios y hay que mirar los dos: los enums escritos a mano en C# llevan
+	// [Display(Name=...)] y los generados del SDK llevan <Description(...)>, que es el convenio
+	// oficial de la casa — el propio SDK genera un STR() por enum que lee justo ese atributo.
+	// Aqui no se puede llamar (son extensiones VB, una por tipo, y esto es generico), de ahi la
+	// reflexion. Display va primero: lo puesto a mano manda.
+	// Una Description VACIA no cuenta: 19 miembros "Indefinido" del SDK la llevan a "" y dejarian
+	// la opcion en blanco. Sin este guardarrail, el desplegable enseñaba el nombre crudo del
+	// miembro ("ImpedirIniciar" en vez de "Impedir Iniciar").
 	private static string GetDisplayName(object value)
 	{
 		var field = value.GetType().GetField(value.ToString()!);
 		if (field == null) return value.ToString()!;
 
-		var attr = field.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+		var display = field.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
 			.Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>()
 			.FirstOrDefault();
-		return attr?.Name ?? value.ToString()!;
+		if (string.IsNullOrWhiteSpace(display?.Name) == false) return display!.Name!;
+
+		var descripcion = field.GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false)
+			.Cast<System.ComponentModel.DescriptionAttribute>()
+			.FirstOrDefault();
+		if (string.IsNullOrWhiteSpace(descripcion?.Description) == false) return descripcion!.Description;
+
+		return value.ToString()!;
 	}
 
 	private record EnumItem(string Text, TEnum Value);

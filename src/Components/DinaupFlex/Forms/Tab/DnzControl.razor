@@ -3,13 +3,20 @@
 @using System.Collections.Generic
 
 
+@* Dos anclas de campo, y no dicen lo mismo:
+   data-fieldid  = GUID interno del campo (cambia entre tenants, no sale del esquema).
+   data-fieldkey = la clave del campo (pr_20708311001, nombre, fecha...). Es la MISMA en
+                   todos los tenants, la que se escribe en un WriteOperation, así que es la
+                   que usan los tests. Va aquí porque en ModoCelda (celda de sublista) este
+                   div es lo único que envuelve al input. *@
 <div @key=@( DataControl.Token + "-ctrlu12")
 	 data-IsModified=@DataControl.IsModified.STR()
 	 data-IsLocked=@DataControl.IsLocked.STR()
 	 data-IsBig=@DataControl.IsGiant.STR()
 	 data-IsRequired=@DataControl.IsRequired.STR()
 	 data-IncorrectValueStatus=@DataControl.IncorrectValueStatus
-	 data-fieldid=@DataControl.FieldId 
+	 data-fieldid=@DataControl.FieldId
+	 data-fieldkey=@DataControl.Id
 	 class="controlu"
 	 style="@(  (ModoCelda ? $"": $"position: absolute; left: {DataControl.X}px; top: {DataControl.Y}px; width: {DataControl.Width}px; height: {DataControl.Height}px;" ))">
 

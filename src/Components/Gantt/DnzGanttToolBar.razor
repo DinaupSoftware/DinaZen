@@ -14,13 +14,14 @@
 	<!-- 📅 Navigation Section -->
 	<div class="nav-section">
 		<div class="nav-controls">
-			<button type="button" class="nav-btn" @onclick="Prev">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+			<button type="button" class="nav-btn" @onclick="Prev" data-testid="dnz-gantt-prev" title="@GetPrevLabel()" aria-label="@GetPrevLabel()">
+				@* El svg es decorativo: el nombre accesible lo da el aria-label del botón. *@
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
 					<path d="M15 18l-6-6 6-6" />
 				</svg>
 			</button>
-			<button type="button" class="nav-btn" @onclick="Next">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+			<button type="button" class="nav-btn" @onclick="Next" data-testid="dnz-gantt-next" title="@GetNextLabel()" aria-label="@GetNextLabel()">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
 					<path d="M9 18l6-6-6-6" />
 				</svg>
 			</button>
@@ -31,7 +32,7 @@
 			<span class="title-main">@GetTitle()</span>
 		</div>
 
-		<button type="button" class="today-btn" @onclick="Today">
+		<button type="button" class="today-btn" @onclick="Today" data-testid="dnz-gantt-today" title="Ir a hoy">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
 				<line x1="16" y1="2" x2="16" y2="6" />
@@ -50,7 +51,8 @@
 			@foreach (var mode in Modes)
 			{
 				var currentMode = mode;
-				<button type="button" class=@($"mode-btn {(currentMode == Viewport.ViewMode ? "active" : "")}") @onclick="() => SetMode(currentMode)" title="@GetModeText(currentMode)" @key="currentMode">
+				@* Los modos son un enum cerrado de 4, así que cada uno lleva su testid propio en vez del patrón de fila. *@
+				<button type="button" class=@($"mode-btn {(currentMode == Viewport.ViewMode ? "active" : "")}") @onclick="() => SetMode(currentMode)" title="@GetModeText(currentMode)" data-testid="@GetModeTestId(currentMode)" @key="currentMode">
 					@GetModeIcon(currentMode)
 					<span>@GetModeText(currentMode)</span>
 				</button>
@@ -62,8 +64,8 @@
 	<div class="zoom-section">
 		<span class="zoom-label">Zoom</span>
 		<div class="zoom-container">
-			<button type="button" class="zoom-btn" @onclick="ZoomOut" title="Reducir zoom">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<button type="button" class="zoom-btn" @onclick="ZoomOut" data-testid="dnz-gantt-zoom-out" title="Reducir zoom" aria-label="Reducir zoom">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 					<circle cx="11" cy="11" r="8" />
 					<line x1="21" y1="21" x2="16.65" y2="16.65" />
 					<line x1="8" y1="11" x2="14" y2="11" />
@@ -75,8 +77,8 @@
 					<div class="zoom-slider-fill" style="width: @(((Viewport.Zoom - 25) / 3.75))%"></div>
 				</div>
 			</div>
-			<button type="button" class="zoom-btn" @onclick="ZoomIn" title="Aumentar zoom">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<button type="button" class="zoom-btn" @onclick="ZoomIn" data-testid="dnz-gantt-zoom-in" title="Aumentar zoom" aria-label="Aumentar zoom">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 					<circle cx="11" cy="11" r="8" />
 					<line x1="21" y1="21" x2="16.65" y2="16.65" />
 					<line x1="11" y1="8" x2="11" y2="14" />
@@ -157,6 +159,34 @@
 		GanttViewMode.Month => Viewport.FocusDate.ToString("MMMM yyyy", new CultureInfo("es-ES")),
 		GanttViewMode.Year => Viewport.FocusDate.Year.STR(),
 		_ => ""
+	};
+
+	// El salto de las flechas depende del modo de vista: sin esto el lector de pantalla solo dice "botón".
+	private string GetPrevLabel() => Viewport.ViewMode switch
+	{
+		GanttViewMode.Hour => "Día anterior",
+		GanttViewMode.Week => "Semana anterior",
+		GanttViewMode.Month => "Mes anterior",
+		GanttViewMode.Year => "Año anterior",
+		_ => "Anterior"
+	};
+
+	private string GetNextLabel() => Viewport.ViewMode switch
+	{
+		GanttViewMode.Hour => "Día siguiente",
+		GanttViewMode.Week => "Semana siguiente",
+		GanttViewMode.Month => "Mes siguiente",
+		GanttViewMode.Year => "Año siguiente",
+		_ => "Siguiente"
+	};
+
+	private static string GetModeTestId(GanttViewMode mode) => mode switch
+	{
+		GanttViewMode.Hour => "dnz-gantt-mode-hour",
+		GanttViewMode.Week => "dnz-gantt-mode-week",
+		GanttViewMode.Month => "dnz-gantt-mode-month",
+		GanttViewMode.Year => "dnz-gantt-mode-year",
+		_ => "dnz-gantt-mode"
 	};
 
 	private static string GetModeText(GanttViewMode mode) => mode switch

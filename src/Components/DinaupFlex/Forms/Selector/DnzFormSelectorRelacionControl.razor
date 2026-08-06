@@ -180,7 +180,19 @@
 
 				@foreach (var context in DataControl.DropDowList.Where((x) => x.Title.ContainsWebSearchMode(searchString))) {
 
-					<div class="d-flex p-1 align-content-center align-content-center dup_dropdownitem" @onclick=@((x) => SelectOrder(context))>
+					@* Ancla de test: la opcion se elige por su VALOR, nunca por el texto (que se
+					   traduce). Misma convencion que las opciones de DnzEnumDropDown. Aqui el
+					   testid puede ser fijo porque el popup ya se acota con
+					   dnz-selector-popup-TOKEN, igual que se hace con las filas report-row-*.
+					   La identidad y el valor guardado son el mismo dato, asi que va en los dos
+					   atributos: data-testid-id (convencion de la casa) y data-value (el que
+					   comparten todos los desplegables). *@
+					<div class="d-flex p-1 align-content-center align-content-center dup_dropdownitem"
+						 data-testid="dnz-selector-option"
+						 data-testid-id=@context.Value
+						 data-value=@context.Value
+						 data-testname=@context.Title
+						 @onclick=@((x) => SelectOrder(context))>
 						<img src=@context.Icon width="24" style="margin-right:10px" onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" /> @context.Title
 					</div>
 				}

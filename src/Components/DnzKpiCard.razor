@@ -1,6 +1,6 @@
 ﻿@if (HighlightColor != HighlightColorType.Undefined)
 {
-	<DnzCard Variant="Radzen.Variant.Filled" Style="@GetGradient()" class="@($"h-100 {Class}")" title="@Tooltip">
+	<DnzCard Variant="Radzen.Variant.Filled" Style="@GetGradient()" class="@($"h-100 {Class}")" title="@Tooltip" @attributes="@Attributes">
 		<div class="d-flex flex-column justify-content-between h-100 gap-3" style="@($"color: {GetTextColor()}; ")">
 			<div class="d-flex justify-content-between align-items-start gap-2">
 				<div class="flex-grow-1">
@@ -61,7 +61,7 @@
 }
 else if (IsCompact)
 {
-	<DnzCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style" title="@Tooltip">
+	<DnzCard Variant="@Variant" class=@($"dz-kpi-compact-card {Class}") Style="@Style" title="@Tooltip" @attributes="@Attributes">
 		<div class="dz-kpi-compact">
 			@if (string.IsNullOrEmpty(Icon) == false)
 			{
@@ -76,7 +76,7 @@ else if (IsCompact)
 }
 else
 {
-	<DnzCard Variant="@Variant" class="@Class" Style="@Style" title="@Tooltip">
+	<DnzCard Variant="@Variant" class="@Class" Style="@Style" title="@Tooltip" @attributes="@Attributes">
 		<div class="dz-kpi-content">
 			@if (string.IsNullOrEmpty(Icon) == false)
 			{
@@ -152,6 +152,10 @@ else
 	[Parameter] public string DeltaLabel { get; set; } = "";
 	[Parameter] public bool DeltaInvertColors { get; set; } = false;
 	[Parameter] public RenderFragment TrendContent { get; set; }
+	// Cualquier otro atributo (data-testid, title, aria-*) cae en la card raiz de las tres variantes.
+	// Sin esto, un data-testid encima de la tarjeta revienta en runtime y el KPI no se puede leer
+	// desde un test. Mismo patron que DnzCard.
+	[Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object> Attributes { get; set; }
 
 	public enum HighlightColorType
 	{

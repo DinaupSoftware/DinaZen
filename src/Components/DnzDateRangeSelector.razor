@@ -4,7 +4,7 @@
 <div class="d-flex gap-2 align-items-center flex-wrap" @attributes="AdditionalAttributes">
 
 	<RadzenFormField Text="Rango" Variant="Variant.Flat" Style="min-width:240px">
-		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" />
+		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" data-testid="dnz-range-preset" />
 	</RadzenFormField>
 
 	@if (SelectedPreset == DateRangePreset.Custom)
@@ -15,14 +15,16 @@
 								  Value="@_fromDateTime"
 								  DateFormat="dd/MM/yyyy"
 								  ShowTime="false"
-								  Change="@OnFromChanged" />
+								  Change="@OnFromChanged"
+								  data-testid="dnz-range-from" />
 			</RadzenFormField>
 			<RadzenFormField Text="Hasta" class="flex-grow-1" Variant="Variant.Flat">
 				<RadzenDatePicker TValue="DateTime?"
 								  Value="@_toDateTime"
 								  DateFormat="dd/MM/yyyy"
 								  ShowTime="false"
-								  Change="@OnToChanged" />
+								  Change="@OnToChanged"
+								  data-testid="dnz-range-to" />
 			</RadzenFormField>
 		</div>
 	}
