@@ -969,8 +969,12 @@ else if (_errorMessage.IsNotEmpty())
 		string sectionId,
 		string datoId = "",
 		string title = "",
-		string width = "1000px",
-		string height = "85%")
+		// El ancho NO puede ser 1000px: ese es justo el UmbralMovil, asi que el formulario
+		// nacia rozando la frontera y cualquier borde lo tiraba a la maqueta movil estando
+		// en un monitor. Con 1100 hay 100px de holgura, y el min(96%,...) hace que en
+		// pantalla estrecha encoja y cruce el umbral a proposito en vez de salirse.
+		string width = "min(96%, 1100px)",
+		string height = "min(90%, 1000px)")
 	{
 		var parameters = new Dictionary<string, object>
 		{
