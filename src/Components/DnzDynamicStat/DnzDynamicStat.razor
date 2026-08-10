@@ -9,7 +9,7 @@
 }
 else if (Data.ErrorMessage.IsNotEmpty())
 {
-	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" ShowIcon="true" @attributes="@Attributes">
+	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Radzen.Variant.Flat" ShowIcon="true" @attributes="@Attributes">
 		@Data.ErrorMessage
 	</RadzenAlert>
 }
@@ -92,7 +92,10 @@ else
 
 	[Parameter] public DnzKpiCard.HighlightColorType HighlightColor { get; set; } = DnzKpiCard.HighlightColorType.Undefined;
 	[Parameter] public bool IsCompact { get; set; }
-	[Parameter] public Radzen.Variant Variant { get; set; } = Radzen.Variant.Filled;
+	// Nullable a proposito: null = "que lo decida la profundidad". Solo viaja hasta el
+	// DnzDynamicStatKpi, que tambien lo admite nulo; los renders de grafico y tabla ni
+	// lo miran, asi que no hay que resolver nada aqui.
+	[Parameter] public Radzen.Variant? Variant { get; set; }
 	[Parameter] public string Description { get; set; } = "";
 
 	[Parameter] public int ChartHeight { get; set; } = 300;

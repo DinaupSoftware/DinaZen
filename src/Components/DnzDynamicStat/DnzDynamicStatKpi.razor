@@ -6,7 +6,9 @@
 	[Parameter] public string Description { get; set; } = "";
 	[Parameter] public DnzKpiCard.HighlightColorType HighlightColor { get; set; }
 	[Parameter] public bool IsCompact { get; set; }
-	[Parameter] public Radzen.Variant Variant { get; set; } = Radzen.Variant.Filled;
+	// Nullable a proposito: null = "que lo decida la profundidad". Aqui solo hacemos de
+	// cartero hacia DnzKpiCard, asi que ni siquiera resolvemos: pasamos el null tal cual.
+	[Parameter] public Radzen.Variant? Variant { get; set; }
 	[Parameter] public EventCallback OnClick { get; set; }
 	[Parameter] public Func<DnzDynamicStatSeries, int, string> GetSeriesColor { get; set; }
 	[Parameter] public Func<decimal, DnzDynamicStatFormatE, string> FormatValue { get; set; }

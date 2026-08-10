@@ -12,8 +12,11 @@
 
 @code {
 
+	// Nullable a proposito: null = "que lo decida la profundidad". Aqui el default
+	// anterior era Flat clavado, asi que suelta (nivel 0) ahora sale Filled como el
+	// resto de la familia; anidada dentro de otro DnzCard sigue saliendo Flat.
 	[Parameter]
-	public Variant Variant { get; set; } = Variant.Flat;
+	public Variant? Variant { get; set; }
 
 
 	/// <summary>
