@@ -91,7 +91,7 @@ internal static class DnzFormDialogQueue
 				{ nameof(DnzFormView.Token), tokenCompuesto }
 			}, new DialogOptions
 			{
-				Width = "90%",
+				Width = "min(95%, 1806px)",
 				Height = "90%",
 				CloseDialogOnEsc = true,
 				Resizable = true,

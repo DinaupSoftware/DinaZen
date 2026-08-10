@@ -21,6 +21,7 @@
      14. Buttons            (ButtonU)
      15. File Upload Cards
      16. Utilities          (.autoHide, .rz-popup)
+     17. Modo movil         (.dnz-form-movil)
    ================================================================ */
 
 
@@ -288,6 +289,9 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    /* Este 1000 y el UmbralMovil de DnzFormView.razor son EL MISMO numero: el ancho por
+       debajo del cual el lienzo de coordenadas no cabe y hay que cambiar de maqueta.
+       Si se toca uno hay que tocar el otro. */
     min-width: 1000px;
     overflow: hidden;
     background: #f4f4f4;
@@ -1901,6 +1905,138 @@ textarea.rz-textarea {
 .obli .rz-form-field-content {
     background: linear-gradient(0deg, rgba(255, 5, 5, 0.11) 0%, rgba(255, 255, 255, 0) 32%);
     border-bottom: 2px solid #ffb0b0;
+}
+
+
+/* ================================================================
+   17. MODO MOVIL  (.dnz-form-movil)
+   ================================================================
+   Lo activa DnzFormView cuando su contenedor baja del umbral. La maqueta de
+   coordenadas se sustituye por una pila vertical: una fila por campo, agrupada
+   por el contenedor que envuelve a cada campo.
+
+   Aqui NO se repite nada de lo de arriba: el tab movil conserva la clase base
+   .dnp-form-tab y los campos la suya .controlu, asi que heredan colores, estados
+   y focus. Esta seccion solo cambia colocacion y tamano del dedo.
+   ================================================================ */
+
+.dnz-form-movil {
+    /* Campo alto para el dedo, y 16px de fuente: por debajo, iOS hace zoom al enfocar. */
+    --dnz-input-height: 38px;
+    --dnz-input-font-size: 16px;
+    --dnz-label-font-size: 12px;
+}
+
+/* ── Aqui NADIE manda en pixeles ──────────────────────────────────────────
+   El ancho lo pone el contenedor y todo lo de dentro se encoge con el. Lo
+   primero que hay que soltar es el min-width: 1000px del propio formulario
+   (arriba, .dnz-form-view): sin esto la maqueta vertical se pinta bien pero
+   sigue midiendo 1000px y aparece scroll horizontal en cuanto la ventana
+   baja de ahi. El min-width: 0 en cadena es porque un hijo flex, por
+   defecto, se niega a encogerse mas alla de su contenido. */
+
+.dnz-form-view.dnz-form-movil {
+    min-width: 0;
+}
+
+.dnz-form-movil .dnz-form-body,
+.dnz-form-movil .dnp-form-tab-movil,
+.dnz-form-movil .dnz-grupo,
+.dnz-form-movil .dnz-grupo-lista,
+.dnz-form-movil .controlu-movil,
+.dnz-form-movil .controlu-movil .dup_input {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* La cabecera y el pie llevan botones en fila: que bajen de linea antes que
+   estirar el formulario. */
+.dnz-form-movil .dnz-form-header,
+.dnz-form-movil .dnz-form-footer {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Lo unico que de verdad no se puede encoger es un grid. Que se desplace
+   dentro de SU card, en vez de empujar el formulario entero. */
+.dnz-form-movil .dnp-form-container.rz-card {
+    overflow: auto;
+}
+
+/* ── Las pestanas, convertidas en separadores apilados ── */
+
+.dnz-form-sep {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dnz-label-color);
+    background: var(--dnz-surface);
+    border-bottom: 1px solid var(--dnz-header-border);
+}
+
+.dnz-form-sep-abierta {
+    color: var(--dnz-input-color);
+    box-shadow: inset 3px 0 0 var(--dnz-tab-active-border);
+}
+
+/* ── La pila vertical ── */
+
+.dnp-form-tab-movil {
+    display: flex;
+    flex-direction: column;
+    /* Sin cabeceras, lo unico que separa un grupo del siguiente es este hueco. */
+    gap: 12px;
+    padding: 16px 16px 28px;
+}
+
+/* Cada grupo, en su caja: ningun campo suelto sobre el fondo. Es la misma card que
+   .dnp-form-container usa en escritorio, para que sea el mismo mueble. */
+.dnz-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--dnz-header-border);
+    border-radius: var(--dnz-container-radius);
+    background: var(--dnz-surface);
+}
+
+/* La lista ya trae su propia card dentro; esta caja solo la separa y agrupa. */
+.dnz-grupo-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dnz-grupo-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+/* ── Un campo por fila ── */
+
+.controlu-movil,
+.controlu-movil .dup_input {
+    width: 100%;
+}
+
+/* Multilinea y editor HTML: en escritorio su alto lo daba la coordenada del
+   servidor (un h-100 sobre una caja ya dimensionada). Sin coordenadas, ese h-100
+   se queda en cero, asi que aqui el alto se da a mano. */
+.controlu-movil .dup_input.h-100 {
+    height: 170px;
+}
+
+.controlu-movil .rz-html-editor {
+    min-height: 130px;
 }
 
 

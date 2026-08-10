@@ -80,7 +80,11 @@
 							<div class="gantt-row">
 								@foreach (var item in Items.Where(i => i.GroupId == g.Id))
 								{
+									@* La fila se distingue por data-testname (el texto de la barra) y no por el Id del
+									   GanttItem: el Id lo pone quien alimenta el Gantt y suele ser un contador de pintado. *@
 									<div class="gantt-item"
+										 data-testid="dnz-gantt-item"
+										 data-testname="@item.Text"
 										 title="@item.Tooltip"
 										 @onclick="() => HandleItemClick(item)"
 										 style="left:@Pct(item.LeftPercent); width:@Pct(item.WidthPercent);@item.RowStyle">

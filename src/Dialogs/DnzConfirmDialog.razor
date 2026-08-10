@@ -70,8 +70,10 @@
 			{ nameof(Severity), severity },
 		};
 		var options = new DialogOptions() {
-			Width = "min(520px, 92vw)",
-			Height = "auto",
+			Width = "min(95%, 480px)",
+			// Nunca "auto": colapsa el dialog. El cuerpo ya lleva overflow-y auto, asi que
+			// un mensaje largo hace scroll dentro en vez de estirar la ventana.
+			Height = "min(90%, 340px)",
 			ShowClose = false,
 			ShowTitle = false,
 			CloseDialogOnOverlayClick = true,

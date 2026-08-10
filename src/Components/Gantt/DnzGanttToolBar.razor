@@ -29,7 +29,8 @@
 
 		<div class="title-container">
 			<span class="title-label">@GetTitleLabel()</span>
-			<span class="title-main">@GetTitle()</span>
+			@* Es el texto que cambia al navegar (dia/semana/mes/año enfocado): la prueba de que Anterior/Siguiente/Hoy han movido el foco. *@
+			<span class="title-main" data-testid="dnz-gantt-title">@GetTitle()</span>
 		</div>
 
 		<button type="button" class="today-btn" @onclick="Today" data-testid="dnz-gantt-today" title="Ir a hoy">

@@ -75,7 +75,9 @@
 
 
 
-		@if (DataControl.IsLabelLeft) {
+		@* En movil la etiqueta nunca va a la izquierda: se lleva un ancho fijo en pixeles
+		   que en un telefono deja el campo sin sitio. Se cae a la rama de etiqueta arriba. *@
+		@if (DataControl.IsLabelLeft && EsMovil == false) {
 			<div @ref=elDivX @onclick=@(args => OpenPopup()) data-token=@DataControl.Token style="cursor:pointer" class="dup_input  justify-content-between  dup_input_estandar d-flex align-items-center  align-content-center gap-2 flex-grow-1">
 				@if (ModoCelda == false) {
 					<RadzenLabel ContextMenu=ContextMenuAction key=@(DataControl.Token + "-eti") style=@($"width:{DataControl.LabelWidth}px") class="labelinput" for="@DataControl.Token">
@@ -224,6 +226,12 @@
 	[Parameter] public EventCallback<MouseEventArgs> ContextMenuAction { get; set; }
 	[Parameter] public bool ModoCelda { get; set; }
 
+	/// <summary>Lo emite DnzFormView al medir su contenedor. Ver alli el porque.</summary>
+	[CascadingParameter(Name = "DnzFormMovil")] public bool Movil { get; set; }
+
+	/// <summary>Movil de verdad para ESTE control: en una celda de sublista manda el modo celda.</summary>
+	private bool EsMovil => Movil && ModoCelda == false;
+
 	// ── Private fields ──
 	RadzenTextBox txtBoxSearch;
 	ElementReference elDivX;
@@ -327,7 +335,7 @@
 			if (tokenForm.IsNotEmpty()) {
 				var options = new DialogOptions {
 					WrapperCssClass = "dinaupdialogform",
-					Width = "90%",
+					Width = "min(95%, 1806px)",
 					Height = "90%",
 					CloseDialogOnEsc = true,
 					Resizable = true,

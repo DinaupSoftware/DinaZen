@@ -279,6 +279,8 @@ public class DnzWindowManagerService : IDisposable
 			Subtitle = options.Subtitle,
 			Icon = options.Icon,
 			IconUrl = options.IconUrl,
+			MinWidth = options.MinWidth,
+			MinHeight = options.MinHeight,
 			Width = Math.Round(w),
 			Height = Math.Round(h),
 			X = Math.Round(x),

@@ -98,7 +98,10 @@
 			_jsModule = await JS.InvokeAsync<IJSObjectReference>(
 				"import", "./_content/DinaZen/dinazen-windows.js");
 			_dotNetRef = DotNetObjectReference.Create(this);
-			await _jsModule.InvokeVoidAsync("initWindow", _elementId, _dotNetRef, 1000, 400);
+			// Los minimos salen de la ventana, no de un numero a fuego: si el contenido tiene
+			// maqueta estrecha (el formulario dinamico la tiene), su MinWidth baja y la ventana
+			// puede encogerse hasta ella.
+			await _jsModule.InvokeVoidAsync("initWindow", _elementId, _dotNetRef, State.MinWidth, State.MinHeight);
 			_jsInitialized = true;
 		}
 		catch { }

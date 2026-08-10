@@ -21,7 +21,13 @@ public class WindowState
 	public bool IsActive { get; set; }
 	public double X { get; set; } = 80;
 	public double Y { get; set; } = 40;
-	public double Width { get; set; } = 1020;
+	public double Width { get; set; } = 1100;
 	public double Height { get; set; } = 620;
+
+	// Minimos al redimensionar con el raton. Viajan hasta el JS (initWindow). Antes estaban
+	// escritos a fuego en DnzWindow, asi que ninguna ventana podia encogerse por debajo de
+	// 1000px — y un contenido con maqueta estrecha no llegaba a ella nunca.
+	public double MinWidth { get; set; } = 1000;
+	public double MinHeight { get; set; } = 400;
 	public RenderFragment Content { get; set; }
 }

@@ -4,8 +4,10 @@
    el splat de atributos y se emitiria dos veces sobre el mismo elemento. *@
 <DnzCard @key=@(Container.Token + "1742963010") Style="@cardStyle" class="ctrlucont dnp-form-container">
 
-	@if (Container.Icon.IsNotEmpty())
+	@if (Container.Icon.IsNotEmpty() && Movil == false)
 	{
+		@* En movil el icono no se pinta aqui: va en el titulo del bloque, que es en lo
+		   que se convierte el contenedor. Este va posicionado en absoluto sobre la card. *@
 		<div style="@iconStyle"></div>
 	}
 
@@ -52,6 +54,9 @@
 	[Parameter] public EventCallback OnAddItem { get; set; }
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.FormDetail> OnOpenListItem { get; set; }
 
+	/// <summary>Lo emite DnzFormView al medir su contenedor. Ver alli el porque.</summary>
+	[CascadingParameter(Name = "DnzFormMovil")] public bool Movil { get; set; }
+
 	private string cardStyle = "";
 	private string iconStyle = "";
 
@@ -65,11 +70,21 @@
 
 	protected override void OnParametersSet()
 	{
-		if (Container.IsNotNull())
+		if (Container.IsNull()) return;
+
+		if (Movil)
 		{
-			cardStyle = $"position: absolute; left: {Container.X}px; top: {Container.Y}px; width: {(Container.MaxWidth ? "calc(100% - 100px)" : $"{Container.Width}px")}; height: {Container.Height}px;";
-			iconStyle = $"position: absolute; left: 30px; top: 0; width: 64px; height: {Container.Height}px; background-image: url('{Container.Icon}'); background-size: contain; background-repeat: no-repeat; background-position: center center;";
+			// En movil aqui solo llegan contenedores de lista (informe o lista principal):
+			// el resto se ha desmontado en campos. Ocupan el ancho entero y se les acota la
+			// altura: la del servidor esta pensada para una pantalla de escritorio y tanto
+			// se come el telefono entero como deja un grid de tres filas inservible.
+			cardStyle = $"width: 100%; height: {Math.Min(Math.Max(Container.Height, 260), 420)}px;";
+			iconStyle = "";
+			return;
 		}
+
+		cardStyle = $"position: absolute; left: {Container.X}px; top: {Container.Y}px; width: {(Container.MaxWidth ? "calc(100% - 100px)" : $"{Container.Width}px")}; height: {Container.Height}px;";
+		iconStyle = $"position: absolute; left: 30px; top: 0; width: 64px; height: {Container.Height}px; background-image: url('{Container.Icon}'); background-size: contain; background-repeat: no-repeat; background-position: center center;";
 	}
 
 	async Task HandleOnButtonClick(string id)

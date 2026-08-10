@@ -44,7 +44,7 @@
 		var dialogValues = new Dictionary<string, object>();
 		if (imageUrl.IsNotEmpty()) dialogValues.Add(nameof(ImageUrl), imageUrl);
 		if (imageBytes.IsNotNull()) dialogValues.Add(nameof(ImageBytes), imageBytes);
-		var options = new DialogOptions() { Width = "90%", Height = "90%", ShowClose = false, ShowTitle = false, CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false };
+		var options = new DialogOptions() { Width = "min(95%, 1806px)", Height = "90%", ShowClose = false, ShowTitle = false, CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false };
 		Task<dynamic> r = dialogService.OpenAsync<DnzImageEditorDialog>("", dialogValues, options);
 		await r;
 		return r.Result is byte[] bytes ? bytes : null;
@@ -60,7 +60,7 @@
 		var dialogValues = new Dictionary<string, object>();
 		if (imageUrl.IsNotEmpty()) dialogValues.Add(nameof(ImageUrl), imageUrl);
 		dialogValues.Add(nameof(PresignEndpoint), presignEndpoint);
-		var options = new DialogOptions() { Width = "90%", Height = "90%", ShowClose = false, ShowTitle = false, CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false };
+		var options = new DialogOptions() { Width = "min(95%, 1806px)", Height = "90%", ShowClose = false, ShowTitle = false, CloseDialogOnEsc = true, Resizable = true, Draggable = true, CloseDialogOnOverlayClick = false };
 		Task<dynamic> r = dialogService.OpenAsync<DnzImageEditorDialog>("", dialogValues, options);
 		await r;
 		return r.Result is PresignUploadResult presign ? presign : null;

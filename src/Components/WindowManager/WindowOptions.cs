@@ -16,8 +16,14 @@ public class WindowOptions
 	/// </summary>
 	public string IconUrl { get; set; } = "";
 
-	public double InitialWidth { get; set; } = 1020;
+	// 1100 = bucket "Formulario" del estandar de anchos. Antes 1020, que caia dentro de la
+	// franja de histeresis del umbral movil (1000-1060) y hacia que la ventana abriese en la
+	// maqueta equivocada por diferencias de pocos pixeles.
+	public double InitialWidth { get; set; } = 1100;
 	public double InitialHeight { get; set; } = 620;
+
+	// Quien abra una ventana cuyo contenido tenga maqueta estrecha debe BAJAR este minimo,
+	// o esa maqueta sera inalcanzable arrastrando el borde.
 	public double MinWidth { get; set; } = 1000;
 	public double MinHeight { get; set; } = 400;
 

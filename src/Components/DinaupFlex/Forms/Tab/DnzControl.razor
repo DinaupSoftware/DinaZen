@@ -17,8 +17,8 @@
 	 data-IncorrectValueStatus=@DataControl.IncorrectValueStatus
 	 data-fieldid=@DataControl.FieldId
 	 data-fieldkey=@DataControl.Id
-	 class="controlu"
-	 style="@(  (ModoCelda ? $"": $"position: absolute; left: {DataControl.X}px; top: {DataControl.Y}px; width: {DataControl.Width}px; height: {DataControl.Height}px;" ))">
+	 class="controlu @(EsMovil ? "controlu-movil" : "")"
+	 style="@(  ((ModoCelda || EsMovil) ? $"": $"position: absolute; left: {DataControl.X}px; top: {DataControl.Y}px; width: {DataControl.Width}px; height: {DataControl.Height}px;" ))">
 
 
 
@@ -130,7 +130,7 @@
 
 
 		}
-		else if (DataControl.IsLabelLeft)
+		else if (DataControl.IsLabelLeft && EsMovil == false)
 		{
 
 			<div class="dup_input justify-content-between  dup_input_estandar align-content-center align-items-center d-flex align-items-center gap-2 flex-grow-1">
@@ -254,6 +254,15 @@
 	[Parameter] public bool ModoCelda { get; set; }
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
 	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+
+	/// <summary>Lo emite DnzFormView al medir su contenedor. Ver alli el porque.</summary>
+	[CascadingParameter(Name = "DnzFormMovil")] public bool Movil { get; set; }
+
+	/// <summary>
+	/// Movil de verdad para ESTE control. En una celda de sublista manda el modo celda:
+	/// alli el campo ya va sin coordenadas y sin etiqueta, y la columna lo encuadra.
+	/// </summary>
+	private bool EsMovil => Movil && ModoCelda == false;
 
 	public void Dispose()
 	{

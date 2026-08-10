@@ -10,7 +10,14 @@
 }
 else if (_virtualForm.IsNotNull())
 {
-	<div class="dnz-form-view @(_isNewRecord ? "dnz-form-mode-new" : "dnz-form-mode-edit")" @attributes="AdditionalAttributes">
+	@* El flag de movil baja en cascada, no de parametro en parametro: asi lo ven el tab,
+	   los campos, los contenedores y los botones sin que ningun componente intermedio
+	   tenga que reenviarlo. *@
+	<CascadingValue Value="_esMovil" Name="DnzFormMovil">
+	<div id=@_id
+		 data-testid="form-layout"
+		 data-testid-id=@(_esMovil ? "movil" : "escritorio")
+		 class="dnz-form-view @(_isNewRecord ? "dnz-form-mode-new" : "dnz-form-mode-edit") @(_esMovil ? "dnz-form-movil" : "")" @attributes="AdditionalAttributes">
 		@* ── Header ── *@
 		<div class="dnz-form-header">
 			<div class="dnz-form-header-info">
@@ -102,25 +109,63 @@ else if (_virtualForm.IsNotNull())
 
 		@* ── Body with tabs (scrollable) ── *@
 		<div class="dnz-form-body">
-			<RadzenTabs RenderMode="TabRenderMode.Server">
-				<Tabs>
-					@foreach (var tab in _virtualForm.MainForm.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
+			@{
+				var pestanas = _virtualForm.MainForm.Tabs
+					.Where(t => t.TabName != "*")
+					.OrderByDescending(t => t.TabName == "General")
+					.ToList();
+
+				@* Una sola definicion de la pestana para las dos maquetas: lo unico que
+				   cambia entre movil y escritorio es el envoltorio, no lo que va dentro. *@
+				RenderFragment<VirtualFormDTO.Tab> pintarPestana = tab =>
+					@<DnzFormTab @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-tabu")
+							  Tab="tab"
+							  OnTabChanged="HandleTabChange"
+							  OnButtonClick="HandleButtonClick"
+							  OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
+							  OnAddItem="HandleAddItem"
+							  OnOpenListItem="HandleOpenListItem"
+							  OnDeleteItemPrimaryList="HandleDeleteListItem"
+							  Client="Client" OnFormatearCodigo="OnFormatearCodigo" />;
+			}
+			@if (_esMovil)
+			{
+				@* Movil: las solapas dejan de ser solapas y pasan a ser separadores apilados,
+				   con una abierta cada vez. Desplegarlas todas seria scroll infinito. *@
+				@foreach (var tab in pestanas)
+				{
+					var abierta = PestanaAbierta(tab, pestanas);
+
+					@if (pestanas.Count > 1)
 					{
-						<RadzenTabsItem @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}")
-										Text="@(_virtualForm.MainForm.Tabs.Count == 2 ? "" : tab.TabName)">
-							<DnzFormTab @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}-tabu")
-									  Tab="tab"
-									  OnTabChanged="HandleTabChange"
-									  OnButtonClick="HandleButtonClick"
-									  OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
-									  OnAddItem="HandleAddItem"
-									  OnOpenListItem="HandleOpenListItem"
-									  OnDeleteItemPrimaryList="HandleDeleteListItem"
-									  Client="Client" OnFormatearCodigo="OnFormatearCodigo" />
-						</RadzenTabsItem>
+						<div class="dnz-form-sep @(abierta ? "dnz-form-sep-abierta" : "")"
+							 data-testid="form-sep"
+							 @key=@($"fv-sep-{tab.TabName}")
+							 @onclick=@(() => _tabMovilAbierta = tab.TabName)>
+							<RadzenIcon Icon=@(abierta ? "expand_more" : "chevron_right") />
+							<span>@tab.TabName</span>
+						</div>
 					}
-				</Tabs>
-			</RadzenTabs>
+					@if (abierta)
+					{
+						@pintarPestana(tab)
+					}
+				}
+			}
+			else
+			{
+				<RadzenTabs RenderMode="TabRenderMode.Server">
+					<Tabs>
+						@foreach (var tab in pestanas)
+						{
+							<RadzenTabsItem @key=@($"fv-{_virtualForm.MainForm.Token}-{tab.TabName}")
+											Text="@(_virtualForm.MainForm.Tabs.Count == 2 ? "" : tab.TabName)">
+								@pintarPestana(tab)
+							</RadzenTabsItem>
+						}
+					</Tabs>
+				</RadzenTabs>
+			}
 
 			@if (_successMessage.IsNotEmpty())
 			{
@@ -162,6 +207,7 @@ else if (_virtualForm.IsNotNull())
 			</div>
 		</div>
 	</div>
+	</CascadingValue>
 }
 else if (_errorMessage.IsNotEmpty())
 {
@@ -174,25 +220,72 @@ else if (_errorMessage.IsNotEmpty())
 @code {
 
 	// ──────────────────────────────────────────────────────────────
-	// IMPORTANTE: Ancho minimo 1000px
+	// Dos maquetas: escritorio (coordenadas) y movil (vertical)
 	// ──────────────────────────────────────────────────────────────
-	// Los formularios de Dinaup requieren un ancho minimo de 1000px.
-	// No existe version responsive mas pequena.
-	// Si el contenedor es menor, el formulario hara scroll horizontal.
+	// El formulario que manda el servidor viene maquetado a coordenadas absolutas y pide
+	// unos 1000px de ancho. Por debajo de ese umbral se cambia de maqueta: las pestanas
+	// pasan a separadores apilados y los campos a una fila cada uno, agrupados por el
+	// contenedor que los envuelve (ver DnzFormMobileLayout, que deduce esa agrupacion de
+	// la geometria porque en el DTO no existe).
 	//
-	// Para adaptar a pantallas pequenas se puede usar CSS zoom/scale
-	// en el contenedor padre. Ejemplo:
-	//
-	//   <div style="zoom: 0.8">
-	//       <DnzFormView ... />
-	//   </div>
-	//
-	// O con transform:
-	//
-	//   <div style="transform: scale(0.75); transform-origin: top left; width: 133%">
-	//       <DnzFormView ... />
-	//   </div>
+	// La rama se decide por el ANCHO REAL DEL CONTENEDOR, no por el del dispositivo: asi
+	// entran igual el telefono, la ventana flotante estrecha y el panel dividido.
 	// ──────────────────────────────────────────────────────────────
+
+	// El umbral NO es un numero suelto: es el mismo 1000 del min-width de .dnz-form-view
+	// (dinazen-forms.css). Por definicion, el modo movil empieza donde el lienzo de
+	// escritorio deja de caber — cualquier otro numero abre una franja en la que el
+	// formulario se pinta a coordenadas en un hueco donde no cabe, o al reves.
+	// Ojo al tocarlo: el dialog de formulario generico de play mide 1004px, asi que un
+	// umbral por encima de eso abre TODOS los formularios en movil estando en escritorio.
+	private const int UmbralMovil = 1000;
+
+	private readonly string _id = "dnzform" + System.Guid.NewGuid().ToString("N");
+	private bool _esMovil = false;
+	private bool _observerIniciado = false;
+	private string _tabMovilAbierta = "";
+	private DotNetObjectReference<DnzFormView> _dotNetRef;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
+
+		// No en firstRender: mientras carga solo hay un loader y el div del formulario
+		// (el que se mide) todavia no existe.
+		if (_observerIniciado || _virtualForm.IsNull()) return;
+
+		_observerIniciado = true;
+		_dotNetRef ??= DotNetObjectReference.Create(this);
+
+		// Un solo intento a proposito: si esto falla es porque no hay JS (circuito caido),
+		// y reintentar dejaria una llamada fallida por cada render de por vida. El caso de
+		// "el div aun no esta" no llega aqui: observeWidth sale sin ruido si no lo encuentra.
+		try { await JS.InvokeVoidAsync("DinaZen.observeWidth", _id, _dotNetRef, UmbralMovil); } catch { }
+	}
+
+	[JSInvokable]
+	public void OnContainerWidthChanged(bool esMovil)
+	{
+		if (_esMovil == esMovil) return;
+		_esMovil = esMovil;
+		_ = InvokeAsync(StateHasChanged);
+	}
+
+	/// <summary>
+	/// Separador desplegado en movil. Siempre hay uno abierto.
+	/// </summary>
+	private bool PestanaAbierta(VirtualFormDTO.Tab tab, List<VirtualFormDTO.Tab> pestanas)
+	{
+		if (pestanas.Count == 1) return true;
+
+		// Se recuerda por NOMBRE y no por token: el token se renueva en cada sincronizacion
+		// con el servidor, asi que el acordeon se cerraria solo a cada tecla. Si el nombre
+		// recordado ya no existe (la pestana desaparecio), se cae a la primera.
+		if (_tabMovilAbierta.IsEmpty() || pestanas.Any(p => p.TabName == _tabMovilAbierta) == false)
+			return tab.TabName == pestanas[0].TabName;
+
+		return _tabMovilAbierta == tab.TabName;
+	}
 
 	/// <summary>
 	/// Cliente DinaupSL ya inicializado.
@@ -649,7 +742,7 @@ else if (_errorMessage.IsNotEmpty())
 
 		await DialogService.OpenAsync<DnzFormInspectorDialog>(null, parameters, new DialogOptions
 		{
-			Width = "700px",
+			Width = "min(95%, 700px)",
 			Height = "80%",
 			CloseDialogOnEsc = true,
 			Resizable = true,
@@ -766,7 +859,7 @@ else if (_errorMessage.IsNotEmpty())
 			var options = new DialogOptions
 			{
 				WrapperCssClass = "dinaupdialogform",
-				Width = "1003px",
+				Width = "min(96%, 1100px)",
 				Height = "92vh",
 				ShowClose = false,
 				ShowTitle = false,
@@ -844,6 +937,14 @@ else if (_errorMessage.IsNotEmpty())
 
 	public void Dispose()
 	{
+		if (_observerIniciado)
+		{
+			try { _ = JS.InvokeVoidAsync("DinaZen.unobserveWidth", _id); } catch { }
+			_observerIniciado = false;
+		}
+		_dotNetRef?.Dispose();
+		_dotNetRef = null;
+
 		if (_isRegistered)
 		{
 			DnzLiveFormsManager.Unregister(this);
@@ -936,8 +1037,13 @@ else if (_errorMessage.IsNotEmpty())
 			PresetId = windowId,
 			Title = title.IsNotEmpty() ? title : "Formulario",
 			Icon = icon,
-			InitialWidth = 1020,
-			InitialHeight = 650
+			InitialWidth = 1100,
+			InitialHeight = 650,
+
+			// Este formulario SI tiene maqueta estrecha (una fila por campo), asi que se deja
+			// encoger hasta ancho de telefono. Con el minimo por defecto (1000) nunca se
+			// llegaria a cruzar el umbral y esa maqueta seria inalcanzable.
+			MinWidth = 360
 		};
 
 		return windowManager.Open(options, content);

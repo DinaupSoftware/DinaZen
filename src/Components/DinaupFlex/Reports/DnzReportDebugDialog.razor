@@ -331,7 +331,7 @@
 			{ nameof(ReportId), reportId },
 		};
 		await ds.OpenAsync<DnzReportDebugDialog>(null, p, new DialogOptions {
-			Width = "760px", Height = "80%", CloseDialogOnEsc = true, Resizable = true, Draggable = true, ShowClose = false, ShowTitle = false
+			Width = "min(95%, 700px)", Height = "80%", CloseDialogOnEsc = true, Resizable = true, Draggable = true, ShowClose = false, ShowTitle = false
 		});
 	}
 }

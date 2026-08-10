@@ -123,6 +123,58 @@ window.DinaZen.focusNextElement = () => {
  
 
 // ============================================
+// Ancho del contenedor (movil / escritorio)
+// ============================================
+// Se mide el ANCHO REAL DEL CONTENEDOR, no el viewport: las apps del ecosistema fijan
+// el <meta viewport> (920/1460px), asi que las media queries nunca ven un movil. Ademas
+// asi entra tambien la ventana flotante estrecha y el panel dividido, no solo el telefono.
+
+window.DinaZen._widthObservers = window.DinaZen._widthObservers || {};
+
+window.DinaZen.observeWidth = function (elementId, dotNetRef, threshold) {
+	const el = document.getElementById(elementId);
+	if (!el || !el.parentElement) return;
+
+	// El padre, no el propio elemento: el elemento suele llevar un min-width que le impide
+	// bajar del umbral, con lo que su ancho dependeria del modo que ese ancho decide.
+	const target = el.parentElement;
+
+	if (window.DinaZen._widthObservers[elementId]) {
+		window.DinaZen._widthObservers[elementId].disconnect();
+	}
+
+	let last = null;
+	const check = (w) => {
+		if (w <= 0) return; // Elemento aun no visible: 0 no es "es un movil".
+		// Histeresis: al pasar a movil cae el min-width y desaparece la barra de scroll
+		// (~15px); sin margen podria oscilar justo en el umbral.
+		const esMovil = last === true ? w < (threshold + 40) : w < threshold;
+		if (esMovil !== last) {
+			last = esMovil;
+			dotNetRef.invokeMethodAsync('OnContainerWidthChanged', esMovil);
+		}
+	};
+
+	const ro = new ResizeObserver(entries => {
+		for (const e of entries) check(e.contentRect.width);
+	});
+	ro.observe(target);
+	window.DinaZen._widthObservers[elementId] = ro;
+
+	// Primera medida sincrona, para nacer ya en la rama correcta sin esperar un resize.
+	check(target.getBoundingClientRect().width);
+};
+
+window.DinaZen.unobserveWidth = function (elementId) {
+	const ro = window.DinaZen._widthObservers[elementId];
+	if (ro) {
+		ro.disconnect();
+		delete window.DinaZen._widthObservers[elementId];
+	}
+};
+
+
+// ============================================
 // Highlight.js - Syntax Highlighting
 // ============================================
 

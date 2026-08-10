@@ -9,6 +9,51 @@
 	}
 
 }
+else if (Movil)
+{
+	@* Movil: se abandonan las coordenadas y se apila en vertical, una fila por campo.
+	   Quien decide el orden y los grupos es DnzFormMobileLayout: en el DTO los campos y
+	   los contenedores son listas hermanas y planas, asi que la agrupacion que ve el
+	   usuario hay que deducirla de la geometria. Aqui solo se pinta el resultado. *@
+	@* Se conserva la clase base para no perder todo lo que ya cuelga de .dnp-form-tab
+	   (botones, inputs); el modificador solo cambia la colocacion. *@
+	<div class="dnp-form-tab dnp-form-tab-movil" @key=@(Tab.TabToken + "-movil")>
+
+		@foreach (var grupo in DnzFormMobileLayout.Agrupar(Tab))
+		{
+			@* Ningun control se queda flotando sobre el fondo: todo grupo va dentro de una
+			   caja. Sin etiquetas, esa caja ES la agrupacion. La de los campos es la card
+			   (misma que en escritorio); la de una lista va desnuda, porque el DnzContainer
+			   ya monta la suya y anidarlas daria caja dentro de caja. *@
+			<div class="@(grupo.EsLista ? "dnz-grupo-lista" : "dnz-grupo")">
+
+				@if (grupo.EsLista)
+				{
+					@* Un informe o la lista principal no se desmonta en campos: entero. *@
+					<DnzContainer @key=@(grupo.Contenedor.Token + "-movil") OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=grupo.Contenedor OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client />
+				}
+				else
+				{
+					@foreach (var control in grupo.Controles)
+					{
+						<DnzControl @key=@control.Token OnDataControlChanged=HandleControlChanged DataControl=control Client=Client OnFormatearCodigo=OnFormatearCodigo />
+					}
+				}
+
+				@if (grupo.Botones.Count > 0)
+				{
+					<div class="dnz-grupo-botones">
+						@foreach (var boton in grupo.Botones)
+						{
+							<DnzButton @key=@boton.Token OnMostrarDialogRequiereGuardar=HandleRequiereGuardar OnButtonClick=HandleButtonClick ButtonData=boton />
+						}
+					</div>
+				}
+			</div>
+		}
+
+	</div>
+}
 else
 {
 
@@ -46,6 +91,9 @@ else
 
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
 	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
+
+	/// <summary>Lo emite DnzFormView al medir su contenedor. Ver alli el porque.</summary>
+	[CascadingParameter(Name = "DnzFormMovil")] public bool Movil { get; set; }
 
 
 

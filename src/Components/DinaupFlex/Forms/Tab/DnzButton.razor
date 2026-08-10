@@ -14,10 +14,21 @@
     [Parameter]
     public EventCallback<string> OnButtonClick { get; set; }
 
+    /// <summary>Lo emite DnzFormView al medir su contenedor. Ver alli el porque.</summary>
+    [CascadingParameter(Name = "DnzFormMovil")] public bool Movil { get; set; }
+
     private string ButtonStyle { get; set; }
 
     protected override void OnParametersSet()
     {
+        if (Movil)
+        {
+            // Sin coordenadas y con altura de dedo: en movil los botones se apilan al
+            // final de su bloque, no van clavados sobre el lienzo.
+            ButtonStyle = "padding: 1px;font-size: 12px;letter-spacing: 0.5px;min-height: 40px;";
+            return;
+        }
+
         ButtonStyle = $"position: absolute;padding: 1px;font-size: 11px;letter-spacing: 0.5px;" +
                       $"left: {ButtonData.X}px; " +
                       $"top: {ButtonData.Y}px;width: {ButtonData.Width}px;height: {ButtonData.Height}px;";

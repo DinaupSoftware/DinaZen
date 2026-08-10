@@ -54,7 +54,7 @@
 		<div class="dnz-report-body @(_loadSeq % 2 == 0 ? "dnz-anim-a" : "dnz-anim-b")">
 			<RadzenDataGrid @ref="_gridRef"
 				Data="@_rows" TItem="DinaupDynamicRowDTO" data-testid="report-grid"
-				RowRender="@(a => a.Attributes.Add("data-testid", $"report-row-{a.Data.ID}"))" CellRender="@OnCellRender" AllowSorting="false"
+				RowRender="@(a => a.Attributes.Add("data-testid", $"report-row-{a.Data.ID}"))" CellRender="@OnCellRender" HeaderCellRender="@OnHeaderCellRender" AllowSorting="false"
 				AllowFiltering="@Filtrable" AllowMultiColumnSorting="false" ShowMultiColumnSortingIndex="false"
 				AllowColumnPicking="@ShowTitle" ColumnsShowingText="Columnas Visibles" AllColumnsText="Todas"
 				AllowColumnReorder="true" AllowPaging="false" Density="Density.Compact"
@@ -383,6 +383,19 @@
 		if (prop.IsNotEmpty() && prop.Contains("[\"")) {
 			var kw = Dinaup.extensions.ParseBetween(ref prop, "[\"", "\"]");
 			if (kw.IsNotEmpty()) args.Attributes["data-testid"] = $"cell-{kw}";
+		}
+	}
+
+	// La cabecera lleva dentro el icono que abre el filtro de esa columna: sin marcarla no hay
+	// forma de decir "abre el filtro de la columna fecha".
+	void OnHeaderCellRender(DataGridCellRenderEventArgs<DinaupDynamicRowDTO> args) {
+		var prop = args.Column.Property.STR();
+		if (prop.IsNotEmpty() && prop.Contains("[\"")) {
+			var kw = Dinaup.extensions.ParseBetween(ref prop, "[\"", "\"]");
+			if (kw.IsNotEmpty()) {
+				args.Attributes["data-testid"] = "report-column";
+				args.Attributes["data-testid-id"] = kw;
+			}
 		}
 	}
 
@@ -824,7 +837,7 @@
 					<RadzenButton data-testid="report-delete-confirm" Text="Reasignar y eliminar" Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Click=@(() => ConfirmReassign(ds, row)) />
 				</div>
 			</FooterContent>
-		</DnzDialogLayout>, new DialogOptions { Width = "min(560px, 94vw)", Height = "min(560px, 85vh)", ShowTitle = false, ShowClose = false, CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
+		</DnzDialogLayout>, new DialogOptions { Width = "min(95%, 1806px)", Height = "min(560px, 85vh)", ShowTitle = false, ShowClose = false, CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
 		return resultado is true;
 	}
 
