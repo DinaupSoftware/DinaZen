@@ -20,9 +20,28 @@
 	.dialog-estandar-layout--styled {
 		background: var(--dnz-tab-content-bg, #f0f1f3);
 	}
+
+	/* Alto automatico: la ventana se encoge a su contenido y solo para al llegar al techo.
+	   Hay que devolver el cuerpo al flujo -con el inset:0 de arriba no queda nada que empuje
+	   y la ventana colapsa al minimo de Radzen, 150px- y quitar el h-100 de Bootstrap, que
+	   con su !important gana a cualquier regla de aqui.
+	   El techo va en vh y NO en %: el % se mide contra una caja de alto indeterminado y el
+	   navegador lo ignora. El minmax(0, 1fr) es lo que deja encoger la fila del cuerpo por
+	   debajo de su contenido; con 1fr pelado el que se sale es el pie. */
+	.rz-dialog-content:has(> .dnz-alto-auto) {
+		position: static;
+		inset: auto;
+		overflow: auto;
+	}
+
+	.grid-layout.dnz-alto-auto {
+		height: auto;
+		max-height: var(--dnz-dialog-alto-max, 85vh);
+		grid-template-rows: auto minmax(0, 1fr) auto;
+	}
 </style>
 
-<div @ref=rootElement class="dialog-estandar-layout h-100 grid-layout @(Flat ? "" : "dialog-estandar-layout--styled")">
+<div @ref=rootElement class="dialog-estandar-layout grid-layout @(AltoAuto ? "dnz-alto-auto" : "h-100") @(Flat ? "" : "dialog-estandar-layout--styled")">
 	<div class="dialog-estandar-layout-header" style=@HeaderStyle>
 		@if (TitleContent != null)
 		{
@@ -148,6 +167,16 @@
 	/// Por defecto false: header y footer con degradado sutil, contenido con fondo gris.
 	/// </summary>
 	[Parameter] public bool Flat { get; set; } = false;
+
+	/// <summary>
+	/// La ventana se encoge a su contenido y solo topa al llegar al techo (85vh por defecto,
+	/// ajustable con la variable CSS --dnz-dialog-alto-max), con el cuerpo scrollando y el pie
+	/// siempre visible. Es la forma recomendada de abrir un dialog.
+	/// Hay que abrirlo con Height = null: si el DialogOptions trae un alto fijo, manda ese.
+	/// No usarlo cuando el cuerpo se dimensiona solo a partir del hueco que le den (un TPV a
+	/// pantalla completa, un lienzo, un visor): ahi el alto lo tiene que poner el DialogOptions.
+	/// </summary>
+	[Parameter] public bool AltoAuto { get; set; }
 
 	public void Cerrar()
 	{
