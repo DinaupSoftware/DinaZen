@@ -100,7 +100,7 @@
             <div class="tie-row" @key="interval"
                  data-testid="dnz-time-interval-row"
                  data-testid-id="@FormatTime(interval.Start)"
-                 data-testname="@($"{FormatTime(interval.Start)}-{FormatTime(interval.End)}")">
+                 data-testname="@($"{FormatTime(interval.Start)}-{FormatEnd(interval)}")">
                 <input type="text"
                        class="tie-time-input"
                        value="@GetEditText(interval, true)"
@@ -246,7 +246,9 @@
             </div>
 
             @* ── GAP INDICATOR ── *@
-            @if (ShowGapIndicator && idx < Intervals.Count - 1)
+            @* Un tramo abierto no tiene fin, asi que no hay hueco que medir desde el: restarle
+               el inicio del siguiente daba un "descanso" fantasma de horas. *@
+            @if (ShowGapIndicator && idx < Intervals.Count - 1 && interval.Abierto == false)
             {
                 var gap = GetGap(Intervals[idx], Intervals[idx + 1]);
                 @if (gap > TimeSpan.Zero)
@@ -416,7 +418,7 @@
     {
         if (_editTexts.ContainsKey(interval) == false)
         {
-            _editTexts[interval] = (FormatTime(interval.Start), FormatTime(interval.End));
+            _editTexts[interval] = (FormatTime(interval.Start), FormatEnd(interval));
         }
     }
 
@@ -424,7 +426,7 @@
     {
         if (_editTexts.TryGetValue(interval, out var texts))
             return isStart ? texts.start : texts.end;
-        return FormatTime(isStart ? interval.Start : interval.End);
+        return isStart ? FormatTime(interval.Start) : FormatEnd(interval);
     }
 
     private void OnInputChange(TimeIntervalRrhh interval, bool isStart, ChangeEventArgs e)
@@ -450,18 +452,35 @@
         var raw = isStart ? texts.start : texts.end;
         var parsed = ParseTimeInput(raw);
 
+        // Borrar el "hasta" no es un error de tecleo: es como se declara un tramo que sigue
+        // ABIERTO (un fichaje sin cerrar). Antes solo cabia revertir al valor del modelo, asi
+        // que no habia forma de decir "todavia no ha salido" sin inventar una hora.
+        if (isStart == false && raw.Trim().IsEmpty())
+        {
+            interval.Abierto = true;
+            interval.End = DateTime.MinValue;
+            _editTexts[interval] = (texts.start, "");
+            await OnIntervalChangedAsync();
+            return;
+        }
+
         if (parsed.HasValue)
         {
             var dt = DateTime.Today.Add(parsed.Value.ToTimeSpan());
             if (isStart)
+            {
                 interval.Start = dt;
+            }
             else
+            {
                 interval.End = dt;
+                interval.Abierto = false;
+            }
 
             // Update display text to formatted value
             _editTexts[interval] = isStart
                 ? (FormatTime(interval.Start), texts.end)
-                : (texts.start, FormatTime(interval.End));
+                : (texts.start, FormatEnd(interval));
 
             await OnIntervalChangedAsync();
         }
@@ -470,7 +489,7 @@
             // Revert to model value
             _editTexts[interval] = isStart
                 ? (FormatTime(interval.Start), texts.end)
-                : (texts.start, FormatTime(interval.End));
+                : (texts.start, FormatEnd(interval));
         }
     }
 
@@ -532,6 +551,7 @@
 
         var prev = Intervals[gapIdx];
         var next = Intervals[gapIdx + 1];
+        if (prev.Abierto) return;
         if (next.Start <= prev.End) return;
 
         var rest = new TimeIntervalRrhh(prev.End, next.Start, GapFillCategory);
@@ -570,12 +590,12 @@
             {
                 _editTexts[interval] = (
                     startFocused ? texts.start : FormatTime(interval.Start),
-                    endFocused ? texts.end : FormatTime(interval.End)
+                    endFocused ? texts.end : FormatEnd(interval)
                 );
             }
             else
             {
-                _editTexts[interval] = (FormatTime(interval.Start), FormatTime(interval.End));
+                _editTexts[interval] = (FormatTime(interval.Start), FormatEnd(interval));
             }
         }
 
@@ -713,7 +733,7 @@
             var data = Intervals.Select(i => new
             {
                 start = FormatTime(i.Start),
-                end = FormatTime(i.End),
+                end = FormatEnd(i),
                 category = i.Category,
                 subCategoryId = i.SubCategoryId
             });
@@ -795,4 +815,8 @@
     }
 
     private static string FormatTime(DateTime dt) => dt.ToString("HH:mm");
+
+    // Un tramo abierto se pinta con el "hasta" en blanco —el input ya ensena su placeholder
+    // HH:mm— en vez de con una hora que nadie ha dado.
+    private static string FormatEnd(TimeIntervalRrhh interval) => interval.Abierto ? "" : FormatTime(interval.End);
 }

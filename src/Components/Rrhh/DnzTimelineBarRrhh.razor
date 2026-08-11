@@ -153,13 +153,17 @@
         var isToday = Date == DateOnly.FromDateTime(now);
         bool noEnd = End == null || End == TimeOnly.MinValue;
 
-        _isPhantom = noEnd && isToday && ShowPhantomTime;
+        // Sin hora de fin la barra es FANTASMA aunque el dia ya haya pasado. Son dos cosas
+        // distintas: hasta donde se dibuja (hoy, hasta ahora; un dia cerrado, hasta el final del
+        // dia) y lo que se afirma. Exigir isToday rotulaba un fichaje sin cerrar de ayer como
+        // "14:02 - 23:59", una hora de salida que nadie ficho jamas.
+        _isPhantom = noEnd && ShowPhantomTime;
 
         TimeOnly effectiveEnd;
 
         if (_isPhantom)
         {
-            effectiveEnd = currentTime > Start.Value ? currentTime : new TimeOnly(23, 59, 59);
+            effectiveEnd = (isToday && currentTime > Start.Value) ? currentTime : new TimeOnly(23, 59, 59);
         }
         else if (noEnd)
         {
@@ -188,7 +192,9 @@
         _leftPct = ((startMinutes - axisStart) / axisSpan) * 100d;
         _widthPct = (duration / axisSpan) * 100d;
 
-        string endStr = _isPhantom ? "Ahora" : effectiveEnd.ToString("HH:mm");
+        // El extremo abierto se nombra, no se rellena: "Ahora" mientras el dia corre, "sin cerrar"
+        // cuando el dia ya paso y ese fin no va a llegar solo.
+        string endStr = _isPhantom ? (isToday ? "Ahora" : "sin cerrar") : effectiveEnd.ToString("HH:mm");
         _timeLabel = $"{Start.Value:HH:mm} – {endStr}";
 
         var dur = TimeSpan.FromMinutes(duration);
