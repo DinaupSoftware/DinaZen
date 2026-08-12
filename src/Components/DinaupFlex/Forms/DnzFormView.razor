@@ -520,7 +520,7 @@ else if (_errorMessage.IsNotEmpty())
 
 		try
 		{
-			await SyncForm(await Client.FormSendClick(_virtualForm, buttonId));
+			await ApplyServerForm(await Client.FormSendClick(_virtualForm, buttonId));
 		}
 		catch (Exception ex)
 		{
@@ -538,14 +538,15 @@ else if (_errorMessage.IsNotEmpty())
 		});
 	}
 
+	/// <summary>
+	/// Empuja al servidor lo que se ha editado aqui y adopta lo que conteste.
+	/// </summary>
 	private async Task SyncForm(VirtualFormDTO vForm)
 	{
 		try
 		{
 			var result = await Client.FormUpdate(vForm);
-			_virtualForm = result.NewForm;
-			await InvokeAsync(StateHasChanged);
-			await DnzFormDialogQueue.ProcessAsync(_virtualForm, _servedDialogs, Client, Interceptor, DialogService, WindowManagerRef);
+			await ApplyServerForm(result.NewForm);
 		}
 		catch (Exception ex)
 		{
@@ -553,6 +554,35 @@ else if (_errorMessage.IsNotEmpty())
 			_errorMessage = "Sesion caducada: " + ex.Message;
 			await InvokeAsync(StateHasChanged);
 		}
+	}
+
+	/// <summary>
+	/// Adopta un formulario que el servidor YA ha mandado, sin volver a preguntarselo.
+	/// </summary>
+	/// <remarks>
+	/// El click de un boton, el alta de linea y el borrado de linea no contestan "ok":
+	/// contestan con el formulario entero y con la cola de lo que el script pidio al cliente
+	/// (abrir un informe, abrir una ficha). El servidor VACIA esa cola al servirla, para no
+	/// reenviarla en cada respuesta y que el cliente reabra en bucle. Es decir: esa cola la
+	/// ve UNA sola respuesta. Si al recibirla se volviera a sincronizar, la cola llegaria ya
+	/// vacia en la segunda vuelta y el boton no abriria nada.
+	/// </remarks>
+	private async Task ApplyServerForm(VirtualFormDTO serverForm)
+	{
+		// Respuesta sin formulario = el servidor dice que esa ventana ya no existe (un script
+		// que guarda y cierra, o la sesion de edicion caducada). Se conserva lo pintado y se
+		// avisa: el formulario queda en solo lectura porque todos los gestos miran el flag.
+		if (serverForm.IsNull())
+		{
+			_sessionExpired = true;
+			_errorMessage = "La ventana ya no esta abierta en el servidor.";
+			await InvokeAsync(StateHasChanged);
+			return;
+		}
+
+		_virtualForm = serverForm;
+		await InvokeAsync(StateHasChanged);
+		await DnzFormDialogQueue.ProcessAsync(_virtualForm, _servedDialogs, Client, Interceptor, DialogService, WindowManagerRef);
 	}
 
 	// IDs de cola ya servidos por esta instancia. Ver DnzFormDialogQueue.
@@ -826,7 +856,7 @@ else if (_errorMessage.IsNotEmpty())
 
 		try
 		{
-			await SyncForm(await Client.FormNewListItem(_virtualForm, addValues));
+			await ApplyServerForm(await Client.FormNewListItem(_virtualForm, addValues));
 		}
 		catch (Exception ex)
 		{
@@ -846,11 +876,13 @@ else if (_errorMessage.IsNotEmpty())
 		try
 		{
 			var syncListTab = new Func<VirtualFormDTO.Tab, Task<VirtualFormDTO.FormDetail>>(SyncListFormTab);
+			var clickListButton = new Func<string, string, Task<VirtualFormDTO.FormDetail>>(ClickListFormButton);
 
 			var parameters = new Dictionary<string, object>
 			{
 				{ nameof(DnzFormList.FormList), formList },
 				{ nameof(DnzFormList.OnTabChangedAsync), syncListTab },
+				{ nameof(DnzFormList.OnButtonClickAsync), clickListButton },
 				{ nameof(DnzFormList.Client), Client },
 			};
 			if (OnFormatearCodigo != null)
@@ -874,6 +906,33 @@ else if (_errorMessage.IsNotEmpty())
 		catch (Exception ex)
 		{
 			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	/// <summary>
+	/// Boton pulsado dentro del formulario de una linea de lista.
+	/// </summary>
+	/// <remarks>
+	/// El servidor no conoce la linea como ventana aparte: solo hay una ventana abierta, la
+	/// del formulario entero, asi que el click va contra ella igual que el de un boton de la
+	/// cabecera. De la respuesta se devuelve la linea recien llegada para que el dialogo se
+	/// repinte con lo que el script haya cambiado.
+	/// </remarks>
+	private async Task<VirtualFormDTO.FormDetail> ClickListFormButton(string buttonId, string formToken)
+	{
+		if (_sessionExpired || _virtualForm.IsNull() || Client.IsNull()) return null;
+
+		try
+		{
+			await ApplyServerForm(await Client.FormSendClick(_virtualForm, buttonId));
+			if (_sessionExpired) return null;
+
+			return _virtualForm.GetAllFormsByToken().GetM(formToken);
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+			return null;
 		}
 	}
 
@@ -904,7 +963,7 @@ else if (_errorMessage.IsNotEmpty())
 
 		try
 		{
-			await SyncForm(await Client.FormRemoveListItem(_virtualForm, tokenListId));
+			await ApplyServerForm(await Client.FormRemoveListItem(_virtualForm, tokenListId));
 		}
 		catch (Exception ex)
 		{

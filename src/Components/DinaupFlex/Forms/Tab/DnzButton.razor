@@ -1,4 +1,4 @@
-<RadzenButton data-fieldid=@ButtonData.FieldId data-testid=@ButtonData.Id @attributes="AdditionalAttributes" Click=OnClick Text=@ButtonData.Label @key=ButtonData.Token style="@ButtonStyle">
+<RadzenButton data-fieldid=@ButtonData.FieldId data-testid=@ButtonData.Id @attributes="AdditionalAttributes" Click=OnClickAsync IsBusy=@_ejecutando Text=@ButtonData.Label @key=ButtonData.Token style="@ButtonStyle">
 </RadzenButton>
 
 @code {
@@ -36,18 +36,30 @@
 
 
 
-    void OnClick()
-    {
+    // Detras de este boton hay un script del servidor. Mientras va y vuelve el boton se marca
+    // ocupado: Radzen lo deshabilita solo con IsBusy. Sin eso, el click no se esperaba y dos
+    // pulsaciones seguidas ejecutaban el script dos veces (dos facturas, dos asientos...).
+    private bool _ejecutando;
 
-        if (ButtonData.ParentForm.ParentVirtualForm.HasChanged() &&   ButtonData.NeedSaveToClick)
+    async Task OnClickAsync()
+    {
+        if (_ejecutando) return;
+
+        if (ButtonData.ParentForm.ParentVirtualForm.HasChanged() && ButtonData.NeedSaveToClick)
         {
-            OnMostrarDialogRequiereGuardar.InvokeAsync("Se requiere guardar para ejecutar esta acción");
-        }else{
-            OnButtonClick.InvokeAsync(ButtonData.Id);
+            await OnMostrarDialogRequiereGuardar.InvokeAsync("Se requiere guardar para ejecutar esta acción");
+            return;
         }
 
-
-
+        _ejecutando = true;
+        try
+        {
+            await OnButtonClick.InvokeAsync(ButtonData.Id);
+        }
+        finally
+        {
+            _ejecutando = false;
+        }
     }
 
 

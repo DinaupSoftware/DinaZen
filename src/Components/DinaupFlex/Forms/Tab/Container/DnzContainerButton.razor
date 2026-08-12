@@ -1,4 +1,4 @@
-<RadzenButton Click=OnClickAsync Text=@ButtonData.Label style="@ButtonStyle" Size="ButtonSize.Small" @attributes="AdditionalAttributes">
+<RadzenButton Click=OnClickAsync IsBusy=@_ejecutando Text=@ButtonData.Label style="@ButtonStyle" Size="ButtonSize.Small" @attributes="AdditionalAttributes">
 </RadzenButton>
 
 @code {
@@ -27,12 +27,29 @@
 	}
 
 
+	// Mismo motivo que en DnzButton: detras hay un script y el viaje dura. Sin marcar ocupado
+	// el boton sigue pulsable durante la ida y vuelta, y el script se ejecuta dos veces.
+	private bool _ejecutando;
+
 	async Task OnClickAsync()
 	{
+		if (_ejecutando) return;
+
 		if (Container.ParentForm.ParentVirtualForm.HasChanged() && ButtonData.NeedSaveToClick)
+		{
 			await OnMostrarDialogRequiereGuardar.InvokeAsync("Se requiere guardar para ejecutar esta acción");
-		else
+			return;
+		}
+
+		_ejecutando = true;
+		try
+		{
 			await OnButtonClick.InvokeAsync(ButtonData.Id);
+		}
+		finally
+		{
+			_ejecutando = false;
+		}
 	}
 
 

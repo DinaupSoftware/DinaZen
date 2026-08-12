@@ -116,7 +116,15 @@ public class DnzWindowManagerService : IDisposable
 
 	// Por debajo de este ancho tratamos la pantalla como movil: las ventanas se
 	// abren maximizadas (una ventana flotante arrastrable no aporta en un telefono).
-	private const double MobileBreakpoint = 768.0;
+	//
+	// 960 y no 768: el 768 solo cubria el telefono en vertical y se dejaba fuera dos
+	// pantallas que son telefono igual. Un movil en horizontal reporta 926-932, y play
+	// no reporta el ancho del aparato porque fija su <meta viewport> a 920 en moviles
+	// y 1460 en escritorio, asi que alli TODO telefono llega aqui como 920. Los dos
+	// casos caian del lado "escritorio" y abrian ventana flotante en un telefono.
+	// El techo son las tablets en vertical (1024) y el escritorio de play (1460), que
+	// siguen por encima y conservan sus ventanas.
+	private const double MobileBreakpoint = 960.0;
 	private bool IsMobileViewport() => _viewportReady && _viewportWidth > 0 && _viewportWidth <= MobileBreakpoint;
 
 	/// <summary>

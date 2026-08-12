@@ -29,6 +29,8 @@
 				<DnzFormTab @key=@($"dfl-{FormList.Token}-{tab.TabToken}-star")
 							Tab="tab"
 							OnTabChanged="HandleTabChange"
+							OnButtonClick="HandleButtonClick"
+							OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
 							Client="Client"
 							OnFormatearCodigo="OnFormatearCodigo" />
 			}
@@ -43,6 +45,8 @@
 							<DnzFormTab @key=@($"dfl-{FormList.Token}-{tab.TabToken}-tab")
 										Tab="tab"
 										OnTabChanged="HandleTabChange"
+										OnButtonClick="HandleButtonClick"
+										OnMostrarDialogRequiereGuardar="HandleRequiereGuardar"
 										Client="Client"
 										OnFormatearCodigo="OnFormatearCodigo" />
 						</RadzenTabsItem>
@@ -66,6 +70,13 @@
 	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.FormDetail FormList { get; set; }
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
 	[Parameter] public Func<Dinaup.VirtualFormDTO.Tab, Task<Dinaup.VirtualFormDTO.FormDetail>> OnTabChangedAsync { get; set; }
+
+	/// <summary>
+	/// Click de un boton de esta linea: (id del boton, token de esta linea) y devuelve la
+	/// linea actualizada. Lo resuelve DnzFormView, que es quien tiene el formulario entero.
+	/// </summary>
+	[Parameter] public Func<string, string, Task<Dinaup.VirtualFormDTO.FormDetail>> OnButtonClickAsync { get; set; }
+
 	[Parameter] public Func<string, Task<string>> OnFormatearCodigo { get; set; }
 
 	private bool isClosed = false;
@@ -95,6 +106,34 @@
 		{
 			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
 		}
+	}
+
+	async Task HandleButtonClick(string buttonId)
+	{
+		if (OnButtonClickAsync == null) return;
+		try
+		{
+			var actualizado = await OnButtonClickAsync(buttonId, FormList.Token);
+			if (actualizado.IsNotNull())
+			{
+				FormList = actualizado;
+				await InvokeAsync(StateHasChanged);
+			}
+		}
+		catch (Exception ex)
+		{
+			NotificationService.Notify(NotificationSeverity.Error, "Error", ex.Message);
+		}
+	}
+
+	private void HandleRequiereGuardar(string mensaje)
+	{
+		NotificationService.Notify(new NotificationMessage
+		{
+			Severity = NotificationSeverity.Warning,
+			Duration = 5000,
+			Summary = mensaje
+		});
 	}
 
 	public void Dispose()
