@@ -1,9 +1,4 @@
-/* ================================================================
-   DinaZen Window Manager — dinazen-windows.css
-   ================================================================
-   Windows-style floating windows
-   Taskbar CSS is scoped in .razor.css files
-   ================================================================ */
+﻿/* DinaZen Window Manager — dinazen-windows.css */
 
 :root {
 	/* ── Window ── */
@@ -22,19 +17,11 @@
 }
 
 
-/* ================================================================
-   WINDOW
-   ================================================================ */
+/* WINDOW */
 
-/* Cada ventana va suelta en el body, sin contenedor. Aqui NO puede haber un envoltorio comun:
-   un div con `position: fixed` crea contexto de apilado el solo —aunque no lleve z-index— y
-   encerraria a todas las ventanas dentro, con lo que ninguna podria ponerse por delante de un
-   modal Radzen (1250) por mucho z-index que se le diera. Suelta, cada ventana compite de tu a tu.
-   Su z-index se lo calcula DnzWindowManagerService por orden de apertura: 1200..1205 por debajo
-   del modal de arriba, 1260..1265 por encima.
-
-   `fixed` (antes `absolute` dentro de un host con inset:0): mismas coordenadas de viewport, asi
-   que ni el posicionamiento del servicio ni el arrastre por JS cambian. */
+/* Cada ventana va suelta en el body: un envoltorio con `position: fixed` crearia
+   contexto de apilado el solo y ninguna ventana podria ponerse por delante de un
+   modal Radzen (1250). Su z-index lo calcula DnzWindowManagerService. */
 .dnz-window {
 	position: fixed;
 	display: flex;
@@ -221,18 +208,7 @@
 .dnz-win-maximized .dnz-win-resize { display: none; }
 
 
-/* ================================================================
-   TEMA OSCURO
-   ================================================================
-   Una ventana FLOTA por encima de la pagina. En oscuro no puede pintarse
-   del mismo color que el lienzo: si lo hiciera se perderia el limite y
-   dejaria de leerse como ventana. Se pinta un escalon por encima, como un
-   papel levantado sobre la mesa.
-
-   Y el separador cambia de naturaleza: en claro lo daba la sombra negra,
-   que sobre fondo oscuro no se ve. Pasa a darlo un filo claro de un pixel;
-   la sombra se queda solo para dar profundidad.
-   ================================================================ */
+/* TEMA OSCURO */
 
 [data-bs-theme="dark"] {
 	--dnz-win-bg: var(--rz-base-700, #2d2d2d);
@@ -246,9 +222,7 @@
 	--dnz-win-titlebar-border: rgba(255, 255, 255, .08);
 }
 
-/* Botones minimizar / maximizar / cerrar: el gris medio del tema claro se
-   hunde en la barra oscura, asi que la tinta sale de la punta clara de la
-   escala. Se mantiene el mismo salto al pasar el raton. */
+/* Botones minimizar / maximizar / cerrar */
 [data-bs-theme="dark"] .dnz-win-btn {
 	color: var(--rz-base-300, #949494);
 }
@@ -263,9 +237,7 @@
 	color: var(--rz-base-400, #6e6e6e);
 }
 
-/* Titulo. Se respeta la jerarquia de siempre —ventana activa fuerte, ventanas
-   de atras apagadas— porque es como el usuario sabe de un vistazo en cual esta
-   escribiendo. */
+/* Titulo: ventana activa fuerte, ventanas de atras apagadas. */
 [data-bs-theme="dark"] .dnz-win-title-main {
 	color: var(--rz-base-50, #f5f5f5);
 }

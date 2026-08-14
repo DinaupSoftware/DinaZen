@@ -80,6 +80,12 @@
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* El boton es blanco fijo y no declaraba color, asi que la letra la ponia el
+   tema: en oscuro salia clara sobre blanco. Se fija solo en oscuro. */
+[data-bs-theme="dark"] .banner-btn {
+	color: #1e293b;
+}
+
 .banner-btn ::deep .rzi {
 	font-size: 18px;
 	transition: transform 0.15s ease;

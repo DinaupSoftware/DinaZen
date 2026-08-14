@@ -1,35 +1,7 @@
-﻿/* ================================================================
-   DinaZen Forms — dinazen-forms.css
-   ================================================================
-   Single source of truth for all dynamic-form styling.
-   Modern SaaS design with clear visual states.
-
-   Structure:
-     1.  Design Tokens (CSS custom properties)
-     2.  Scrollbar
-     3.  Form View Layout  (.dnz-form-view)
-     4.  Form Tab           (.dnp-form-tab)
-     5.  Control Wrapper    (.controlu)
-     6.  Input Fields       (.dup_input)
-     7.  Labels             (.labelinput, .labelch)
-     8.  Control States     (locked, modified, incorrect, big)
-     9.  State Indicators   (.ico_IsModified, .ico_IsRequired)
-     10. Checkbox Controls  (.dupch)
-     11. Radzen Overrides   (dropdown, datepicker, numeric, textarea)
-     12. Dropdown Popup     (.dup_dropdown, .dup_dropdownitem)
-     13. Containers         (.dnp-form-container, .ctrlucont)
-     14. Buttons            (ButtonU)
-     15. File Upload Cards
-     16. Utilities          (.autoHide, .rz-popup)
-     17. Modo movil         (.dnz-form-movil)
-   ================================================================ */
+﻿/* DinaZen Forms — dinazen-forms.css */
 
 
-/* ================================================================
-   1. DESIGN TOKENS
-   ================================================================
-   Change these to re-skin the entire form system.
-   ================================================================ */
+/* 1. DESIGN TOKENS */
 
 :root {
     /* ── Sizing ── */
@@ -137,26 +109,9 @@
 }
 
 
-/* ╔═══════════════════════════════════════════════════════════════════════════
-   ║  1-bis. LOS MISMOS TOKENS, EN TEMA OSCURO
-   ╚═══════════════════════════════════════════════════════════════════════════
-   Los 42 tokens de arriba están escritos en claro y fijos, y de ellos cuelgan
-   231 reglas: todos los campos, etiquetas, estados y superficies del sistema de
-   formularios de la plataforma. Sin este bloque, con el tema oscuro puesto el
-   formulario entero se pinta en claro — y el caso peor no es que se vea raro:
-   `--dnz-input-bg` vale blanco y el valor del campo hereda la tinta del tema,
-   que en oscuro es clara, así que **se escribe en blanco sobre blanco**.
-
-   Se repinta aquí la paleta, no las 231 reglas. Es el mismo truco que usa
-   Radzen con su hoja oscura, y por eso cabe en una pantalla.
-
-   El tema claro no se toca: estas reglas solo se activan cuando la aplicación
-   pone data-bs-theme="dark" en el <html>. Las apps que no lo hacen no ven nada.
-
-   Contraste medido de las parejas que importan (AA pide 4,5:1 en texto y 3:1 en
-   iconos y bordes): valor del campo 7,4:1 · pista 5,3:1 · etiqueta 7,3:1 ·
-   texto de ayuda 5,1:1 · campo bloqueado 5,5:1 · icono de bloqueo 3,3:1 · y los
-   cuatro estados sobre su propio velo, entre 6,3:1 y 7,0:1. */
+/* 1-bis. LOS MISMOS TOKENS, EN OSCURO
+   Sin este bloque el campo se escribe blanco sobre blanco: --dnz-input-bg es
+   blanco fijo y la tinta la pone el tema. Se repinta la paleta, no las reglas. */
 [data-bs-theme="dark"] {
     /* ── Superficies: de más honda a más cercana ── */
     --dnz-tab-content-bg:      var(--rz-base-900);   /* lienzo bajo las pestañas */
@@ -186,9 +141,7 @@
     --dnz-modified-color:      var(--rz-info-light);
     --dnz-modified-dot:        var(--rz-info);
 
-    /* ── Campo bloqueado: se HUNDE respecto al resto, igual que en claro ──
-          El rayado diagonal estaba hecho con sombra; sobre tinta no se ve, así
-          que pasa a hacerse con luz de la misma fuerza. */
+    /* ── Campo bloqueado ── */
     --dnz-locked-bg:           var(--rz-base-900);
     --dnz-locked-bg-stripe:    repeating-linear-gradient(
                                    -45deg,
@@ -208,10 +161,8 @@
     --dnz-error-color:         var(--rz-danger-light);
     --dnz-error-ring:          0 0 0 3px rgba(248, 113, 113, .22);
 
-    /* ── Paleta de estado (la usan spans, badges, progreso y gráficas) ──
-          Los tonos "-dark" están pensados para leerse sobre papel blanco; sobre
-          tinta hay que subirlos, no bajarlos. Por eso apuntan a la variante
-          clara del color, que es lo contrario de su nombre — a propósito. */
+    /* ── Paleta de estado ──
+          Los "-dark" apuntan a la variante CLARA del color: a proposito. */
     --dnz-success-color:       var(--rz-success);
     --dnz-success-color-soft:  var(--rz-success);
     --dnz-success-color-dark:  var(--rz-success-light);
@@ -246,9 +197,7 @@
 }
 
 
-/* ================================================================
-   2. SCROLLBAR
-   ================================================================ */
+/* 2. SCROLLBAR */
 
 .dnz-form-view ::-webkit-scrollbar {
     width: 6px;
@@ -268,10 +217,6 @@
     background: rgba(0, 0, 0, .25);
 }
 
-/* La barra de desplazamiento es una sombra negra suave sobre el papel del
-   formulario. Con el tema oscuro esa sombra cae sobre un fondo ya oscuro y el
-   tirador desaparecía: no se veía por dónde iba el scroll. Se invierte el
-   sentido y se sube a los grises de la escala. */
 [data-bs-theme="dark"] .dnz-form-view ::-webkit-scrollbar-thumb {
     background: var(--rz-base-500);
 }
@@ -281,16 +226,13 @@
 }
 
 
-/* ================================================================
-   3. FORM VIEW LAYOUT  (.dnz-form-view)
-   ================================================================ */
+/* 3. FORM VIEW LAYOUT  (.dnz-form-view) */
 
 .dnz-form-view {
     display: flex;
     flex-direction: column;
     height: 100%;
-    /* Este 1000 y el UmbralMovil de DnzFormView.razor son EL MISMO numero: el ancho por
-       debajo del cual el lienzo de coordenadas no cabe y hay que cambiar de maqueta.
+    /* Este 1000 y el UmbralMovil de DnzFormView.razor son EL MISMO numero.
        Si se toca uno hay que tocar el otro. */
     min-width: 1000px;
     overflow: hidden;
@@ -300,10 +242,6 @@
     box-shadow: var(--dnz-card-shadow);
 }
 
-/* El formulario es el LIENZO sobre el que se posan las tarjetas de campos, así
-   que va un escalón por debajo de ellas: en claro es el gris de fondo de
-   siempre y en oscuro, la superficie más honda. Si se queda en #f4f4f4, con el
-   tema oscuro el formulario entero sale en un rectángulo claro. */
 [data-bs-theme="dark"] .dnz-form-view {
     background: var(--rz-base-900, #1e1e1e);
 }
@@ -381,9 +319,7 @@
 }
 
 
-/* ================================================================
-   4. FORM TAB  (.dnp-form-tab)
-   ================================================================ */
+/* 4. FORM TAB  (.dnp-form-tab) */
 
 .dnp-form-tab {
     position: relative;
@@ -391,12 +327,7 @@
 }
 
 
-/* ================================================================
-   5. CONTROL WRAPPER  (.controlu)
-   ================================================================
-   The outer div for every form control.
-   Position is set inline (absolute) by ControlU.razor.
-   ================================================================ */
+/* 5. CONTROL WRAPPER  (.controlu) */
 
 .controlu {
     box-sizing: border-box;
@@ -404,9 +335,7 @@
 }
 
 
-/* ================================================================
-   6. INPUT FIELDS  (.dup_input)
-   ================================================================ */
+/* 6. INPUT FIELDS  (.dup_input) */
 
 .dup_input {
     flex-shrink: 1;
@@ -482,9 +411,7 @@
 }
 
 
-/* ================================================================
-   7. LABELS  (.labelinput, .labelch)
-   ================================================================ */
+/* 7. LABELS  (.labelinput, .labelch) */
 
 .labelinput {
     font-size: var(--dnz-label-font-size);
@@ -514,9 +441,7 @@
 }
 
 
-/* ================================================================
-   8. CONTROL STATES
-   ================================================================ */
+/* 8. CONTROL STATES */
 
 /* ── Modified ── */
 div.controlu[data-IsModified="1"] .labelinput,
@@ -625,9 +550,7 @@ div.controlu[data-IsBig="1"] .rz-textbox {
 }
 
 
-/* ================================================================
-   9. STATE INDICATORS  (.ico_IsModified, .ico_IsRequired)
-   ================================================================ */
+/* 9. STATE INDICATORS  (.ico_IsModified, .ico_IsRequired) */
 
 .ico_IsModified,
 .ico_IsRequired {
@@ -662,9 +585,7 @@ div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .ico
 }
 
 
-/* ================================================================
-   10. CHECKBOX CONTROLS  (.dupch)
-   ================================================================ */
+/* 10. CHECKBOX CONTROLS  (.dupch) */
 
 .dupch {
     overflow: visible;
@@ -693,9 +614,7 @@ div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .ico
 }
 
 
-/* ================================================================
-   11. RADZEN OVERRIDES
-   ================================================================ */
+/* 11. RADZEN OVERRIDES */
 
 /* Dropdown & multiselect */
 .rz-multiselect,
@@ -820,9 +739,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   12. DROPDOWN POPUP  (.dup_dropdown, .dup_dropdownitem)
-   ================================================================ */
+/* 12. DROPDOWN POPUP  (.dup_dropdown, .dup_dropdownitem) */
 
 .DropDownArrow {
     background-image: url('data:image/svg+xml;base64,CjxzdmcgaWQ9IkxheWVyXzEiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDEwMCAxMDAiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Zz48cGF0aCBkPSJtNjcuNDEgNDUuNDEtMi44Mi0yLjgyLTE0LjU5IDE0LjU4LTE0LjU5LTE0LjU4LTIuODIgMi44MiAxNy40MSAxNy40MnoiLz48L2c+PC9zdmc+');
@@ -880,9 +797,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   13. CONTAINERS  (.dnp-form-container, .ctrlucont)
-   ================================================================ */
+/* 13. CONTAINERS  (.dnp-form-container, .ctrlucont) */
 
 .dnp-form-container.rz-card {
     border-radius: var(--dnz-container-radius) !important;
@@ -933,9 +848,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   14. BUTTONS  (ButtonU)
-   ================================================================ */
+/* 14. BUTTONS  (ButtonU) */
 
 .dnp-form-tab .rz-button {
     border-radius: var(--dnz-input-radius) !important;
@@ -953,9 +866,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   15. FILE UPLOAD CARDS
-   ================================================================ */
+/* 15. FILE UPLOAD CARDS */
 
 .controlu .rz-card {
     border-radius: var(--dnz-container-radius) !important;
@@ -978,9 +889,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   16. UTILITIES
-   ================================================================ */
+/* 16. UTILITIES */
 
 /* autoHide pattern (show on hover) */
 .controlu .autoHide {
@@ -1040,9 +949,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   17. FORM FOOTER  (.dnz-form-footer)
-   ================================================================ */
+/* 17. FORM FOOTER  (.dnz-form-footer) */
 
 .dnz-form-footer {
     display: flex;
@@ -1057,9 +964,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   18. MODE INDICATOR STRIP  (.dnz-form-mode-strip)
-   ================================================================ */
+/* 18. MODE INDICATOR STRIP  (.dnz-form-mode-strip) */
 
 .dnz-form-mode-strip {
     flex-shrink: 0;
@@ -1088,11 +993,6 @@ textarea.rz-textarea {
     background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
 }
 
-/* La cabecera avisa de si estás dando de alta o editando con un lavado de color
-   que se apaga hacia el blanco. En oscuro se conserva el mismo lavado y lo que
-   cambia es hacia dónde se apaga: hacia la superficie del formulario en vez de
-   hacia el blanco, que dejaba una banda clara arriba de todo. La franja de 2px
-   de abajo no se toca: es la señal, y en color vivo se ve igual de bien. */
 [data-bs-theme="dark"] .dnz-form-view.dnz-form-mode-new .dnz-form-header {
     background: linear-gradient(180deg, rgba(134, 239, 172, .14) 0%, var(--rz-base-800, #252525) 100%);
 }
@@ -1101,10 +1001,22 @@ textarea.rz-textarea {
     background: linear-gradient(180deg, rgba(147, 197, 253, .14) 0%, var(--rz-base-800, #252525) 100%);
 }
 
+/* Los pasteles de arriba son para papel blanco; sobre tinta salen fluorescentes.
+   En oscuro el mismo color va saturado, y el borde baja a velo. */
+[data-bs-theme="dark"] .dnz-form-mode-strip.dnz-mode-new {
+    background: #22c55e;
+}
 
-/* ================================================================
-   19. ANNOTATION BUTTONS  (.dnz-form-annotations)
-   ================================================================ */
+[data-bs-theme="dark"] .dnz-form-mode-strip.dnz-mode-edit {
+    background: #60a5fa;
+}
+
+[data-bs-theme="dark"] .dnz-form-view.dnz-form-mode-new {
+    border-color: rgba(34, 197, 94, .45);
+}
+
+
+/* 19. ANNOTATION BUTTONS  (.dnz-form-annotations) */
 
 .dnz-form-annotations {
     border-left: 1px solid var(--dnz-header-border);
@@ -1128,9 +1040,6 @@ textarea.rz-textarea {
     background: rgba(0, 0, 0, 0.04);
 }
 
-/* Mismo caso que el scroll: oscurecer un poco sobre papel blanco se nota, pero
-   sobre la cabecera ya oscura no se ve nada y el botón de anotaciones perdía
-   la respuesta al ratón. Se aclara en vez de oscurecer, con la misma fuerza. */
 [data-bs-theme="dark"] .dnz-annotation-btn-wrap:hover {
     background: rgba(255, 255, 255, 0.06);
 }
@@ -1144,12 +1053,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   20. DIALOG LAYOUT OVERRIDES  (.dialog-estandar-layout)
-   ================================================================
-   Enhances the existing DialogLayout component styling
-   with design-token colors for consistency.
-   ================================================================ */
+/* 20. DIALOG LAYOUT OVERRIDES  (.dialog-estandar-layout) */
 
 /* Base (flat) styles */
 .dialog-estandar-layout-header {
@@ -1192,9 +1096,7 @@ textarea.rz-textarea {
     overflow: hidden;
 }
 
-/* ================================================================
-   21. ANNOTATIONS DIALOG  (.dnz-annotations-dialog)
-   ================================================================ */
+/* 21. ANNOTATIONS DIALOG  (.dnz-annotations-dialog) */
 
 .dnz-annotations-dialog {
     display: flex;
@@ -1293,9 +1195,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   21. DOCUMENT VIEW  (.dnz-doc-view)
-   ================================================================ */
+/* 21. DOCUMENT VIEW  (.dnz-doc-view) */
 
 .dnz-doc-view {
     display: flex;
@@ -1328,9 +1228,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   22. REPORT VIEW  (.dnz-report-view)
-   ================================================================ */
+/* 22. REPORT VIEW  (.dnz-report-view) */
 
 .dnz-report-view {
     position: relative;
@@ -1477,9 +1375,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   23. FILE UPLOADER  (.dnz-file-*)
-   ================================================================ */
+/* 23. FILE UPLOADER  (.dnz-file-*) */
 
 /* ── Container ── */
 .dnz-file-uploader {
@@ -1620,9 +1516,7 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   24. REPORT PROVIDER COMPONENTS  (.dnz-summary-*, .dnz-chart-*, etc.)
-   ================================================================ */
+/* 24. REPORT PROVIDER COMPONENTS  (.dnz-summary-*, .dnz-chart-*, etc.) */
 
 /* ── Summary Bar ── */
 .dnz-summary-bar {
@@ -1885,12 +1779,9 @@ textarea.rz-textarea {
     white-space: nowrap;
 }
 
-/* ── Campo obligatorio sin rellenar (clase "obli") ──────────────────────────────
-   La emiten DnzResponseQuestions y DnzDataGridDropDown sobre un RadzenFormField.
-   Vivia solo en el site.css de play, asi que fuera de play no pintaba nada.
-   Reglas identicas a las de play: alli gana la que se cargue despues y el resultado
-   es el mismo. Deliberadamente NO se replica aqui la regla de "input.obli", que en
-   play viste el titulo del formulario dinamico y no tiene que ver con esto. */
+/* ── Campo obligatorio sin rellenar (clase "obli") ──
+   Deliberadamente NO se replica aqui "input.obli": en play viste el titulo del
+   formulario dinamico y no tiene que ver con esto. */
 
 .obli label {
     color: red !important;
@@ -1908,17 +1799,9 @@ textarea.rz-textarea {
 }
 
 
-/* ================================================================
-   17. MODO MOVIL  (.dnz-form-movil)
-   ================================================================
-   Lo activa DnzFormView cuando su contenedor baja del umbral. La maqueta de
-   coordenadas se sustituye por una pila vertical: una fila por campo, agrupada
-   por el contenedor que envuelve a cada campo.
-
-   Aqui NO se repite nada de lo de arriba: el tab movil conserva la clase base
-   .dnp-form-tab y los campos la suya .controlu, asi que heredan colores, estados
-   y focus. Esta seccion solo cambia colocacion y tamano del dedo.
-   ================================================================ */
+/* 17. MODO MOVIL  (.dnz-form-movil)
+   Aqui NO se repite nada de arriba: el tab conserva .dnp-form-tab y los campos
+   .controlu, asi que heredan colores, estados y focus. Solo cambia colocacion. */
 
 .dnz-form-movil {
     /* Campo alto para el dedo, y 16px de fuente: por debajo, iOS hace zoom al enfocar. */
@@ -1927,13 +1810,10 @@ textarea.rz-textarea {
     --dnz-label-font-size: 12px;
 }
 
-/* ── Aqui NADIE manda en pixeles ──────────────────────────────────────────
-   El ancho lo pone el contenedor y todo lo de dentro se encoge con el. Lo
-   primero que hay que soltar es el min-width: 1000px del propio formulario
-   (arriba, .dnz-form-view): sin esto la maqueta vertical se pinta bien pero
-   sigue midiendo 1000px y aparece scroll horizontal en cuanto la ventana
-   baja de ahi. El min-width: 0 en cadena es porque un hijo flex, por
-   defecto, se niega a encogerse mas alla de su contenido. */
+/* ── Aqui NADIE manda en pixeles ──
+   Hay que soltar el min-width: 1000px de .dnz-form-view o la maqueta vertical
+   sigue midiendo 1000px y saca scroll horizontal. El min-width: 0 en cadena es
+   porque un hijo flex se niega a encogerse mas alla de su contenido. */
 
 .dnz-form-view.dnz-form-movil {
     min-width: 0;
@@ -2028,9 +1908,8 @@ textarea.rz-textarea {
     width: 100%;
 }
 
-/* Multilinea y editor HTML: en escritorio su alto lo daba la coordenada del
-   servidor (un h-100 sobre una caja ya dimensionada). Sin coordenadas, ese h-100
-   se queda en cero, asi que aqui el alto se da a mano. */
+/* Multilinea y editor HTML: sin coordenadas el h-100 se queda en cero, asi que
+   aqui el alto se da a mano. */
 .controlu-movil .dup_input.h-100 {
     height: 170px;
 }
@@ -2040,12 +1919,9 @@ textarea.rz-textarea {
 }
 
 
-/* ── Tema oscuro ─────────────────────────────────────────────────────────
-   Estas reglas estaban escritas como var(--token, <color de siempre>), pero
-   ese token en el tema CLARO vale un color bastante distinto del que había
-   —la escala clara de play tiene los grises colapsados—, así que el claro
-   se movía. Se ha devuelto arriba su color literal exacto y el color del
-   sistema se aplica solo aquí, en oscuro. El tema claro no cambia. */
+/* ── Tema oscuro ──
+   Arriba van colores literales y el token solo se aplica aqui: ese token en
+   claro vale otro color y movia el tema claro. */
 [data-bs-theme="dark"] :root {
     --dnz-input-color: var(--rz-text-color);
     --dnz-input-placeholder: var(--rz-text-disabled-color);

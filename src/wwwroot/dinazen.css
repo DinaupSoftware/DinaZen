@@ -1,4 +1,4 @@
-
+﻿
 .loaderu {
     width: 80px;
     height: 80px;
@@ -55,9 +55,7 @@
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   DINAUP BADGES - v6 (Soft pastel filled badges)
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* DINAUP BADGES - v6 (Soft pastel filled badges) */
 
 /* ═══════════ BASE ═══════════ */
 .badge,
@@ -120,9 +118,7 @@
     box-shadow: 0 1px 2px rgba(100, 116, 139, 0.08);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   PALETA DE COLORES (sincronizada outline/filled)
-
+/* PALETA DE COLORES (sincronizada outline/filled)
    e1/e11  = Slate    #475569
    e2/e12  = Orange   #f97316
    e3/e13  = Yellow   #facc15
@@ -132,12 +128,9 @@
    e7/e17  = Pink     #ec4899
    e8/e18  = Gray     #94a3b8
    e9/e19  = Cyan     #06b6d4
-   e10/e20 = Red      #ef4444
-   ═══════════════════════════════════════════════════════════════════════════ */
+   e10/e20 = Red      #ef4444 */
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   OUTLINE STYLES (e1-e10) - Para TIPOS (factura, operacion, categoria)
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* OUTLINE STYLES (e1-e10) - Para TIPOS (factura, operacion, categoria) */
 
 /* e1 - Slate */
 .badge-type.e1, .badge.e1 {
@@ -219,10 +212,7 @@
     box-shadow: 0 1px 2px rgba(239, 68, 68, 0.12);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   FILLED STYLES (e11-e20) - Para ESTADOS (pendiente, pagado, cancelado)
-   Estilo suave pastel: fondo claro + texto oscuro (misma linea que badge-success)
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* FILLED STYLES (e11-e20) - Para ESTADOS (pendiente, pagado, cancelado) */
 
 /* e11 - Slate filled */
 .badge.e11 {
@@ -294,23 +284,10 @@
     box-shadow: 0 1px 2px rgba(239, 68, 68, 0.15);
 }
 
-/* ╔═══════════════════════════════════════════════════════════════════════════
-   ║  BADGES EN TEMA OSCURO
-   ╚═══════════════════════════════════════════════════════════════════════════
-   Las 27 variantes de arriba son pastel claro con letra oscura. Sobre una app
-   oscura serían 27 parches de luz, así que aquí se le da la vuelta: el color se
-   queda de fondo teñido al 20% y la letra pasa a ser ese MISMO color aclarado.
-   Cada badge sigue siendo "su" color; lo único que cambia es de qué lado está.
-
-   Los tonos de letra no están elegidos a ojo: se ha subido la luminosidad del
-   color original en pasos hasta que el contraste medido contra su propio fondo
-   llega a 4,5:1 (AA). El ratio real de cada uno va anotado. Amarillo y lima ya
-   pasaban sin tocarlos, por eso conservan su valor exacto.
-
-   OJO AL TOCAR ESTO: DinaZen lo usan varias apps. Estas reglas solo se activan
-   si la app pone data-bs-theme="dark" en el <html>; las que no lo hacen (hoy,
-   dinaup.com) no ven ningún cambio. Por eso no se usa aquí ningún token propio
-   de play: no existirían fuera de play. */
+/* BADGES EN TEMA OSCURO
+   Se le da la vuelta al pastel: el color pasa a fondo teñido al 20% y la letra
+   a ese mismo color aclarado hasta 4,5:1. OJO: DinaZen lo usan varias apps, por
+   eso aquí no se usa ningún token propio de play — fuera de play no existen. */
 
 /* ── Las siete semánticas van por tokens de Radzen, que cada tema ya resuelve ── */
 [data-bs-theme="dark"] .badge-success {
@@ -456,13 +433,9 @@ header:has(+ .dnz-card-body) {
 .dnz-imged-footer { display:flex; align-items:center; padding:4px 10px; background:var(--rz-base-100); border-top:1px solid var(--rz-base-300); font:10px/1 monospace; color:var(--rz-text-tertiary-color); min-height:24px; flex-shrink:0; }
 
 /* ── El editor de imagen en tema oscuro ──
-   En claro el lienzo es el tono MAS claro del editor y las herramientas (barra,
-   panel lateral, pie) quedan un punto por debajo. En oscuro se invierte el orden,
-   no la idea: el lienzo pasa a ser la superficie mas honda y la herramienta se
-   apoya un escalon por encima. Si no se invirtiera, el editor entero saldria
-   blanco porque base-50/100 son casi blancos en los dos temas.
-   Los grises de borde tambien cambian de sentido: base-300 desaparece sobre
-   tinta, y base-400 es el primer tono que llega a 3:1 sobre estas superficies. */
+   base-50/100 son casi blancos en LOS DOS temas, asi que en oscuro se invierte
+   el orden: el lienzo es la superficie mas honda y la herramienta se apoya
+   encima. Los bordes suben a base-400, el primer tono que llega a 3:1. */
 [data-bs-theme="dark"] .dnz-imged-canvas-area { background:var(--rz-base-900); }
 [data-bs-theme="dark"] .dnz-imged-toolbar { background:var(--rz-base-800); border-bottom-color:var(--rz-base-400); }
 [data-bs-theme="dark"] .dnz-imged-side-panel { background:var(--rz-base-800); border-left-color:var(--rz-base-400); }
@@ -509,27 +482,17 @@ header:has(+ .dnz-card-body) {
     transform: scale(1.2);
 }
 
-/* base-200 es un gris casi blanco en los dos temas: sobre tinta el halo del icono
-   se convertiria en una pastilla luminosa. El gesto de "resaltar" cambia de
-   sentido y pasa a ser un gris un punto por encima de la fila. */
+/* base-200 es casi blanco en los dos temas: aqui el resaltado se hace con un
+   gris un punto por encima de la fila. */
 [data-bs-theme="dark"] .dnz-icon-hover:hover {
     background-color: var(--rz-base-500);
 }
 
-/* ── DnzCard: la anidacion se resuelve sola ───────────────────────────────
-   Los niveles ALTERNAN en vez de acumular: velo / fondo de tarjeta / velo...
-   Asi un velo nunca cae sobre otro velo y el tono no se va oscureciendo por
-   profunda que sea la anidacion.
-
-   El velo es neutro y translucido (negro al 2,8%): al no llevar tono no compite
-   con ningun color de marca, y al ser translucido compone sobre lo que haya
-   detras en vez de imponer un gris fijo.
-
-   Se sobrescriben las VARIABLES que consumen las reglas de Radzen, no las
-   reglas: `.rz-card.rz-variant-flat` pinta con --rz-card-flat-background-color
-   y su hoja se carga DESPUES que esta, asi que competir por especificidad
-   obligaria a encadenar clases o a !important. Redefinir la variable en el
-   elemento gana siempre, porque se resuelve en el punto de uso. ── */
+/* ── DnzCard: la anidacion se resuelve sola ──
+   Los niveles ALTERNAN (velo / fondo / velo) para que un velo nunca caiga sobre
+   otro. Se sobrescriben las VARIABLES que consumen las reglas de Radzen, no las
+   reglas: su hoja se carga DESPUES que esta y competir por especificidad
+   obligaria a !important. ── */
 
 .dnz-card-veil,
 .dnz-card-plain {
@@ -555,25 +518,11 @@ header:has(+ .dnz-card-body) {
     border-color: rgba(255, 255, 255, 0.13);
 }
 
-/* ── Utilidades de layout ─────────────────────────────────────────────────
-   Los componentes de DinaZen usan clases de utilidad tipo Bootstrap en su
-   markup (148 d-flex, 77 align-items-center, 17 flex-grow-1...), pero la
-   libreria NO declaraba esa dependencia: daba por hecho que la app consumidora
-   cargaba Bootstrap entero. Cualquier app que no lo hiciera renderizaba los
-   componentes rotos y en silencio.
-
-   Van dentro de @layer A PROPOSITO. Una regla dentro de una capa SIEMPRE pierde
-   frente a una regla sin capa, pase lo que pase con la especificidad y el orden.
-   Eso las convierte en un puro respaldo:
-
-     · App que ya carga Bootstrap (play.dinaup.com carga bootstrap.min.css sin
-       capa): gana Bootstrap y aqui no cambia absolutamente nada. Importa,
-       porque dinazen.css se carga DESPUES que su bootstrap y que su CSS propio,
-       asi que sin la capa estas reglas les pisarian las suyas — .text-muted
-       tiene 233 usos alli y no pinta igual con --rz-text-secondary-color.
-     · App que no carga Bootstrap: no compite nadie y estas aplican.
-
-   Valores identicos a Bootstrap 5. Escala de espaciado:
+/* ── Utilidades de layout ──
+   Los componentes usan clases tipo Bootstrap pero la libreria no declaraba esa
+   dependencia. Van dentro de @layer A PROPOSITO: una regla en capa SIEMPRE pierde
+   frente a una sin capa, asi que en play gana su Bootstrap y aqui no cambia nada
+   (.text-muted tiene 233 usos alli). Valores identicos a Bootstrap 5. Escala:
    0 = 0 · 1 = .25rem · 2 = .5rem · 3 = 1rem · 4 = 1.5rem · 5 = 3rem ── */
 
 @layer dinazen-utilities {

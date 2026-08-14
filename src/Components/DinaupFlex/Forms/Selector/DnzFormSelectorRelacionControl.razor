@@ -246,12 +246,61 @@
 
 	protected override Task OnParametersSetAsync() {
 		_ = actualizarInfoArchivoAsync();
+		_ = rellenarOpcionesDeTablaEstaticaAsync();
 		return base.OnParametersSetAsync();
 	}
 
 	public void Dispose() {
 		if (DnzFormConfig.DeepDispose) {
 			DataControl = null;
+		}
+	}
+
+	// ── Tablas estaticas ──
+
+	/*  Una relacion a tabla estatica (documentos dinamicos, informes, algoritmos...) llega SIN lista: el
+		servidor solo manda 'tokenlista' cuando el combo tiene un informe detras, y el informe de combo solo
+		se fabrica si la tabla relacionada es un GUID; una estatica se nombra por su nombre. Sin lista el
+		campo caia en la rama muda del final: etiqueta y texto, sin desplegar y sin poder rellenarse.
+		Aqui se rellena DropDowList con la API propia de esa tabla y el campo se despliega por el camino de
+		siempre, el mismo que usan los enums. El dia que el servidor mande 'tokenlista' esto se apaga solo. */
+
+	/// <summary>Nombre con el que viaja la relacion a documentos dinamicos en 'seccionrelacionadaid'.</summary>
+	const string TablaEstatica_DocumentosDinamicos = "impresionhtml";
+
+	/// <summary>El mismo marcador neutro al que ya cae el desplegable cuando una opcion no trae icono.</summary>
+	const string IconoNeutro = "https://dinaupcdn.com/up/202505/bullet.svg";
+
+	bool cargandoOpcionesEstaticas;
+
+	// Se reintenta en cada OnParametersSet a proposito: WithValue() clona el Control y el clon no arrastra
+	// DropDowList, asi que tras elegir o guardar hay que volver a ponerla.
+	async Task rellenarOpcionesDeTablaEstaticaAsync() {
+
+		if (Client.IsNull()) return;
+		if (DataControl.IsNull()) return;
+		if (cargandoOpcionesEstaticas) return;
+		if (DataControl.TokenList != "") return;
+		if (DataControl.DropDowList != null && DataControl.DropDowList.Any()) return;
+		if (DataControl.RelationWithSectionId != TablaEstatica_DocumentosDinamicos) return;
+
+		cargandoOpcionesEstaticas = true;
+
+		try {
+			var respuesta = await Client.DynamicDocumentsList();
+			if (respuesta.IsNull() || respuesta.DynamicDocuments.IsEmpty()) return;
+
+			foreach (var doc in respuesta.DynamicDocuments.OrderBy(x => x.Title)) {
+				if (doc.ID.IsEmpty()) continue;
+				// Sin texto el usuario veria filas en blanco indistinguibles.
+				DataControl.DropDowList.Add(new VirtualFormDTO.DropDownItem(doc.ID.STR(), doc.Title.IsEmpty() ? "(sin nombre)" : doc.Title, IconoNeutro));
+			}
+
+			await InvokeAsync(StateHasChanged);
+		} catch (Exception ex) {
+			Dinaup.Logs.Error(ex, "selectorrelacion.tablaestatica_load_failed {Tabla}", DataControl.RelationWithSectionId);
+		} finally {
+			cargandoOpcionesEstaticas = false;
 		}
 	}
 

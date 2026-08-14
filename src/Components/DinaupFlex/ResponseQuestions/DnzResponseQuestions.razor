@@ -41,7 +41,10 @@
 
 <div class="dnz-rq">
 	<DnzCard>
-		<DnzCardTitle Icon="fact_check" Title="Información necesaria" Subtitle="Rellena estos datos para ver el resultado." />
+		<DnzCardTitle Icon="fact_check" Title="Información necesaria"
+					  Subtitle=@(_hayOcultas
+						  ? "Lo que ya se sabe por el registro desde el que has abierto esto va puesto. Rellena solo el resto."
+						  : "Rellena estos datos para ver el resultado.") />
 
 		<div class="d-flex flex-column gap-3 mt-3">
 			@foreach (var row in _rows)
@@ -169,6 +172,17 @@
 	/// </summary>
 	[Parameter] public Dictionary<string, string> VariableValues { get; set; } = new();
 
+	/// <summary>
+	/// Claves que el llamador ya trae resueltas por contexto: el registro de la ficha desde la que
+	/// se abrio el documento, el ticket del TPV, la fila del formulario. No se vuelven a preguntar,
+	/// se envian tal cual desde VariableValues.
+	///
+	/// Dos guardas, porque el llamador puede equivocarse y el usuario no tiene como arreglarlo:
+	/// una clave fija SIN valor se pregunta igual, y si al ocultarlas no quedara ninguna fila se
+	/// preguntan todas. Un panel vacio no deja salir de la pantalla.
+	/// </summary>
+	[Parameter] public IReadOnlyCollection<string> FixedKeys { get; set; }
+
 	/// <summary>Cliente Dinaup. Necesario solo para las variables de relacion (Guid).</summary>
 	[Parameter] public DinaupClientC Client { get; set; }
 
@@ -186,6 +200,7 @@
 
 	private readonly List<Row> _rows = new();
 	private readonly Dictionary<string, string> _values = new();
+	private bool _hayOcultas;
 	private ResponseQuestionsStore _store;
 	private string _signature = "";
 	private string _error = "";
@@ -198,8 +213,10 @@
 	protected override void OnParametersSet()
 	{
 		// Los consumidores reconstruyen el diccionario en cada render; solo reconstruimos las filas
-		// cuando cambia de verdad el juego de variables.
-		var signature = Variables.IsNull() ? "" : string.Join("|", Variables.Keys);
+		// cuando cambia de verdad el juego de variables. Las fijas entran en la firma porque
+		// deciden que filas existen.
+		var signature = (Variables.IsNull() ? "" : string.Join("|", Variables.Keys))
+					  + "#" + (FixedKeys.IsNull() ? "" : string.Join("|", FixedKeys));
 		if (signature == _signature) return;
 
 		_signature = signature;
@@ -274,7 +291,61 @@
 			placed.Add(variable.KeyWord);
 			_rows.Add(Row.Single(variable));
 		}
+
+		QuitarLasQueYaVienenPuestas();
 	}
+
+	/// <summary>
+	/// Saca del panel las variables que el llamador ya resolvio por contexto. Volver a pedir el
+	/// cliente cuya ficha tienes abierta no es solo un paso de mas: si el usuario elige otro, el
+	/// documento sale de un cliente y el registro de la accion se queda en la ficha del anterior.
+	///
+	/// No se ocultan las fijas sin valor (habria que preguntarlas y nadie lo haria) ni se oculta
+	/// nada si eso dejara el panel sin una sola fila (el usuario se quedaria encerrado).
+	/// </summary>
+	private void QuitarLasQueYaVienenPuestas()
+	{
+		_hayOcultas = false;
+		if (FixedKeys.IsEmpty() || _rows.IsEmpty()) return;
+
+		var fijas = new HashSet<string>(FixedKeys, StringComparer.OrdinalIgnoreCase);
+
+		bool YaVienePuesta(Row row)
+		{
+			if (row.IsRange) return false;               // un par Desde/Hasta no lo fija nadie por contexto
+			if (fijas.Contains(row.Key) == false) return false;
+			if (VariableValues.IsNull()) return false;
+
+			var valor = VariableValues.GetM(row.Key);
+			if (valor.IsEmpty()) return false;
+
+			return EncajaConElFormato(row.Variable, valor);
+		}
+
+		var visibles = _rows.Where(x => YaVienePuesta(x) == false).ToList();
+		if (visibles.Count == _rows.Count || visibles.Count == 0) return;
+
+		_hayOcultas = true;
+		_rows.Clear();
+		_rows.AddRange(visibles);
+	}
+
+	/// <summary>
+	/// Tercera guarda: un valor de contexto que no encaja con el formato de su variable se pregunta
+	/// igual. Pasa de verdad, no es teorico: cuando el llamador no encuentra la variable que
+	/// esperaba (la que apunta a la seccion de la ficha) rellena la primera que haya, sea del tipo
+	/// que sea. Ocultar esa fila meteria el ID de un registro dentro de una fecha y dejaria al
+	/// usuario mirando un documento mal montado sin nada que tocar.
+	/// </summary>
+	private static bool EncajaConElFormato(DinaupVariableDTO variable, string valor) => variable.Format switch
+	{
+		FieldFormatE.Guid => Guid.TryParse(valor, out _),
+		FieldFormatE.INT => int.TryParse(valor, NumberStyles.Any, CultureInfo.InvariantCulture, out _),
+		FieldFormatE.DEC => decimal.TryParse(valor, NumberStyles.Any, CultureInfo.InvariantCulture, out _),
+		FieldFormatE.DATE or FieldFormatE.TIME or FieldFormatE.DateAndTime
+			=> DateTime.TryParse(valor, CultureInfo.InvariantCulture, DateTimeStyles.None, out _),
+		_ => true,
+	};
 
 	/// <summary>
 	/// Misma convencion que el terminal: "X_Desde" busca "X_Hasta", y el par de sistema

@@ -20,14 +20,6 @@
 			<div class="dnz-report-loadbar" data-testid="report-loadbar"></div>
 
 		}
-		@* Reasignar fichas antes de borrar son varias escrituras seguidas: la barrita de carga solo dice
-		   "espera", asi que mientras dura se enseña cuantas fichas llevan movidas de cuantas. *@
-		@if (0 < _reassignTotal) {
-			<div class="d-flex align-items-center gap-2 px-2 py-1" data-testid="report-reassign-progress">
-				<RadzenProgressBar Value="@(_reassignDone * 100d / _reassignTotal)" ShowValue="false" Style="height:6px;width:160px" />
-				<span class="text-muted small" data-testid="report-reassign-count">Moviendo fichas: @_reassignDone de @_reassignTotal</span>
-			</div>
-		}
 		@if (ShowTitle || ShowSearch) {
 			<div class="dnz-report-header">
 				@if (ShowTitle && _dataList.Section.IsNotNull()) {
@@ -581,23 +573,6 @@
 	// ── Context menu (click derecho) ──
 
 	private DinaupDynamicRowDTO _contextRow;
-	// Sustituto elegido en el dialogo de reasignacion. Vive aqui, y no como variable local, porque el
-	// dialogo se pinta como fragmento inline: el binding necesita un campo del componente.
-	private Guid _replacementRow;
-	// Tope de fichas que este dialogo reasigna de una vez. Por encima no se borra: mover cientos de
-	// fichas no es una operacion de un clic derecho, y esa seccion tiene su propia pantalla para eso.
-	// Eran 1000 (hasta 50 escrituras encadenadas colgando de un menu contextual); 200 son 10 lotes,
-	// una espera que se puede mirar sin miedo y con el progreso a la vista de principio a fin.
-	private const int MaxReassignRows = 200;
-	// Mismo tamano de lote que la cola de escrituras: las reasignaciones van agrupadas, nunca de una en una.
-	private const int WriteBatchSize = 20;
-	// Por que aqui NO se usa la cola con progreso de la casa (UpDialogs.RunWriteOperationDialogs, la regla
-	// para mas de 5 registros): ese servicio vive en play.dinaup.com y la dependencia va al reves — play
-	// consume DinaZen, DinaZen no puede consumir play. De ahi las dos compensaciones: el tope baja a
-	// MaxReassignRows para que el lote nunca sea largo, y el progreso "X de Y" se pinta aqui mismo.
-	// Progreso de la reasignacion. Total en 0 = no hay ninguna en curso (es lo que apaga el indicador).
-	private int _reassignDone;
-	private int _reassignTotal;
 
 	void OnCellContextMenu(DataGridCellMouseEventArgs<DinaupDynamicRowDTO> args) {
 		// Modo picker (dentro de un selector): elegir fila, nunca administrar — sin "Eliminar" a un clic derecho de distancia.
@@ -616,47 +591,13 @@
 		if (args.Value?.ToString() == "delete") _ = DeleteRowAsync();
 	}
 
-	// Borrar la fila de un catalogo deja en blanco el campo de todas las fichas que la usaban, y eso no
-	// se ve hasta semanas despues. Asi que primero se cuenta quien la usa: sin uso basta confirmar; con
-	// uso hay que decir cuantas fichas son y a que registro se mueven antes de tocar nada.
+	// Quien puede o no puede borrarse lo sabe el servidor, no esta rejilla: se manda la orden y se enseña
+	// lo que conteste. eliminado = "1" y runScripts en false (con true el servidor confirma y no borra).
 	async Task DeleteRowAsync() {
 		if (_contextRow == null) return;
 		var row = _contextRow;
 		var nombre = row.Title.IsEmpty() ? "este registro" : row.Title;
-
-		var (usages, complete, tooMany) = await CountRowUsageAsync(row);
-
-		if (complete == false) {
-			// No se ha podido mirar quien lo usa (esquema o consulta caidos): se dice tal cual y decide
-			// el usuario. Bloquear el borrado por no saber seria peor que avisar de lo que no sabemos.
-			if (await DnzConfirmDialog.OpenAsync(DialogService, $"No se ha podido comprobar qué fichas usan «{nombre}». Si lo eliminas, las que lo usaran se quedarán con ese campo en blanco.", "Eliminar registro", DnzConfirmSeverity.Danger, "Eliminar de todas formas") == false) return;
-			await ApplyDeleteAsync(row);
-			return;
-		}
-
-		// El recuento se corta en cuanto pasa del tope: el numero exacto ya no cambia la decision, asi que
-		// se dice lo unico que se sabe de verdad ("mas de N"), nunca una cifra a medias disfrazada de total.
-		if (tooMany) {
-			NotificationService.Notify(NotificationSeverity.Warning, "Son demasiadas fichas", $"«{nombre}» lo usan más de {MaxReassignRows} fichas. Reasígnalas desde la pantalla de esa sección antes de eliminarlo.", TimeSpan.FromSeconds(30));
-			return;
-		}
-
-		var total = usages.Sum(u => u.Count);
-
-		if (total == 0) {
-			if (await DnzConfirmDialog.OpenAsync(DialogService, $"Ninguna ficha usa «{nombre}». Se elimina y no se puede deshacer.", "Eliminar registro", DnzConfirmSeverity.Danger, "Eliminar") == false) return;
-			await ApplyDeleteAsync(row);
-			return;
-		}
-
-		_replacementRow = Guid.Empty;
-		if (await OpenReassignDialogAsync(row, usages, total) == false) return;
-		if (await ReassignUsagesAsync(row, usages, _replacementRow, total) == false) return;
-		await ApplyDeleteAsync(row);
-	}
-
-	// El borrado de siempre: eliminado = "1" y runScripts en false (con true el servidor confirma y no borra).
-	async Task ApplyDeleteAsync(DinaupDynamicRowDTO row) {
+		if (await DnzConfirmDialog.OpenAsync(DialogService, $"Se elimina «{nombre}» y no se puede deshacer.", "Eliminar registro", DnzConfirmSeverity.Danger, "Eliminar") == false) return;
 		try {
 			var values = new Dictionary<string, string> { { "id", row.ID }, { "eliminado", "1" } };
 			var wo = new WriteOperation(row.ID, values);
@@ -669,230 +610,6 @@
 			if (OnDataChanged.HasDelegate) await OnDataChanged.InvokeAsync();
 		} catch (Exception ex) {
 			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message, TimeSpan.FromSeconds(30));
-		}
-	}
-
-	// Quien apunta a la fila que se quiere borrar: una seccion, el campo con el que la apunta y cuantas filas son.
-	private class RowUsage {
-		public Guid SectionId { get; set; }
-		public string SectionLabel { get; set; } = "";
-		public string Field { get; set; } = "";
-		public string FieldLabel { get; set; } = "";
-		public int Count { get; set; }
-	}
-
-	// El mapa "quien apunta a esta seccion", cacheado por cliente. El esquema es una llamada de red entera
-	// y recorrerlo seccion a seccion y campo a campo era el grueso del coste de la comprobacion: ahora se
-	// hace UNA vez y todos los clics derechos posteriores solo pagan los recuentos. La tabla es debil y
-	// lleva el cliente como clave, asi que la cache nace y muere con la sesion —dos empresas nunca comparten
-	// entrada— y no hay que vaciarla a mano. Contrapartida asumida: un cambio de esquema en caliente no se
-	// ve hasta recargar; para decidir un borrado, con la foto del arranque de la sesion basta.
-	private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<DinaupClientC, RelationMapCache> _relationMaps = new();
-
-	private class RelationMapCache {
-		public Dinaup.SchemaResponse Schema;
-		// Seccion apuntada -> campos que la apuntan. El Count de estas plantillas siempre va a 0: lo rellena
-		// cada recuento sobre una COPIA, para que la cache no se quede con las cuentas de la fila anterior.
-		public readonly Dictionary<Guid, List<RowUsage>> ByTarget = new();
-	}
-
-	// Campos de relacion que apuntan a la seccion objetivo. Lista vacia = no la apunta nadie; null = el
-	// esquema no se ha podido leer (no se cachea el fallo: el siguiente intento vuelve a preguntarlo).
-	private async Task<List<RowUsage>> GetFieldsPointingToAsync(Guid target) {
-		var cache = _relationMaps.GetValue(Client, _ => new RelationMapCache());
-		var cached = cache.ByTarget.GetM(target);
-		if (cached.IsNotNull()) return cached;
-
-		cache.Schema ??= await Client.GetBusinessSchem();
-		var schema = cache.Schema;
-		if (schema.IsNull() || schema.Sections.IsEmpty()) { cache.Schema = null; return null; }
-
-		var targetSection = schema.Sections.FirstOrDefault(s => s.ID == target);
-		var targetBase = targetSection.IsNull() ? Guid.Empty : targetSection.SectionBaseID;
-
-		var pointers = new List<RowUsage>();
-		foreach (var section in schema.Sections) {
-			// Las secciones base (plantilla) no se pueden consultar: preguntar por ellas es un error seguro.
-			if (section.ID == section.SectionBaseID) continue;
-			if (section.Fields.IsEmpty()) continue;
-
-			foreach (var field in section.Fields) {
-				if (field.Format != FieldFormatE.Guid) continue; // solo los campos de relacion apuntan a una ficha
-				if (field.InternalName.IsEmpty() || field.RelatedSectionID.IsEmpty()) continue;
-
-				var related = field.RelatedSectionID.ToGUID();
-				// El esquema unas veces apunta a la seccion concreta y otras a la base: valen las dos.
-				var apunta = related == target || (targetBase.IsNotEmpty() && related == targetBase);
-				if (apunta == false) continue;
-
-				pointers.Add(new RowUsage {
-					SectionId = section.ID,
-					SectionLabel = section.PluralLabel.IfIsEmpty(section.Title),
-					Field = field.InternalName,
-					FieldLabel = field.Label
-				});
-			}
-		}
-		cache.ByTarget[target] = pointers;
-		return pointers;
-	}
-
-	// Cuenta, campo a campo del mapa cacheado, cuantas fichas usan la fila. Devuelve ademas dos banderas:
-	// Complete = la comprobacion llego al final (una sola consulta fallida la invalida entera, y con el
-	// recuento a medias no se borra nada), y TooMany = se corto porque ya pasa del tope de reasignacion,
-	// que es cuando el numero exacto deja de importar porque desde aqui no se va a borrar igualmente.
-	private async Task<(List<RowUsage> Usages, bool Complete, bool TooMany)> CountRowUsageAsync(DinaupDynamicRowDTO row) {
-		var usages = new List<RowUsage>();
-		_isLoading = true; // la barrita de carga de siempre: la comprobacion son varias llamadas al servidor
-		await InvokeAsync(StateHasChanged);
-		try {
-			var pointers = await GetFieldsPointingToAsync(row.SectionId.ToGUID());
-			if (pointers.IsNull()) return (usages, false, false);
-
-			var total = 0;
-			foreach (var pointer in pointers) {
-				var count = await CountUsesAsync(pointer.SectionId, pointer.Field, row.ID);
-				if (count < 0) return (usages, false, false);
-				if (count == 0) continue;
-
-				usages.Add(new RowUsage {
-					SectionId = pointer.SectionId,
-					SectionLabel = pointer.SectionLabel,
-					Field = pointer.Field,
-					FieldLabel = pointer.FieldLabel,
-					Count = count
-				});
-				total += count;
-				// Pasado el tope, seguir preguntando seccion por seccion es gastar viajes para afinar un
-				// numero que ya no se va a usar: se corta y quien decide lo sabe ("mas de N").
-				if (MaxReassignRows < total) return (usages, true, true);
-			}
-			return (usages, true, false);
-		} catch (Exception ex) {
-			Dinaup.Logs.Error(ex, "dnzreportview.usage_count_failed {SectionId}", row.SectionId);
-			return (usages, false, false);
-		} finally {
-			_isLoading = false;
-			await InvokeAsync(StateHasChanged);
-		}
-	}
-
-	// Cuantas filas de esa seccion apuntan a rowId con ese campo. -1 = no se ha podido comprobar.
-	private async Task<int> CountUsesAsync(Guid sectionId, string field, string rowId) {
-		try {
-			var req = new Dinaup.IAQueryRequestParameters(sectionId.STR(), 1);
-			req.AddField("id", "COUNT");
-			req.AddWhere(field, "=", rowId, "and");
-			var resp = await Client.IAQuery_GetAsync(req);
-			if (resp.IsNull() || resp.Ok == false) return -1;
-			if (resp.Data.IsEmpty()) return 0;
-			// Se ha pedido un unico campo agregado: el valor de esa unica columna es el recuento.
-			return resp.Data[0].Values.FirstOrDefault().INT();
-		} catch {
-			return -1;
-		}
-	}
-
-	// Los ids de las filas que usan rowId, para poder moverlas. Ok = false: no se han podido leer.
-	private async Task<(List<string> Ids, bool Ok)> GetUsingRowIdsAsync(RowUsage usage, string rowId) {
-		var ids = new List<string>();
-		var req = new Dinaup.IAQueryRequestParameters(usage.SectionId.STR(), MaxReassignRows);
-		req.AddField("id", "");
-		req.AddWhere(usage.Field, "=", rowId, "and");
-		var resp = await Client.IAQuery_GetAsync(req);
-		if (resp.IsNull() || resp.Ok == false) return (ids, false);
-		if (resp.Data.IsEmpty()) return (ids, true);
-		ids = resp.Data.Select(r => r.GetM("id", "")).Where(id => id.IsNotEmpty()).ToList();
-		return (ids, true);
-	}
-
-	// Dice quien usa la fila y obliga a elegir a donde se mueven esas fichas. Va inline porque solo lo
-	// abre este componente (mismo molde que el resto de dialogos de un solo uso de la casa).
-	private async Task<bool> OpenReassignDialogAsync(DinaupDynamicRowDTO row, List<RowUsage> usages, int total) {
-		var nombre = row.Title.IsEmpty() ? "este registro" : row.Title;
-		var seccion = row.SectionId;
-		var resultado = await DialogService.OpenAsync("Antes de eliminar", ds =>@<DnzDialogLayout Title="Antes de eliminar" Icon="warning">
-			<BodyContent>
-				<div class="d-flex flex-column gap-3 p-3" data-testid="report-delete-reassign">
-					<RadzenCard>
-						<DnzCardTitle Icon="link" Title=@($"{total} fichas usan «{nombre}»") Subtitle="Si se borra sin más, se quedan con ese campo en blanco." />
-						<div class="d-flex flex-column gap-1">
-							@foreach (var usage in usages) {
-								<div class="d-flex justify-content-between gap-3" data-testid="report-delete-usage" data-testid-id=@(usage.SectionId.STR())>
-									<span>@usage.SectionLabel · @usage.FieldLabel</span>
-									<b>@usage.Count</b>
-								</div>
-							}
-						</div>
-					</RadzenCard>
-					<RadzenCard>
-						<DnzCardTitle Icon="swap_horiz" Title="A dónde se mueven" Subtitle="Se cambia el campo de esas fichas y después se elimina el registro." />
-						<DnzSectionDropDown Client=@Client SectionId=@seccion Label="Registro sustituto" @bind-Value=@_replacementRow />
-					</RadzenCard>
-				</div>
-			</BodyContent>
-			<FooterContent>
-				<div class="d-flex justify-content-end gap-2 align-items-center me-3">
-					<RadzenButton data-testid="report-delete-cancel" Text="Cancelar" Variant="Variant.Text" Click=@(() => ds.Close(false)) />
-					<RadzenButton data-testid="report-delete-confirm" Text="Reasignar y eliminar" Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Click=@(() => ConfirmReassign(ds, row)) />
-				</div>
-			</FooterContent>
-		</DnzDialogLayout>, new DialogOptions { Width = "min(95%, 1806px)", Height = "min(560px, 85vh)", ShowTitle = false, ShowClose = false, CloseDialogOnOverlayClick = true, CloseDialogOnEsc = true });
-		return resultado is true;
-	}
-
-	// El boton nunca va Disabled: si falta el sustituto se dice por que, que es lo unico que el usuario puede arreglar.
-	private void ConfirmReassign(DialogService ds, DinaupDynamicRowDTO row) {
-		if (_replacementRow.IsEmpty()) {
-			NotificationService.Notify(NotificationSeverity.Warning, "Falta el sustituto", "Elige a qué registro se mueven esas fichas antes de eliminar.");
-			return;
-		}
-		if (_replacementRow == row.ID.ToGUID()) {
-			NotificationService.Notify(NotificationSeverity.Warning, "Sustituto no válido", "No se puede sustituir un registro por sí mismo.");
-			return;
-		}
-		ds.Close(true);
-	}
-
-	// Mueve al sustituto las fichas que apuntaban a la fila. Las escrituras van en lotes, con el progreso
-	// "X de Y" a la vista lote a lote (aqui no hay cola de UpDialogs: es de play, ver la nota de arriba), y
-	// cualquier fallo corta ANTES de borrar: mejor quedarse con el registro vivo que con fichas apuntando a la nada.
-	private async Task<bool> ReassignUsagesAsync(DinaupDynamicRowDTO row, List<RowUsage> usages, Guid replacement, int total) {
-		_isLoading = true;
-		_reassignDone = 0;
-		_reassignTotal = total;
-		await InvokeAsync(StateHasChanged);
-		try {
-			foreach (var usage in usages) {
-				var (ids, ok) = await GetUsingRowIdsAsync(usage, row.ID);
-				if (ok == false) {
-					NotificationService.Notify(NotificationSeverity.Error, "Ups.", $"No se han podido leer las fichas de {usage.SectionLabel}, asi que no se ha borrado nada.", TimeSpan.FromSeconds(30));
-					return false;
-				}
-
-				var ops = ids.Select(id => new WriteOperation(id, new Dictionary<string, string> { { "id", id }, { usage.Field, replacement.STR() } })).ToList();
-				for (var i = 0; i < ops.Count; i += WriteBatchSize) {
-					var lote = ops.Skip(i).Take(WriteBatchSize).ToList();
-					var resp = await Client.RunWriteOperationAsync(usage.SectionId, lote, false);
-					if (resp.UserError.IsNotEmpty()) {
-						NotificationService.Notify(NotificationSeverity.Error, "Ups.", resp.UserError, TimeSpan.FromSeconds(30));
-						return false;
-					}
-					// El tope se cuenta con la foto del recuento; si entre medias han entrado fichas nuevas,
-					// el progreso se queda en el total en vez de decir "210 de 200".
-					_reassignDone = Math.Min(_reassignTotal, _reassignDone + lote.Count);
-					await InvokeAsync(StateHasChanged); // lote a lote: el progreso se ve avanzar, no salta al final
-				}
-			}
-			return true;
-		} catch (Exception ex) {
-			NotificationService.Notify(NotificationSeverity.Error, "Ups.", ex.Message, TimeSpan.FromSeconds(30));
-			return false;
-		} finally {
-			_isLoading = false;
-			_reassignDone = 0;
-			_reassignTotal = 0; // apaga el indicador
-			await InvokeAsync(StateHasChanged);
 		}
 	}
 
