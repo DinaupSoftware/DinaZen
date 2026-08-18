@@ -32,10 +32,19 @@
 		position: static;
 		inset: auto;
 		overflow: auto;
+		min-height: 100%;
 	}
 
+	/* Los dos min-height:100% son los que pegan el pie ABAJO DEL TODO cuando la ventana es mas
+	   alta que su contenido: al arrastrar la esquina, el navegador clava un alto en la ventana y
+	   sin ellos la maqueta se quedaba a la altura del contenido, con el pie a media ventana y un
+	   hueco muerto debajo. Con alto automatico no hacen nada (el % se mide contra una caja de alto
+	   indeterminado y el navegador lo ignora), asi que no tocan el caso normal.
+	   Y si se arrastra por encima del techo, el min gana al max -regla de CSS- y la maqueta llena
+	   igual: el techo solo manda mientras la ventana se dimensiona sola. */
 	.grid-layout.dnz-alto-auto {
 		height: auto;
+		min-height: 100%;
 		max-height: var(--dnz-dialog-alto-max, 85vh);
 		grid-template-rows: auto minmax(0, 1fr) auto;
 	}

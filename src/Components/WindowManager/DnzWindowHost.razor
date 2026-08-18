@@ -31,6 +31,24 @@
 	{
 		WM.OnChanged += HandleStateChanged;
 		WM.OnMaxWindowsReached += HandleMaxWindowsReached;
+		WM.OnVentanaOcupada += HandleVentanaOcupada;
+	}
+
+	// Se pidio una ventana de las que solo puede haber una y la tiene otra sesion. Info y no Warning:
+	// no ha fallado nada, es que ya esta abierta en otro sitio. El texto lo trae la app, que es la
+	// unica que sabe si es "en otra pestana tuya" o "la tiene Ana Ruiz".
+	private void HandleVentanaOcupada(string aviso)
+	{
+		InvokeAsync(() =>
+		{
+			NotificationService.Notify(new Radzen.NotificationMessage
+			{
+				Severity = Radzen.NotificationSeverity.Info,
+				Summary = "Ya está abierta",
+				Detail = aviso,
+				Duration = 5000
+			});
+		});
 	}
 
 	private void HandleMaxWindowsReached()
@@ -109,6 +127,7 @@
 	{
 		WM.OnChanged -= HandleStateChanged;
 		WM.OnMaxWindowsReached -= HandleMaxWindowsReached;
+		WM.OnVentanaOcupada -= HandleVentanaOcupada;
 		if (_jsModule != null)
 		{
 			try

@@ -29,5 +29,11 @@ public class WindowState
 	// 1000px — y un contenido con maqueta estrecha no llegaba a ella nunca.
 	public double MinWidth { get; set; } = 1000;
 	public double MinHeight { get; set; } = 400;
+
+	// Identidad a efectos de "de esta solo puede haber una" (WindowOptions.ControlKey). Vacia en las
+	// que no lo piden. Es lo que se compara para traer al frente en vez de abrir una segunda, y lo que
+	// la app publica hacia fuera para que otras sesiones sepan que esta ventana esta ocupada aqui.
+	public string ControlKey { get; set; }
+
 	public RenderFragment Content { get; set; }
 }

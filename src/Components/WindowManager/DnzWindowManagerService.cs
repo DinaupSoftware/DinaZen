@@ -41,6 +41,30 @@ public class DnzWindowManagerService : IDisposable
 	public event Action OnChanged;
 	public event Action OnMaxWindowsReached;
 
+	// ── Ventanas de las que solo puede haber una ──────────────────────────────────────────
+	// El gestor es scoped —uno por circuito—, asi que por si mismo solo sabe de ESTA pantalla. Para
+	// "una por usuario" o "una por licencia" hace falta saber quien es quien, y eso vive en la app:
+	// se contesta desde aqui. Devuelve el aviso a ensenar ("Lo tiene abierto Ana Ruiz") o vacio si
+	// esta libre. Sin cablear, los tres ambitos se comportan como Pestana.
+	public Func<string, AmbitoVentanaE, string> ResolverOcupadaFuera;
+
+	// Se pidio una ventana que otra sesion tiene abierta. Lo pinta DnzWindowHost, igual que el aviso
+	// del tope de seis: quien abre no tiene que enterarse de nada.
+	public event Action<string> OnVentanaOcupada;
+
+	/// <summary>
+	/// Las ControlKey que este circuito tiene abiertas ahora mismo. Es lo que la app publica hacia las
+	/// demas sesiones; se calcula de la lista de ventanas y no se lleva copia aparte, que se
+	/// desincronizaria en cuanto alguien cerrara una ventana por un camino no previsto.
+	/// </summary>
+	/// <remarks>
+	/// Devuelve un array YA materializado y no la consulta perezosa: quien lee esto es OTRO circuito,
+	/// desde otro hilo, y una enumeracion diferida se recorreria fuera de aqui — justo mientras esta
+	/// pantalla puede estar abriendo o cerrando una ventana. Materializar no cierra del todo la carrera
+	/// (la app la remata capturando), pero la deja en microsegundos en vez de dejarla abierta.
+	/// </remarks>
+	public IEnumerable<string> ControlKeysAbiertas => _windows.Where(w => w.ControlKey.IsNotEmpty()).Select(w => w.ControlKey).ToArray();
+
 	public DnzWindowManagerService(DialogService dialogService)
 	{
 		_dialogService = dialogService;
@@ -210,6 +234,33 @@ public class DnzWindowManagerService : IDisposable
 
 	public string Open(WindowOptions options, RenderFragment content)
 	{
+		// El control va ANTES del tope de seis y antes de calcular nada: si esta ventana ya existe, lo
+		// que se pide no es una ventana nueva sino mirar la que hay. Y va antes de instanciar el
+		// contenido a proposito — comprobarlo despues significaria haber montado ya lo caro que se
+		// queria evitar, y ensenarlo medio segundo antes de quitarlo.
+		if (options.ControlKey.IsNotEmpty())
+		{
+			// 1) La tengo yo, en esta misma pantalla: se trae al frente (desminimizandola si hacia falta)
+			//    y se devuelve SU id, no null. Quien abre se queda con un id valido y sigue como siempre.
+			var mia = _windows.FirstOrDefault(w => w.ControlKey == options.ControlKey);
+			if (mia != null)
+			{
+				Focus(mia.Id);
+				return mia.Id;
+			}
+
+			// 2) La tiene otra sesion. Solo la app sabe de usuarios y licencias, asi que contesta ella.
+			if (options.Ambito != AmbitoVentanaE.Pestana && ResolverOcupadaFuera != null)
+			{
+				var ocupadaPor = ResolverOcupadaFuera(options.ControlKey, options.Ambito);
+				if (ocupadaPor.IsNotEmpty())
+				{
+					OnVentanaOcupada?.Invoke(ocupadaPor);
+					return null;
+				}
+			}
+		}
+
 		if (_windows.Count >= MaxWindows)
 		{
 			OnMaxWindowsReached?.Invoke();
@@ -289,6 +340,7 @@ public class DnzWindowManagerService : IDisposable
 			IconUrl = options.IconUrl,
 			MinWidth = options.MinWidth,
 			MinHeight = options.MinHeight,
+			ControlKey = options.ControlKey,
 			Width = Math.Round(w),
 			Height = Math.Round(h),
 			X = Math.Round(x),

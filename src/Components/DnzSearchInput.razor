@@ -3,7 +3,9 @@
 
 <div class=@("dnz-search-input d-flex align-items-center gap-1 px-2 py-1 " + Class) style=@Style>
 	<RadzenIcon Icon="search" Style="font-size:18px; color:var(--rz-text-secondary-color)" />
-	<input type="text" @attributes="AdditionalAttributes" placeholder=@Placeholder @oninput="OnInput" class="dnz-search-input__field" />
+	@* value ANTES del splat: si el padre pasa un value suelto entre sus atributos (lo hacía alguna
+	   pantalla antes de que este parámetro se pintara), el suyo sigue mandando y nada cambia para él. *@
+	<input type="text" value=@texto @attributes="AdditionalAttributes" placeholder=@Placeholder @oninput="OnInput" class="dnz-search-input__field" />
 </div>
 
 @code {
@@ -30,6 +32,33 @@
 	public EventCallback OnTyping { get; set; }
 
 
+	// Lo que se pinta en la caja. NO se pinta el parámetro directamente: mientras se teclea, cualquier
+	// repintado del padre volvería a poner en el DOM el valor que él tiene —que va 500 ms por detrás
+	// del debounce— y se comería lo último escrito. Por eso el parámetro solo entra cuando cambia DE
+	// VERDAD desde fuera.
+	//
+	// Sin esto, el atributo value no se pintaba en absoluto: Value solo servía para devolvérselo al
+	// padre. Daba igual mientras el texto muriera con el componente, pero en cuanto alguien lo guarda
+	// fuera —el estado de una pestaña, un agente que filtra por chat— la caja salía vacía con la lista
+	// filtrada por un texto invisible, y no había forma de saber por qué faltaban filas.
+	private string texto = "";
+	private string ultimoValueVisto;
+
+	// Hay tecleo sin entregar todavía (el debounce está corriendo). Mientras dure, el parámetro NO
+	// entra: casi todos los padres solo actualizan su variable cuando les llega el debounce, así que
+	// cualquier repintado suyo mientras escribes —y en una rejilla que carga los hay a montones—
+	// traería un valor viejo y se comería lo tecleado. Este es el seguro de esa carrera.
+	private bool tecleandoSinEntregar;
+
+	protected override void OnParametersSet()
+	{
+		if (tecleandoSinEntregar || Value == ultimoValueVisto)
+			return;
+		ultimoValueVisto = Value;
+		texto = Value ?? "";
+	}
+
+
 	private Dinaup.Debouncer debouncer;
 	protected override Task OnInitializedAsync()
 	{
@@ -42,11 +71,17 @@
 	{
 		// El Debouncer dispara desde un Task.Run (fuera del Dispatcher del circuito):
 		// sin InvokeAsync, el StateHasChanged del padre lanza InvalidOperationException.
+		tecleandoSinEntregar = false;
 		await InvokeAsync(() => BounceValueChanged.InvokeAsync(Value));
 	}
 	private async Task OnInput(ChangeEventArgs e)
 	{
-		Value = e.Value?.ToString();
+		texto = e.Value?.ToString() ?? "";
+		Value = texto;
+		tecleandoSinEntregar = true;
+		// Se apunta como "ya visto" para que el repintado que trae el padre tras el debounce —con este
+		// mismo texto— no cuente como un cambio de fuera y no toque lo que se está escribiendo.
+		ultimoValueVisto = Value;
 		debouncer.Debounce();
 		if (OnTyping.HasDelegate) await OnTyping.InvokeAsync();
 	}
