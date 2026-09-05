@@ -15,7 +15,7 @@
 } else if (_showResponse && _report?.VariableList?.Variables != null) {
 	<DnzResponseQuestions Variables="@_report.VariableList.Variables" VariableValues="@(VariablesValues ?? new())" Client="@Client" StorageKey="@ReportId" OnConfirm="@HandleVariableConfirm" />
 } else if (_dataList != null) {
-	<div class="dnz-report-view" data-testid="report-view" data-testid-id=@ReportId>
+	<div class="dnz-report-view @(AllowCellSelection ? "dnz-report-cellsel" : "")" data-testid="report-view" data-testid-id=@ReportId>
 		@if (_isLoading || _typing) {
 			<div class="dnz-report-loadbar" data-testid="report-loadbar"></div>
 
@@ -53,6 +53,7 @@
 				LoadData="@HandleLoadDataEvent"
 				FilterMode="FilterMode.Advanced" FilterPopupRenderMode="PopupRenderMode.OnDemand" LogicalFilterOperator="LogicalFilterOperator.And"
 				RowSelect="@HandleRowSelect" CellContextMenu="@OnCellContextMenu" AllowColumnResize="true"
+				CellClick="@OnCellClick" CellDoubleClick="@OnCellDoubleClick"
 				HeaderTemplate=@ToolBarTemplate KeyProperty="ID" SettingsChanged=@SaveSettingsAsync LoadSettings="@OnLoadSettings">
 
 				<EmptyTemplate>
@@ -235,12 +236,41 @@
 	[Parameter] public EventCallback<DinaupDynamicRowDTO> OnItemSelect { get; set; }
 	[Parameter] public EventCallback OnDataChanged { get; set; }
 
+	/// <summary>
+	/// ELEGIR CELDAS SUELTAS, como en una hoja de cálculo. Apagado por defecto y a propósito:
+	/// enciende un modo distinto de usar la rejilla y cambia lo que hace un clic.
+	///
+	/// Radzen NO trae esto. Trae selección de FILAS (SelectionMode) y eventos de celda (CellClick,
+	/// CellRender); lo de en medio —qué hay elegido, cómo crece con Ctrl y Mayús, cómo se pinta— se
+	/// escribe aquí. Está en el componente y no en cada aplicación porque el par (fila, campo) solo
+	/// se conoce dentro: fuera llega una columna de Radzen, no un campo de Dinaup.
+	///
+	/// CON ESTO ENCENDIDO EL CLIC YA NO ABRE LA FICHA: elige celda. La ficha se abre con doble clic.
+	/// Es el trato de cualquier rejilla que deja seleccionar, y sin él no hay forma de elegir una
+	/// celda sin que se te abra una ventana encima.
+	/// </summary>
+	[Parameter] public bool AllowCellSelection { get; set; }
+
+	/// <summary>
+	/// Lo elegido, cada vez que cambia. Llega ya resuelto en filas y campos (ver DnzCellSelection),
+	/// que es lo que necesita quien vaya a escribir encima.
+	/// </summary>
+	[Parameter] public EventCallback<DnzCellSelection> SelectedCellsChanged { get; set; }
+
 	// Hook opcional de cache. Lo rellena el consumidor (en play: ReportU): recibe la clave de la peticion, si es refresco forzado y la funcion de fetch real; decide si sirve de cache o va al servidor. Si es null, comportamiento identico al de siempre (passthrough).
 	[Parameter] public Func<string, bool, Func<Task<Dinaup.ReportResponse>>, Task<Dinaup.ReportResponse>> FetchInterceptor { get; set; }
 
 	// ── Estado ──
 
 	private RadzenDataGrid<DinaupDynamicRowDTO> _gridRef;
+	// Las celdas elegidas cuando AllowCellSelection está encendido. VIVE FUERA DEL DOM y no en una
+	// clase pegada al <td>: con virtualización Radzen recicla los <tr> al hacer scroll, así que lo
+	// que se marcara en el elemento se lo llevaría la primera fila que pase por ahí.
+	private readonly HashSet<DnzSelectedCell> _selectedCells = new();
+	// El ancla del rango: la última celda elegida con un clic limpio. Mayús+clic pinta el rectángulo
+	// que va de aquí hasta donde se pulse.
+	private string _anchorRowId;
+	private string _anchorKeyword;
 	private DinaupReportDTO _report;
 	private DinaupReportDataDTO _dataList;
 	private List<DinaupDynamicRowDTO> _rows = new();
@@ -371,11 +401,27 @@
 	}
 
 	void OnCellRender(DataGridCellRenderEventArgs<DinaupDynamicRowDTO> args) {
-		var prop = args.Column.Property.STR();
-		if (prop.IsNotEmpty() && prop.Contains("[\"")) {
-			var kw = Dinaup.extensions.ParseBetween(ref prop, "[\"", "\"]");
-			if (kw.IsNotEmpty()) args.Attributes["data-testid"] = $"cell-{kw}";
+		var kw = KeywordOf(args.Column);
+		if (kw.IsNotEmpty()) args.Attributes["data-testid"] = $"cell-{kw}";
+
+		// Marcar por ATRIBUTO y no por clase: la clase del <td> la escribe Radzen (CssClass de la
+		// columna, alineación, estado) y meter mano ahí es jugarse pisarla. El CSS engancha por
+		// [data-dnz-cell-selected], que no compite con nadie.
+		if (AllowCellSelection && kw.IsNotEmpty() && args.Data != null
+			&& _selectedCells.Contains(new DnzSelectedCell(args.Data.ID, kw))) {
+			args.Attributes["data-dnz-cell-selected"] = "1";
 		}
+	}
+
+	/// <summary>
+	/// El campo de Dinaup que hay detrás de una columna de Radzen. La Property que monta
+	/// RadzenReportQuery es del estilo Data["keyword"], así que el nombre sale de entre las comillas.
+	/// Devuelve vacío en las columnas que no son un campo, y esas no se pueden elegir.
+	/// </summary>
+	string KeywordOf(RadzenDataGridColumn<DinaupDynamicRowDTO> column) {
+		var prop = column?.Property.STR();
+		if (prop.IsEmpty() || !prop.Contains("[\"")) return "";
+		return Dinaup.extensions.ParseBetween(ref prop, "[\"", "\"]");
 	}
 
 	// La cabecera lleva dentro el icono que abre el filtro de esa columna: sin marcarla no hay
@@ -447,6 +493,7 @@
 						_showResponse = response.DataList.IsNull();
 						_dataList = response.DataList;
 						_rows = fetched;
+						await PodarSeleccionAsync();
 						_skip = skip;
 						// Sin COUNT no hay total: ventana llena ⇒ probablemente haya página siguiente; corta ⇒ es el final. Y nunca más allá del tope de OFFSET del motor (issue #26).
 						_hasNext = fetched.Count >= top && (skip + top) < MaxRows;
@@ -554,6 +601,17 @@
 	}
 
 	private async Task HandleRowSelect(DinaupDynamicRowDTO row) {
+		// Eligiendo celdas, un clic elige: no abre nada. Radzen dispara RowSelect además de
+		// CellClick para el mismo clic, así que si esto no se cortara, cada celda que tocaras te
+		// abriría la ficha encima. Para abrirla está el doble clic.
+		if (AllowCellSelection) return;
+
+		await AbrirFilaAsync(row);
+	}
+
+	private async Task AbrirFilaAsync(DinaupDynamicRowDTO row) {
+		if (row == null) return;
+
 		if (OnItemSelect.HasDelegate) {
 			await OnItemSelect.InvokeAsync(row);
 			return;
@@ -568,6 +626,143 @@
 			DnzFormView.OpenAsWindow(WindowManager, Client, row.SectionId, row.ID, title: row.Title ?? "Formulario");
 		else
 			await DnzFormView.OpenAsync(DialogService, Client, row.SectionId, row.ID);
+	}
+
+	// ── Elegir celdas ──
+	// Radzen pone las dos mitades: el evento, que trae fila, columna y teclas —
+	// DataGridCellMouseEventArgs es un MouseEventArgs, por eso ContextMenuService.Open se lo traga
+	// tal cual—, y CellRender para pintar. Lo de en medio, que es la selección en sí, es esto.
+
+	private async Task OnCellClick(DataGridCellMouseEventArgs<DinaupDynamicRowDTO> args) {
+		if (!AllowCellSelection) return;
+
+		var kw = KeywordOf(args.Column);
+		if (kw.IsEmpty() || args.Data == null) return;
+
+		var celda = new DnzSelectedCell(args.Data.ID, kw);
+
+		if (args.CtrlKey || args.MetaKey) {
+
+			// De una en una, sumando o quitando. El ancla se mueve también aquí: si después vas con
+			// Mayús, el rectángulo tiene que medir desde lo último que tocaste y no desde un clic
+			// limpio de hace rato.
+			if (!_selectedCells.Remove(celda)) _selectedCells.Add(celda);
+			Anclar(args.Data.ID, kw);
+
+		} else if (args.ShiftKey && _anchorRowId.IsNotEmpty() && SeleccionarRango(args.Data.ID, kw)) {
+
+			// El rango ya quedó puesto dentro de SeleccionarRango.
+
+		} else {
+
+			// Clic limpio: esta y solo esta. Aquí cae también el Mayús cuyo ancla ya no está en
+			// pantalla —basta con filtrar o buscar entre los dos clics—, y quedarse quieto en ese
+			// caso se lee como que la rejilla no responde.
+			_selectedCells.Clear();
+			_selectedCells.Add(celda);
+			Anclar(args.Data.ID, kw);
+		}
+
+		await PublicarSeleccionAsync();
+	}
+
+	private async Task OnCellDoubleClick(DataGridCellMouseEventArgs<DinaupDynamicRowDTO> args) {
+		if (!AllowCellSelection) return; // sin selección de celdas abre RowSelect, como siempre
+
+		await AbrirFilaAsync(args.Data);
+	}
+
+	private void Anclar(string rowId, string keyword) {
+		_anchorRowId = rowId;
+		_anchorKeyword = keyword;
+	}
+
+	/// <summary>
+	/// El rectángulo que va del ancla hasta la celda pulsada. Devuelve false si alguno de los dos
+	/// extremos ya no está a la vista, y entonces el clic se trata como limpio.
+	///
+	/// Las columnas se ordenan por el informe y no por lo que enseñe Radzen: el usuario puede
+	/// arrastrarlas de sitio, y un rango que dependiera de eso elegiría campos distintos según cómo
+	/// tenga puesta la pantalla.
+	/// </summary>
+	private bool SeleccionarRango(string rowId, string keyword) {
+		var filas = _rows.Select(r => r.ID).ToList();
+		var columnas = ColumnasElegibles();
+
+		var f1 = filas.IndexOf(_anchorRowId);
+		var f2 = filas.IndexOf(rowId);
+		var c1 = columnas.IndexOf(_anchorKeyword);
+		var c2 = columnas.IndexOf(keyword);
+
+		if (f1 < 0 || f2 < 0 || c1 < 0 || c2 < 0) return false;
+
+		if (f1 > f2) (f1, f2) = (f2, f1);
+		if (c1 > c2) (c1, c2) = (c2, c1);
+
+		_selectedCells.Clear();
+
+		for (var f = f1; f <= f2; f++)
+			for (var c = c1; c <= c2; c++)
+				_selectedCells.Add(new DnzSelectedCell(filas[f], columnas[c]));
+
+		return true;
+	}
+
+	private List<string> ColumnasElegibles()
+		=> _dataList?.Columns?.Where(c => !c.isColumnHidden).Select(c => c.Keyword).ToList() ?? new();
+
+	/// <summary>
+	/// Los registros con alguna celda elegida, tal cual están en la rejilla.
+	///
+	/// Va aparte de DnzCellSelection porque ese lleva lo justo para escribir —fila y campo—, y quien
+	/// vaya a confirmar una edición en masa tiene que enseñar antes QUÉ registros va a tocar. Eso son
+	/// sus nombres, y los nombres solo están aquí.
+	/// </summary>
+	public IReadOnlyList<DinaupDynamicRowDTO> SelectedRows {
+		get {
+			if (_selectedCells.Count == 0) return Array.Empty<DinaupDynamicRowDTO>();
+
+			var ids = _selectedCells.Select(c => c.RowId).ToHashSet();
+			return _rows.Where(r => ids.Contains(r.ID)).ToList();
+		}
+	}
+
+	/// <summary>Vacía la selección. Para quien acaba de escribir encima y no quiere dejarla puesta.</summary>
+	public async Task ClearCellSelectionAsync() {
+		if (_selectedCells.Count == 0) return;
+
+		_selectedCells.Clear();
+		Anclar(null, null);
+		await PublicarSeleccionAsync();
+	}
+
+	/// <summary>
+	/// Al recargar, fuera lo elegido de filas que ya no están.
+	///
+	/// SE PODA, NO SE VACÍA: el scroll también recarga (Virtualize pide ventanas), y vaciar ahí
+	/// borraría la selección por bajar tres filas. Lo que se va es lo que de verdad ha desaparecido:
+	/// un filtro, una búsqueda o un salto de página. Y tiene que irse, porque nadie debe escribir en
+	/// masa sobre registros que ya no puede ver.
+	/// </summary>
+	private async Task PodarSeleccionAsync() {
+		if (_selectedCells.Count == 0) return;
+
+		var vivas = _rows.Select(r => r.ID).ToHashSet();
+
+		if (_selectedCells.RemoveWhere(c => !vivas.Contains(c.RowId)) == 0) return;
+
+		if (!vivas.Contains(_anchorRowId)) Anclar(null, null);
+
+		await PublicarSeleccionAsync();
+	}
+
+	private async Task PublicarSeleccionAsync() {
+		// Repintar a mano: lo que cambió es un HashSet, y de eso Blazor no se entera. CellRender
+		// vuelve a pasar por cada celda en el siguiente render y ahí se marca lo elegido.
+		StateHasChanged();
+
+		if (SelectedCellsChanged.HasDelegate)
+			await SelectedCellsChanged.InvokeAsync(new DnzCellSelection(_selectedCells.ToArray()));
 	}
 
 	// ── Context menu (click derecho) ──
@@ -615,9 +810,10 @@
 
 	// ── Helpers estaticos para abrir ──
 
-	public static async Task OpenAsync(DialogService ds, DinaupClientC client, string reportId, Dictionary<string, string> vars = null, string title = "Informe", string width = "90%", string height = "80%") {
+	public static async Task OpenAsync(DialogService ds, DinaupClientC client, string reportId, Dictionary<string, string> vars = null, string title = "Informe", string width = "90%", string height = "80%", List<FilterCondition> filter = null) {
 		var p = new Dictionary<string, object> { { nameof(Client), client }, { nameof(ReportId), reportId } };
 		if (vars != null) p.Add(nameof(VariablesValues), vars);
+		if (filter != null) p.Add(nameof(AdvancedFilter), filter);
 
 		await ds.OpenAsync<DnzReportView>(title, p, new DialogOptions { Width = width, Height = height, CloseDialogOnEsc = true, Resizable = true, Draggable = true, ShowClose = true, ShowTitle = true });
 	}

@@ -1,0 +1,197 @@
+@namespace DinaZen.Components.DinaupFlex.Forms
+
+<DnzDialogLayout Icon="hub" Title="Quien apunta a este registro" IsLoading=@_isLoading LoadingText="Contando referencias..." ErrorText=@_errorMessage OnRetry="Load">
+	<BodyContent>
+		<div class="dnz-backlinks" @attributes="AdditionalAttributes">
+
+			@if (!_isLoading && _errorMessage.IsEmpty() && _backlinks.Count == 0)
+			{
+				<div class="dnz-backlinks-vacio">
+					<RadzenIcon Icon="hub" Style="font-size:32px; opacity:0.3" />
+					<span>No hay ningun registro que apunte a este.</span>
+				</div>
+			}
+
+			@foreach (var seccion in _backlinks)
+			{
+				<div class="dnz-backlinks-seccion" @key=@seccion.SectionId>
+
+					<div class="dnz-backlinks-cabecera">
+						<img src=@($"https://dinaupcdn.com/public/{seccion.Icon}.png") width="18px" height="18px" />
+						<span class="dnz-backlinks-nombre">@seccion.SectionName</span>
+						<RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text=@seccion.TotalCount.STR() />
+					</div>
+
+					@* Una linea por campo: si Ventas apunta por envio y por facturacion, se ven las dos.
+					   Sumarlas en un solo numero escondaria por que apunta cada una. *@
+					@foreach (var campo in seccion.Fields)
+					{
+						var abrible = seccion.MainReportId.IsNotEmpty();
+
+						<div class="dnz-backlinks-fila @(abrible ? "dnz-backlinks-fila-abrible" : "")"
+							 @key=@campo.FieldId
+							 data-testid="backlink-fila"
+							 data-testid-id=@campo.FieldKeyword
+							 @onclick=@(() => AbrirInforme(seccion, campo))
+							 title=@(abrible ? $"Ver {seccion.SectionName} por {campo.FieldLabel}" : "Esta seccion no tiene informe principal")>
+
+							<RadzenIcon Icon=@(abrible ? "arrow_forward" : "remove") Style="font-size:14px; opacity:0.45" />
+							<span class="dnz-backlinks-campo">@campo.FieldLabel</span>
+							<span class="dnz-backlinks-cuenta">@campo.Count.STR()</span>
+						</div>
+					}
+
+				</div>
+			}
+
+		</div>
+	</BodyContent>
+</DnzDialogLayout>
+
+<style>
+	.dnz-backlinks {
+		padding: 16px 20px;
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		height: 100%;
+		overflow: auto;
+	}
+
+	.dnz-backlinks-vacio {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		padding: 40px 0;
+		font-size: 13px;
+		color: var(--rz-text-secondary-color, #555);
+	}
+
+	.dnz-backlinks-seccion {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.dnz-backlinks-cabecera {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding-bottom: 6px;
+		border-bottom: 2px solid var(--rz-border-color);
+	}
+
+	.dnz-backlinks-nombre {
+		font-size: 13px;
+		font-weight: 600;
+		flex: 1;
+	}
+
+	.dnz-backlinks-fila {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 7px 8px;
+		border-bottom: 1px solid var(--rz-border-color);
+		font-size: 12px;
+	}
+
+	.dnz-backlinks-fila-abrible {
+		cursor: pointer;
+	}
+
+	.dnz-backlinks-fila-abrible:hover {
+		background: rgba(52, 129, 229, 0.06);
+	}
+
+	.dnz-backlinks-campo {
+		flex: 1;
+		color: var(--rz-text-secondary-color, #555);
+	}
+
+	.dnz-backlinks-cuenta {
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+</style>
+
+@code {
+
+	/// <summary> Cliente DinaupSL ya inicializado. </summary>
+	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
+
+	/// <summary> Seccion del registro del que se preguntan los backlinks. </summary>
+	[Parameter, EditorRequired] public string SectionId { get; set; } = "";
+
+	/// <summary> Registro del que se preguntan los backlinks. </summary>
+	[Parameter, EditorRequired] public string RowId { get; set; } = "";
+
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+	private List<Dinaup.BacklinkDTO> _backlinks = new();
+	private bool _isLoading;
+	private string _errorMessage = "";
+
+	// La consulta se lanza aqui, al abrir. Es el unico momento en que alguien ha dicho que
+	// quiere saberlo, y contar referencias recorre todos los campos del sistema.
+	protected override async Task OnInitializedAsync()
+	{
+		await Load();
+	}
+
+	private async Task Load()
+	{
+		_isLoading = true;
+		_errorMessage = "";
+		StateHasChanged();
+
+		try
+		{
+			_backlinks = await Client.GetBacklinksAsync(SectionId.ToGUID(), RowId.ToGUID());
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = ex.Message;
+		}
+		finally
+		{
+			_isLoading = false;
+			StateHasChanged();
+		}
+	}
+
+	private async Task AbrirInforme(Dinaup.BacklinkDTO seccion, Dinaup.BacklinkFieldDTO campo)
+	{
+		// Sin informe principal no hay a donde ir. La fila se enseña igual porque el dato
+		// (cuantos apuntan y por que campo) vale por si solo.
+		if (seccion.MainReportId.IsEmpty()) return;
+
+		var filtro = new List<FilterCondition> { new FilterCondition(campo.FieldKeyword, "=", RowId) };
+
+		await DnzReportView.OpenAsync(DialogService, Client, seccion.MainReportId, filter: filtro, title: seccion.SectionName);
+	}
+
+
+	/// <summary> Abre el desglose y pregunta al servidor quien apunta a este registro. </summary>
+	public static async Task OpenAsync(DialogService ds, DinaupClientC client, string sectionId, string rowId)
+	{
+		var p = new Dictionary<string, object>
+		{
+			{ nameof(Client), client },
+			{ nameof(SectionId), sectionId },
+			{ nameof(RowId), rowId }
+		};
+
+		await ds.OpenAsync<DnzBacklinksDialog>(null, p, new DialogOptions
+		{
+			Width = "min(95%, 700px)",
+			Height = "80%",
+			CloseDialogOnEsc = true,
+			Resizable = true,
+			Draggable = true,
+			ShowClose = false,
+			ShowTitle = false
+		});
+	}
+}

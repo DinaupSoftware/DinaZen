@@ -61,6 +61,12 @@ else if (_virtualForm.IsNotNull())
 							<RadzenIcon Icon="photo_library" Style="font-size:18px" />
 							<RadzenBadge BadgeStyle="@(_virtualForm.MainForm.Count_Gallery == 0 ? BadgeStyle.Light : BadgeStyle.Info)" IsPill="true" Text="@_virtualForm.MainForm.Count_Gallery.STR()" />
 						</div>
+						@* Quien apunta a este registro. Va sin numero a proposito: las cuentas de los tres
+						   de al lado vienen gratis con el formulario, esta cuesta una consulta aparte y
+						   no se le cobra a nadie que abra una ficha sin querer saberlo. Se pide al pulsar. *@
+						<div class="dnz-annotation-btn-wrap" @onclick="OpenBacklinks" title="Quien apunta a este registro" data-testid="form-backlinks">
+							<RadzenIcon Icon="hub" Style="font-size:18px" />
+						</div>
 					</div>
 				}
 
@@ -495,6 +501,17 @@ else if (_errorMessage.IsNotEmpty())
 			_isLoading = false;
 			StateHasChanged();
 		}
+	}
+
+	// ── Backlinks (quien apunta a este registro) ──
+
+	// La consulta la lanza el dialogo al abrirse, no la ficha. Contar referencias recorre todos
+	// los campos del sistema, y eso no se paga por abrir un registro: se paga por preguntarlo.
+	private async Task OpenBacklinks()
+	{
+		if (_loadedSectionId.IsEmpty() || _loadedDatoId.IsGUID() == false) return;
+
+		await DnzBacklinksDialog.OpenAsync(DialogService, Client, _loadedSectionId, _loadedDatoId);
 	}
 
 	private async Task HandleTabChange(VirtualFormDTO.Tab newTab)

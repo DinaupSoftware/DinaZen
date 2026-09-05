@@ -9,7 +9,14 @@
 
 	<div class="@ContainerClass" role="group" aria-label="@Key" @attributes="AdditionalAttributes">
 		<RadzenIcon Icon=@Icon IconColor=@IconColor Style="font-size: 14px;" />
-		<small class="text-muted">@Key:</small>
+		@*  LA ETIQUETA SE COME EL HUECO, y no es cosmetica: la fila es un flex con
+			justify-content-between y TRES hijos, asi que sin esto el navegador reparte
+			el sobrante a los dos lados de la etiqueta y la deja flotando en mitad de
+			la fila —cada fila en un sitio distinto segun lo que mida su valor. Medido
+			en cuatro filas seguidas: las etiquetas empezaban en x=395, 426, 276 y 246.
+			Con flex-fill arrancan las cuatro en el mismo x y los valores siguen
+			acabando pegados a la derecha: las dos columnas alineadas.  *@
+		<small class="text-muted flex-fill">@Key:</small>
 		<span class="fw-medium" style="@ValueStyle">@if (ChildContent.IsNotNull()) { @ChildContent } else { @Value }</span>
 	</div>
 
@@ -58,7 +65,10 @@ else
 
 	private string ContainerClass => $"d-flex  flex-row  {Class} justify-content-between {(Horizontal ? "align-items-center align-content-center" : "align-items-center")} gap-2";
 	private string LabelClass => $"rz-text-caption text-muted m-0 p-0 {(Horizontal ? "me-2" : string.Empty)}";
-	private string ValueClass => Horizontal ? $"flex-fill{(TextRight ? " text-end" : string.Empty)}" : (TextRight ? "text-end" : string.Empty);
+	//	Solo lo usa la maqueta vertical. La horizontal ya manda el valor a la derecha con
+	//	el justify-content-between del contenedor, y su rama de aqui llevaba sin usarse
+	//	desde siempre: la clase se calculaba y no se pintaba en ningun sitio.
+	private string ValueClass => TextRight ? "text-end" : string.Empty;
 	private string LabelStyle => string.IsNullOrWhiteSpace(LabelWidth) ? null : $"max-width:{LabelWidth};";
 	private string ValueStyle => string.IsNullOrWhiteSpace(ValueColor) ? null : $"color:{ValueColor};";
 

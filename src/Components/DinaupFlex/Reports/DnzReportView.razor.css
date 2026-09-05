@@ -98,3 +98,34 @@
 @media (prefers-reduced-motion: reduce) {
     .dnz-report-size ::deep .rz-dropdown { transition: none; }
 }
+
+/*  ── Celdas elegidas (AllowCellSelection) ─────────────────────────────────────────────────
+    Engancha por atributo y no por clase porque la clase del <td> la escribe Radzen —CssClass de
+    la columna, alineación, estado de fila— y competir por ese hueco es jugarse pisarla. El
+    atributo lo pone OnCellRender.
+
+    ::deep porque el <td> lo pinta RadzenDataGrid, que es otro componente y no lleva el sello de
+    CSS aislado de este.
+
+    CADA CELDA ELEGIDA LLEVA SUS CUATRO BORDES, que es como se lee "esta y esta y esta" sin
+    contar. Se dibujan con outline y no con border: en una tabla el borde es de las dos celdas
+    que lo comparten, así que un border se lo puede quedar la vecina y la elegida acabaría con
+    tres lados. El outline se pinta encima y no lo negocia con nadie, y el offset negativo lo
+    mete dentro de la celda para que no ensanche la fila ni pise a la de al lado.
+
+    Debajo va un velo del primario, NO un relleno macizo: una selección grande no puede convertir
+    media pantalla en una mancha, y el texto tiene que leerse igual de bien elegido que sin elegir.
+    Un solo juego de reglas para los dos temas: --rz-primary-lighter ya es translúcido (12%) y
+    Radzen lo reemplaza al cambiar a oscuro, así que el oscuro no necesita regla propia. */
+.dnz-report-view ::deep td[data-dnz-cell-selected] {
+    background: var(--rz-primary-lighter);
+    outline: 1px solid var(--rz-primary);
+    outline-offset: -1px;
+}
+
+/* Eligiendo celdas el cursor NO es la manita de "esto abre algo": aquí un clic elige, y lo que
+   abre la ficha es el doble clic. Cuelga de la clase del modo y no de la tabla a secas: con la
+   selección apagada el clic SÍ abre la ficha y entonces la manita dice la verdad. */
+.dnz-report-view.dnz-report-cellsel ::deep .rz-datatable-data td {
+    cursor: cell;
+}
