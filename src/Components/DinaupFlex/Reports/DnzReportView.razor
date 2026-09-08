@@ -245,9 +245,11 @@
 	/// escribe aquí. Está en el componente y no en cada aplicación porque el par (fila, campo) solo
 	/// se conoce dentro: fuera llega una columna de Radzen, no un campo de Dinaup.
 	///
-	/// CON ESTO ENCENDIDO EL CLIC YA NO ABRE LA FICHA: elige celda. La ficha se abre con doble clic.
-	/// Es el trato de cualquier rejilla que deja seleccionar, y sin él no hay forma de elegir una
-	/// celda sin que se te abra una ventana encima.
+	/// EL CLIC SIGUE ABRIENDO LA FICHA, también con esto encendido. Elegir celdas se pide a
+	/// propósito: Ctrl+clic suma o quita una, Mayús+clic marca el rectángulo. Hasta el 08/09/2026
+	/// era al revés —el clic elegía y la ficha se abría con doble clic—, y salía caro: abrir un
+	/// registro es lo que más se hace en la aplicación y pasó a costar dos clics para que lo raro
+	/// costara uno, además de dejar celdas marcadas que nadie había pedido.
 	/// </summary>
 	[Parameter] public bool AllowCellSelection { get; set; }
 
@@ -601,9 +603,10 @@
 	}
 
 	private async Task HandleRowSelect(DinaupDynamicRowDTO row) {
-		// Eligiendo celdas, un clic elige: no abre nada. Radzen dispara RowSelect además de
-		// CellClick para el mismo clic, así que si esto no se cortara, cada celda que tocaras te
-		// abriría la ficha encima. Para abrirla está el doble clic.
+		// Con la selección de celdas encendida, QUIEN ABRE ES OnCellClick y no esto. Radzen dispara
+		// RowSelect además de CellClick para el mismo clic, y solo CellClick trae las teclas
+		// (Ctrl, Mayús): sin ellas no se puede distinguir «abre esta ficha» de «suma esta celda a
+		// lo elegido». Si los dos abrieran, un clic abriría la ficha dos veces.
 		if (AllowCellSelection) return;
 
 		await AbrirFilaAsync(row);
@@ -655,12 +658,24 @@
 
 		} else {
 
-			// Clic limpio: esta y solo esta. Aquí cae también el Mayús cuyo ancla ya no está en
-			// pantalla —basta con filtrar o buscar entre los dos clics—, y quedarse quieto en ese
-			// caso se lee como que la rejilla no responde.
-			_selectedCells.Clear();
-			_selectedCells.Add(celda);
-			Anclar(args.Data.ID, kw);
+			// CLIC LIMPIO: ABRE LA FICHA. Es el gesto más repetido de la aplicación —abrir un
+			// registro se hace cientos de veces al día— y tiene que costar un clic, no dos. Antes
+			// elegía la celda y la ficha se abría con doble clic: eso encarecía lo frecuente para
+			// abaratar lo raro, y encima dejaba media tabla marcada sin que nadie lo pidiera.
+			// Elegir celdas se pide ahora a propósito, con Ctrl (una) o Mayús (un rango).
+			//
+			// Se limpia lo elegido ANTES de abrir: si quedara marcado por detrás, al volver de la
+			// ficha la barra seguiría ofreciendo cambiar valores de algo que ya no se está mirando.
+			// Aquí cae también el Mayús cuyo ancla se ha ido de pantalla —basta con filtrar entre
+			// los dos clics—, y abrir es mejor respuesta que quedarse quieto, que se lee como que
+			// la rejilla no responde.
+			if (_selectedCells.Count > 0) {
+				_selectedCells.Clear();
+				await PublicarSeleccionAsync();
+			}
+
+			await AbrirFilaAsync(args.Data);
+			return;
 		}
 
 		await PublicarSeleccionAsync();
