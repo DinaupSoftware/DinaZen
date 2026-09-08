@@ -50,6 +50,22 @@
 	// traería un valor viejo y se comería lo tecleado. Este es el seguro de esa carrera.
 	private bool tecleandoSinEntregar;
 
+	// MIENTRAS SE TECLEA, ESTE COMPONENTE NO SE REPINTA. Y esto es lo que faltaba de verdad.
+	//
+	// El seguro de arriba protege `texto` en C#, pero no protege el DOM: tras cada tecla Blazor
+	// repintaba este componente con `value=@texto`, y ese repintado viaja por SignalR. Cuando el
+	// diff de «P» llega al navegador, el usuario ya ha escrito «Pr»; Blazor pone el DOM en «P» y
+	// la «r» desaparece — la siguiente tecla deja «Po». Medido el 08/09/2026 contra p.dinaup.com:
+	// «Pro» tecleado a 30 ms por tecla llegaba como «Po», y «Sobreventa» como «Sorvna». El servidor
+	// recibía basura y contestaba cero filas, y durante una tarde pareció un fallo de la búsqueda.
+	// Con un único evento de entrada, o tecleando despacio, las mismas búsquedas devolvían sus filas.
+	//
+	// A una persona le pasa a ratos, según su velocidad y la latencia; con frases largas como
+	// «Coca Cola», casi siempre. Aquí el repintado se corta hasta que el debounce entrega: el DOM
+	// es del usuario mientras escribe. Al entregar, `texto` ya es lo que hay en la caja, así que
+	// el repintado que sigue no cambia nada visible.
+	protected override bool ShouldRender() => tecleandoSinEntregar == false;
+
 	protected override void OnParametersSet()
 	{
 		if (tecleandoSinEntregar || Value == ultimoValueVisto)
