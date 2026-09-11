@@ -1,0 +1,61 @@
+@inject IJSRuntime JS
+@inject NotificationService NotificationService
+
+@* Campo confidencial: el valor se guarda en claro, pero nadie que mire la pantalla
+   (ni una grabacion) tiene por que verlo. Se pinta con puntos, con un ojo para
+   revelarlo un momento y un boton para copiarlo sin llegar a enseñarlo. *@
+
+<div class="dup_input dup_input_estandar d-flex flex-column">
+
+	@if (ModoCelda == false)
+	{
+		<RadzenLabel ContextMenu=@ContextMenuAction @key=@(DataControl.Token + "-eti") class="labelinput" for="@DataControl.Token">
+			@DataControl.Label
+			<span class="ico_IsModified"></span>
+			<span class="ico_IsRequired"></span>
+		</RadzenLabel>
+	}
+
+	<div class="d-flex gap-1 align-items-center">
+
+		<input type=@(Revelado ? "text" : "password")
+			   class="rz-textbox flex-grow-1"
+			   autocomplete="off"
+			   id="@DataControl.Token"
+			   @key=@(DataControl.Token + "-valor")
+			   readonly=@DataControl.IsLocked
+			   placeholder=@DataControl.Placeholder
+			   value="@DataControl.Value"
+			   @onchange=@(e => HandleCambio(e.Value?.ToString() ?? "")) />
+
+		<RadzenButton Click=@(() => Revelado = !Revelado)
+					  Icon=@(Revelado ? "visibility_off" : "visibility")
+					  title=@(Revelado ? "Ocultar" : "Ver")
+					  Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" />
+
+		<RadzenButton Click=@Copiar Icon="content_copy" title="Copiar"
+					  Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" />
+	</div>
+</div>
+
+@code {
+
+	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.Control DataControl { get; set; }
+	[Parameter] public bool ModoCelda { get; set; }
+	[Parameter] public Action<MouseEventArgs> ContextMenuAction { get; set; }
+	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Control> OnDataControlChanged { get; set; }
+
+	private bool Revelado { get; set; }
+
+	async Task HandleCambio(string nuevoValor)
+	{
+		DataControl.Value = nuevoValor;
+		await OnDataControlChanged.InvokeAsync(DataControl);
+	}
+
+	async Task Copiar()
+	{
+		await JS.InvokeVoidAsync("navigator.clipboard.writeText", DataControl.Value ?? "");
+		NotificationService.Notify(NotificationSeverity.Success, "Copiado", DataControl.Label + " está en el portapapeles.");
+	}
+}

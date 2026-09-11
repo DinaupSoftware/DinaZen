@@ -1,4 +1,4 @@
-@inject ContextMenuService ContextMenuService;
+﻿@inject ContextMenuService ContextMenuService;
 @using Radzen.Blazor
 @using System.Collections.Generic
 
@@ -52,6 +52,13 @@
 		</div>
 
 
+
+	}
+	else if (EsSensible)
+	{
+
+		<DnzControlSensible @key=@(DataControl.Token + "-sensible") DataControl=DataControl ModoCelda=@ModoCelda
+							ContextMenuAction=ShowContextMenuWithItems OnDataControlChanged=HandleDatacontrolChanged />
 
 	}
 	else
@@ -263,6 +270,12 @@
 	/// alli el campo ya va sin coordenadas y sin etiqueta, y la columna lo encuadra.
 	/// </summary>
 	private bool EsMovil => Movil && ModoCelda == false;
+
+	/// <summary>
+	/// Campo que no debe verse en pantalla: el confidencial del esquema y la contrasena.
+	/// Se pinta con puntos, con ojo para revelar y boton de copiar.
+	/// </summary>
+	private bool EsSensible => DataControl.IsSensitive || DataControl.InputType == "password";
 
 	public void Dispose()
 	{
