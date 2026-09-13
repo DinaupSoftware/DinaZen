@@ -648,14 +648,22 @@ div.controlu[data-incorrectvaluestatus]:not([data-incorrectvaluestatus=""]) .ico
 .controlu textarea,
 textarea.rz-textarea {
     font-size: var(--dnz-input-font-size) !important;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+/* El marco, solo para el multilínea suelto. Dentro de un RadzenFormField el marco ya lo
+   pinta el campo, y Radzen baja la caja 1rem para dejar sitio al rótulo: si la caja pinta
+   el suyo salen dos bordes y, en oscuro, dos fondos (el campo arriba y la caja más clara
+   debajo). El texto, además, quedaba 4px a la izquierda del rótulo. */
+.controlu textarea,
+textarea.rz-textarea:not(.rz-form-field-content > textarea) {
     border-radius: var(--dnz-input-radius) !important;
     border: 1px solid var(--dnz-input-border) !important;
     padding: 8px var(--dnz-input-padding-x) !important;
     background: var(--dnz-input-bg);
     box-shadow: var(--dnz-input-shadow);
     transition: border-color var(--dnz-transition), box-shadow var(--dnz-transition);
-    resize: vertical;
-    line-height: 1.5;
 }
 
 .controlu textarea:hover:not(:focus):not(:read-only) {
