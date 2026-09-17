@@ -78,4 +78,12 @@ public class DinaupDocumentRequest
     public const string ClaveEmailBody = "email_body";
     public const string ClaveFileName = "filename";
     public const string ClaveSign = "email_sign";
+
+    // Responder a, CC y CCO. Viajan crudas en Metadata (no tienen alias que resolver) y el host
+    // junta todas las que empiezan asi: la clave sola, repetida (MetaData_Set le pega un numero:
+    // email_bcc1, email_bcc2...) o numerada a mano (email_bcc_1). Cada valor puede traer varias
+    // direcciones separadas por comas.
+    public const string ClaveReplyTo = "email_replyto";
+    public const string ClaveCc = "email_cc";
+    public const string ClaveBcc = "email_bcc";
 }
