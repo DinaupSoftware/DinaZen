@@ -21,7 +21,7 @@ else if (_virtualForm.IsNotNull())
 		@* ── Header ── *@
 		<div class="dnz-form-header">
 			<div class="dnz-form-header-info">
-				<img src=@($"https://dinaupcdn.com/public/{_virtualForm.MainForm.Section.IconoID.STR()}.png") width="20px" height="20px" />
+				<img onerror="this.onerror=null;this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src=@($"https://dinaupcdn.com/ico/{_virtualForm.MainForm.Section.ID.STR()}.svg") width="20px" height="20px" />
 				<span>@_virtualForm.MainForm.Section.Label</span>
 				@if (_isNewRecord)
 				{
@@ -463,8 +463,8 @@ else if (_errorMessage.IsNotEmpty())
 			{
 				var sectionLabel = _virtualForm.MainForm.Section?.Label ?? "";
 				var formTitle = _virtualForm.Title ?? "";
-				var iconUrl = _virtualForm.MainForm.Section?.IconoID.IsNotEmpty() == true
-					? $"https://dinaupcdn.com/public/{_virtualForm.MainForm.Section.IconoID}.png"
+				var iconUrl = _virtualForm.MainForm.Section?.ID.IsNotEmpty() == true
+					? $"https://dinaupcdn.com/ico/{_virtualForm.MainForm.Section.ID.STR()}.svg"
 					: "";
 
 				WindowManagerRef.UpdateWindowInfo(

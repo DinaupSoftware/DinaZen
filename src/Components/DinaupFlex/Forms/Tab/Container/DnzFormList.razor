@@ -9,9 +9,9 @@
 
 		<div class="dnz-form-header">
 			<div class="dnz-form-header-info">
-				@if (FormList.Section.IsNotNull() && FormList.Section.IconoID.IsNotEmpty())
+				@if (FormList.Section.IsNotNull() && FormList.Section.ID.IsNotEmpty())
 				{
-					<img src=@($"https://dinaupcdn.com/public/{FormList.Section.IconoID.STR()}.png") width="20px" height="20px" />
+					<img onerror="this.onerror=null;this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src=@($"https://dinaupcdn.com/ico/{FormList.Section.ID.STR()}.svg") width="20px" height="20px" />
 				}
 				<span>@(FormList.Section.IsNotNull() ? FormList.Section.Label : "")</span>
 				<RadzenBadge BadgeStyle="BadgeStyle.Info" Variant="Variant.Flat" Text="Editando" />

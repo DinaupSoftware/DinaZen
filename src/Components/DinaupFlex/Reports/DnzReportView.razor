@@ -23,7 +23,7 @@
 		@if (ShowTitle || ShowSearch) {
 			<div class="dnz-report-header">
 				@if (ShowTitle && _dataList.Section.IsNotNull()) {
-					<img onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src="@($"https://dinaupcdn.com/public/{_dataList.Section.IconoID.STR()}.png")" width="33" height="33" style="border-radius:4px" />
+					<img onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src="@($"https://dinaupcdn.com/ico/{_dataList.Section.ID.STR()}.svg")" width="33" height="33" style="border-radius:4px" />
 				}
 				@if (ShowTitle) {
 					<span>@Title.IfIsEmpty(_dataList.Title)</span>
