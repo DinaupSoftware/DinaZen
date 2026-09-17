@@ -83,7 +83,7 @@
 
     /// <summary>
     /// Reference "now" used to detect today and phantom-end.
-    /// Defaults to <c>DateTime.Now</c> — pass a culture-aware value (e.g. RegionService.LocalNow()) for accuracy in server-side scenarios.
+    /// Defaults to <c>RegionService.LocalNow()</c>, the company time. Not <c>DateTime.Now</c>: the server clock runs in UTC.
     /// </summary>
     [Parameter]
     public DateTime? Now { get; set; }
@@ -148,7 +148,7 @@
 
         if (Start == null) return;
 
-        var now = Now ?? DateTime.Now;
+        var now = Now ?? RegionService.LocalNow();
         var currentTime = TimeOnly.FromDateTime(now);
         var isToday = Date == DateOnly.FromDateTime(now);
         bool noEnd = End == null || End == TimeOnly.MinValue;

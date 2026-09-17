@@ -93,14 +93,16 @@
 			case "MesAnterior":
 				var firstDayOfPreviousMonth = new DateTime(localDate.Year, localDate.Month, 1).AddMonths(-1);
 				minLocal = firstDayOfPreviousMonth;
-				maxLocal = firstDayOfPreviousMonth.AddMonths(1).AddDays(-1);
+				// Hasta el último segundo del mes: con .AddDays(-1) el filtro acababa el último día a
+				// las 00:00 y dejaba fuera casi todo ese día.
+				maxLocal = firstDayOfPreviousMonth.AddMonths(1).AddSeconds(-1);
 				break;
 			case "TrimestreActual":
-				minLocal = DateTime.Today.ComienzoDeTrimestre();
+				minLocal = localDate.ComienzoDeTrimestre();
 				maxLocal = minLocal.FinDeTrimestre();
 				break;
 			case "TrimestreAnterior":
-				minLocal = DateTime.Today.ComienzoDeTrimestre().AddTRimestre(-1);
+				minLocal = localDate.ComienzoDeTrimestre().AddTRimestre(-1);
 				maxLocal = minLocal.FinDeTrimestre();
 				break;
 		}

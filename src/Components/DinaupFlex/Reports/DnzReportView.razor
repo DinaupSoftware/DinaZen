@@ -578,7 +578,7 @@
 			}
 			if (data.IsNull()) return ("", "", 0);
 			var columns = data.Columns.Where(c => !c.isColumnHidden).ToList();
-			return ReportCsvExporter.Build(all, columns, Title.IfIsEmpty(_dataList?.Title));
+			return ReportCsvExporter.Build(all, columns, Title.IfIsEmpty(_dataList?.Title), RegionService);
 		} catch { return ("", "", 0); }
 	}
 

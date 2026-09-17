@@ -122,7 +122,8 @@
 	// STATE
 	// ───────────────────────────────────────────────────────────── 
 
-	private GanttViewport Viewport = new()  { ViewMode = GanttViewMode.Hour, FocusDate = DateTime.Today };
+	// FocusDate se fija en OnInitialized: un campo no puede leer RegionService.
+	private GanttViewport Viewport = new()  { ViewMode = GanttViewMode.Hour };
 
 	IReadOnlyList<GanttColumn> Columns = Array.Empty<GanttColumn>();
 	IReadOnlyList<GanttItem> Items = Array.Empty<GanttItem>();
@@ -146,6 +147,9 @@
 	 
 	protected override void OnInitialized()
 	{
+		// El día de la empresa, no el del servidor: el contenedor corre en UTC y, durante 1-2 h tras la
+		// medianoche de Madrid, el Gantt abría en el día anterior.
+		Viewport.FocusDate = RegionService.LocalNow().Date;
 		if (Columns.IsNotEmpty() && Items.IsNotEmpty())
 			RebuildLayout();
 	}

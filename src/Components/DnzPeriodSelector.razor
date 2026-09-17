@@ -201,8 +201,8 @@
 	/// <summary>Fin del periodo inicial. Solo se usa con granularidad Rango; en el resto el fin se deriva.</summary>
 	[Parameter] public DateOnly? InitialEnd { get; set; }
 
-	/// <summary>Fecha "hoy" de referencia (por defecto la del sistema). Inyectable para tests.</summary>
-	[Parameter] public DateOnly Today { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+	/// <summary>Fecha "hoy" de referencia. Sin asignar, el día de la empresa (RegionService), no el del servidor: el contenedor corre en UTC. Inyectable para tests.</summary>
+	[Parameter] public DateOnly Today { get; set; }
 
 	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
@@ -252,6 +252,8 @@
 
 	protected override void OnInitialized()
 	{
+		// Aquí y no como valor inicial de la propiedad: ese valor se calcula antes de inyectar RegionService.
+		Today = Today.IfIsEmpty(RegionService.DateOnlyNow());
 		_grain = InitialGrain;
 		_year = Today.Year;
 		_month = Today.Month;

@@ -62,43 +62,47 @@
 
 	async Task ApplyPresetFilter(string filtro)
 	{
+		// El día de la empresa, no el del servidor: el contenedor corre en UTC y, durante 1-2 h tras la
+		// medianoche de Madrid, seguiría en el día anterior ("Hoy" filtraría ayer).
+		var localDate = RegionService.LocalNow().Date;
+
 		switch (filtro)
 		{
 			case "Hoy":
-				minDate = DateTime.Today;
-				maxDate = DateTime.Today;
+				minDate = localDate;
+				maxDate = localDate;
 				break;
 			case "Ayer":
-				minDate = DateTime.Today.AddDays(-1);
-				maxDate = DateTime.Today.AddDays(-1);
+				minDate = localDate.AddDays(-1);
+				maxDate = localDate.AddDays(-1);
 				break;
 			case "Ultimos7Dias":
-				minDate = DateTime.Today.AddDays(-7);
-				maxDate = DateTime.Today;
+				minDate = localDate.AddDays(-7);
+				maxDate = localDate;
 				break;
 			case "Ultimos30Dias":
-				minDate = DateTime.Today.AddDays(-30);
-				maxDate = DateTime.Today;
+				minDate = localDate.AddDays(-30);
+				maxDate = localDate;
 				break;
 			case "Ultimos90Dias":
-				minDate = DateTime.Today.AddDays(-90);
-				maxDate = DateTime.Today;
+				minDate = localDate.AddDays(-90);
+				maxDate = localDate;
 				break;
 			case "MesActual":
-				minDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
-				maxDate = DateTime.Today;
+				minDate = new DateTime(localDate.Year, localDate.Month, 1);
+				maxDate = localDate;
 				break;
 			case "MesAnterior":
-				var firstDayOfPreviousMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-1);
+				var firstDayOfPreviousMonth = new DateTime(localDate.Year, localDate.Month, 1).AddMonths(-1);
 				minDate = firstDayOfPreviousMonth;
 				maxDate = firstDayOfPreviousMonth.AddMonths(1).AddDays(-1);
 				break;
 			case "TrimestreActual":
-				minDate = DateTime.Today.ComienzoDeTrimestre();
-				maxDate = DateTime.Today;
+				minDate = localDate.ComienzoDeTrimestre();
+				maxDate = localDate;
 				break;
 			case "TrimestreAnterior":
-				minDate = DateTime.Today.ComienzoDeTrimestre().AddTRimestre(-1);
+				minDate = localDate.ComienzoDeTrimestre().AddTRimestre(-1);
 				maxDate = minDate.FinDeTrimestre();
 				break;
 		}

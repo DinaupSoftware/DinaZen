@@ -102,8 +102,24 @@
 
 	private static readonly string[] _mFull = { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
 
-	private static DateOnly Hoy => DateOnly.FromDateTime(DateTime.Today);
-	private static DateOnly MesDeHoy => new DateOnly(Hoy.Year, Hoy.Month, 1);
+	// El día de la empresa, no el del servidor: el contenedor corre en UTC y el día 1, durante 1-2 h
+	// tras la medianoche de Madrid, "volver al mes actual" llevaba al mes anterior.
+	private DateOnly Hoy
+	{
+		get
+		{
+			return RegionService.DateOnlyNow();
+		}
+	}
+
+	private DateOnly MesDeHoy
+	{
+		get
+		{
+			var hoy = Hoy;
+			return new DateOnly(hoy.Year, hoy.Month, 1);
+		}
+	}
 
 	// El mes que el PADRE tiene. Year < 2 es el DateOnly sin asignar (año 1): ahí se cae al mes actual
 	// en vez de pintar "Enero 1".

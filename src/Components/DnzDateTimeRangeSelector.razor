@@ -58,7 +58,8 @@
 
 	private async Task SetPreset(DateTimeRangePreset preset)
 	{
-		var today = DateTime.Today;
+		// El día de la empresa, no el del servidor (UTC): si no, durante 1-2 h tras la medianoche "Hoy" sería ayer.
+		var today = RegionService.LocalNow().Date;
 
 		switch (preset)
 		{

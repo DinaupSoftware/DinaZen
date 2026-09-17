@@ -77,14 +77,17 @@
 		DateStatus = "";
 	}
 
+	// Value llega en UTC, como en el texto de arriba (ToLocalFriendlyDateTime). Los dos días se
+	// comparan en la zona de la empresa: ni en UTC ni con el reloj del servidor.
 	private string GetDateStatus(DateTime date) {
-		var today = DateTime.Today;
+		var today = RegionService.LocalNow().Date;
+		var day = RegionService.ToLocal(date).Date;
 
-		return date.Date switch {
-			_ when date.Date == today => "Hoy",
-			_ when date.Date == today.AddDays(1) => "Mañana",
-			_ when date.Date == today.AddDays(-1) => "Ayer",
-			_ when date.Date < today => "Pasado",
+		return day switch {
+			_ when day == today => "Hoy",
+			_ when day == today.AddDays(1) => "Mañana",
+			_ when day == today.AddDays(-1) => "Ayer",
+			_ when day < today => "Pasado",
 			_ => "Futuro"
 		};
 	}

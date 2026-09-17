@@ -118,7 +118,11 @@
 		vp.FocusDate = vp.ViewMode switch { GanttViewMode.Hour => vp.FocusDate.AddDays(1), GanttViewMode.Week => vp.FocusDate.AddDays(7), GanttViewMode.Month => vp.FocusDate.AddMonths(1), GanttViewMode.Year => vp.FocusDate.AddYears(1), _ => vp.FocusDate };
 	});
 
-	private Task Today() => UpdateViewport(vp => vp.FocusDate = DateTime.Today);
+	// El día de la empresa, no el del servidor (UTC).
+	private Task Today()
+	{
+		return UpdateViewport(vp => vp.FocusDate = RegionService.LocalNow().Date);
+	}
 
 	private Task SetMode(GanttViewMode mode) => UpdateViewport(vp => vp.ViewMode = mode);
 

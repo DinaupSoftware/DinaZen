@@ -213,14 +213,14 @@
 										@if (DataControl.FormatEnum == FieldFormatE.DateAndTime)
 										{
 
-											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now; await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Ahora" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
-											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now.AddDays(1); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = RegionService.LocalNow(); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Ahora" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = RegionService.LocalNow().AddDays(1); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
 
 										}
 										else if (DataControl.FormatEnum == FieldFormatE.DATE)
 										{
-											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now.Date; await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Hoy" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
-											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = DateTime.Now.Date.AddDays(1); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = RegionService.LocalNow().Date; await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Hoy" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
+											<RadzenButton Click=@(async args => { DataControl.Value_DateTime = RegionService.LocalNow().Date.AddDays(1); await HandleDatacontrolChangedDatePicket(DataControl); }) Text="Mañana" Style="width: 100%;" class="rz-my-4" Size="ButtonSize.Small" Variant="Variant.Text" />
 										}
 									</div>
 								</FooterTemplate>
@@ -309,8 +309,11 @@
 		if (controlChanged.Value.IsNotEmpty() && controlChanged.FormatEnum == FieldFormatE.DateAndTime)
 		{
 			var fechaX = controlChanged.Value.ToDateDesdeMySQLNulable();
+			// La hora elegida es de la empresa: se pasa a UTC con su zona (RegionService), no con el reloj
+			// del servidor. El contenedor corre en UTC y .ToUniversalTime() no restaba nada: 12:00 se
+			// guardaba como 12:00 UTC y el formulario la volvía a pintar como 14:00.
 			if (fechaX.HasValue)
-				controlChanged.Value = fechaX.Value.KindToLocal().ToUniversalTime().ToSQL();
+				controlChanged.Value = RegionService.ToUtc(fechaX.Value).ToSQL();
 		}
 
 		await HandleDatacontrolChanged(controlChanged);

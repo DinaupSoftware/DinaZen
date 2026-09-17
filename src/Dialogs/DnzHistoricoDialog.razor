@@ -231,13 +231,16 @@
 		return true;
 	}
 
+	// EditedOn llega en UTC. El grupo se decide con el día de la empresa, no con el UTC ni con el del
+	// servidor: un cambio hecho a la 01:30 de Madrid caía en el grupo del día anterior.
 	private string GetDateGroupLabel(DateTime date)
 	{
-		var today = DateTime.Today;
-		if (date.Date == today) return "Hoy";
-		if (date.Date == today.AddDays(-1)) return "Ayer";
-		if (date.Date >= today.AddDays(-7)) return "Esta semana";
-		if (date.Date.Month == today.Month && date.Date.Year == today.Year) return "Este mes";
-		return date.ToString("MMMM yyyy");
+		var today = RegionService.LocalNow().Date;
+		var day = RegionService.ToLocal(date).Date;
+		if (day == today) return "Hoy";
+		if (day == today.AddDays(-1)) return "Ayer";
+		if (day >= today.AddDays(-7)) return "Esta semana";
+		if (day.Month == today.Month && day.Year == today.Year) return "Este mes";
+		return day.ToString("MMMM yyyy", RegionService.Culture);
 	}
 }

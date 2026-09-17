@@ -62,7 +62,8 @@
 
 	private async Task SetPreset(DateRangePreset preset)
 	{
-		var today = DateOnly.FromDateTime(DateTime.Today);
+		// El día de la empresa, no el del servidor (UTC): si no, durante 1-2 h tras la medianoche "Hoy" sería ayer.
+		var today = RegionService.DateOnlyNow();
 
 		switch (preset)
 		{
