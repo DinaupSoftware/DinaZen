@@ -7,7 +7,7 @@
     /* ── Sizing ── */
     --dnz-input-height:        26px;
     --dnz-input-font-size:     13px;
-    --dnz-label-font-size:     11px;
+    --dnz-label-font-size:     12px;
     --dnz-label-gap:           3px;
 
     /* ── Radii ── */
@@ -119,17 +119,24 @@
     --dnz-header-bg:           var(--rz-base-800);
     --dnz-surface-raised:      var(--rz-base-700);   /* lo que se despega       */
     --dnz-tab-hover-bg:        var(--rz-base-700);
-    --dnz-input-bg:            var(--rz-base-600);   /* el campo, un punto más claro */
+    /* El campo no se pinta: se dibuja con su borde sobre la tarjeta, igual que en claro
+       (donde el campo es blanco y la tarjeta tambien). Un gris mas claro solo lo llevaban
+       los controles donde esta hoja gana a Radzen — textos y desplegables si, numeros y
+       fechas no —, asi que la misma ficha salia a dos fondos. */
+    --dnz-input-bg:            transparent;
 
-    /* ── Bordes ── */
-    --dnz-input-border:        var(--rz-base-500);
+    /* ── Bordes ──
+       Sin fondo que los separe, el borde es lo unico que dibuja el campo: se baja un tono
+       para que la rejilla no grite, y sube al pasar el raton. */
+    --dnz-input-border:        var(--rz-base-600);
     --dnz-input-border-hover:  var(--rz-base-400);
     --dnz-header-border:       var(--rz-base-600);
 
-    /* ── Tintas ── */
-    --dnz-input-color:         var(--rz-text-color);
+    /* ── Tintas ──
+       El valor es lo que se lee; la etiqueta, lo que se consulta. Se separan un escalon. */
+    --dnz-input-color:         var(--rz-text-title-color);
     --dnz-input-placeholder:   var(--rz-base-200);
-    --dnz-label-color:         var(--rz-text-secondary-color);
+    --dnz-label-color:         var(--rz-text-tertiary-color);
     --dnz-muted-color:         var(--rz-text-secondary-color);
     --dnz-text-faint:          var(--rz-text-tertiary-color);
     --dnz-neutral-color:       var(--rz-base-300);
@@ -177,8 +184,10 @@
     --dnz-info-color:          var(--rz-info);
     --dnz-info-color-dark:     var(--rz-info-light);
 
-    /* ── Sombras y anillos: sobre tinta el negro suave no separa nada ── */
-    --dnz-input-shadow:        0 1px 2px rgba(0, 0, 0, .35);
+    /* ── Sombras y anillos: sobre tinta el negro suave no separa nada ──
+       El campo, que ya no tiene fondo propio, tampoco proyecta: una sombra sobre un
+       transparente solo ensucia el borde. */
+    --dnz-input-shadow:        none;
     --dnz-focus-ring:          0 0 0 3px rgba(91, 160, 242, .30);
     --dnz-card-shadow:         0 1px 3px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .35);
     --dnz-popup-shadow:        0 8px 30px rgba(0, 0, 0, .60), 0 2px 8px rgba(0, 0, 0, .45);
@@ -377,10 +386,12 @@
     outline: none;
 }
 
-/* Text inputs: small horizontal padding */
+/* El valor no se pega al borde. Las cifras van en caja tabular: en una columna de importes
+   las unidades caen unas debajo de otras. */
 .controlu input,
 .controlu .rz-textbox {
-    padding: 0 4px !important;
+    padding: 0 8px !important;
+    font-variant-numeric: tabular-nums;
 }
 
 /* Dropdowns: no extra padding (badge already provides spacing) */
@@ -411,11 +422,78 @@
 }
 
 
+/* 6-bis. SELECTOR DE RELACION — una sola caja
+   El valor, la flecha y lo que se puede hacer con el campo comparten su marco. Antes los
+   botones colgaban fuera, a la derecha del campo: le robaban ancho al dato, rompian la
+   rejilla de la ficha y no se sabia de que campo colgaban. */
+
+.controlu .dnz-selector-caja {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    /* Menos aire a la derecha: ahi ya no acaba el texto, sino los botones y la flecha. */
+    padding: 0 3px 0 8px !important;
+    outline: none;
+    /* La regla de los campos reparte `flex: 1`, que mide desde cero. A un <input> le da igual
+       —trae su propia altura—, pero esta caja es un div: con el campo vacio se quedaba en lo
+       que midiera su contenido y el hueco salia mas bajo que los demas. Que parta de su alto
+       y siga creciendo a lo ancho cuando la etiqueta va al lado. */
+    flex: 1 1 auto;
+}
+
+.controlu .dnz-selector-valor {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--dnz-input-font-size);
+    color: var(--dnz-input-color);
+    /* Alto ceñido al texto: quien centra es la caja. Con la altura de linea del campo (24px)
+       heredada, lo que va dentro se apoya en la linea base y queda medio pixel mas abajo. */
+    line-height: 1.35;
+}
+
+/* Un estado dentro de un campo no es el mismo objeto que en una lista: alli la pildora manda
+   y marca el alto de la fila, aqui el que manda es el marco del campo. Se le da un alto
+   propio para que quede centrado al milimetro y no se monte sobre el borde de abajo; la
+   pildora y su color siguen siendo los suyos. */
+.controlu .dnz-selector-valor .badge {
+    height: calc(var(--dnz-input-height) - 8px);
+    padding: 0 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-flex;
+}
+
+.controlu .dnz-selector-caja:focus-visible {
+    border-color: var(--dnz-focus-border) !important;
+    box-shadow: var(--dnz-focus-ring) !important;
+}
+
+/* Dentro de la caja la flecha es un hijo mas, no un dibujo encajado a la fuerza sobre el
+   borde derecho del campo (de ahi el margen negativo que llevaba antes). */
+.controlu .dnz-selector-caja .DropDownArrow {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    background-size: 16px 16px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
 /* 7. LABELS  (.labelinput, .labelch) */
 
+/* La etiqueta acompaña, no compite: en versalitas espaciadas pesaba mas que el dato que
+   rotula. Se escribe como se lee y se deja la altura de linea clavada, para que cambiarla
+   no mueva ni un campo del lienzo (las posiciones las fija el diseñador en pixeles). */
 .labelinput {
     font-size: var(--dnz-label-font-size);
-    font-weight: 500;
+    font-weight: 400;
+    line-height: 1.2;
     color: var(--dnz-label-color);
     white-space: nowrap;
     overflow: hidden;
@@ -423,19 +501,16 @@
     margin: 0;
     padding: 0;
     margin-bottom: var(--dnz-label-gap);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
     transition: color var(--dnz-transition);
     user-select: none;
 }
 
 .labelch {
     font-size: var(--dnz-label-font-size);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--dnz-label-color);
     white-space: nowrap;
     overflow: visible;
-    letter-spacing: 0.02em;
     user-select: none;
     transition: color var(--dnz-transition);
 }
@@ -900,23 +975,42 @@ textarea.rz-textarea:not(.rz-form-field-content > textarea) {
 /* 16. UTILITIES */
 
 /* autoHide pattern (show on hover) */
+/* Lo que se puede hacer con un campo calla mientras no se mira: aparece al pasar el raton
+   o al enfocarlo, y en movil siempre, porque alli no hay raton que pasar. Se apaga con
+   opacidad y no con display a proposito — el hueco no salta al entrar y salir, y el boton
+   sigue siendo un objetivo de verdad para el teclado y para los tests. */
 .controlu .autoHide {
-    display: none;
-    transition: opacity var(--dnz-transition);
-}
-
-.controlu:hover .autoHide {
     display: flex;
     align-items: center;
+    flex: none;
+    opacity: 0;
+    transition: opacity var(--dnz-transition);
 }
 
+.controlu:hover .autoHide,
+.controlu:focus-within .autoHide,
+.controlu-movil .autoHide {
+    opacity: 1;
+}
+
+/* El color lo ponia la paleta del boton "base" de Radzen, no la tinta del formulario:
+   en oscuro el icono salia casi negro sobre un campo oscuro. */
 .controlu .autoHide .rz-button {
-    opacity: .5;
-    transition: opacity var(--dnz-transition);
+    width: 20px;
+    height: 20px;
+    min-width: 0;
+    padding: 0 !important;
+    border-radius: 4px;
+    color: var(--dnz-muted-color) !important;
+}
+
+.controlu .autoHide .rz-button .rzi {
+    font-size: 15px !important;
 }
 
 .controlu .autoHide .rz-button:hover {
-    opacity: 1;
+    background: var(--dnz-tab-hover-bg) !important;
+    color: var(--dnz-input-color) !important;
 }
 
 /* Dialog form content */

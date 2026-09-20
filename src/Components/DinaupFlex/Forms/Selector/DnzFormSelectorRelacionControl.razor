@@ -75,74 +75,62 @@
 
 
 
-		@* En movil la etiqueta nunca va a la izquierda: se lleva un ancho fijo en pixeles
-		   que en un telefono deja el campo sin sitio. Se cae a la rama de etiqueta arriba. *@
-		@if (DataControl.IsLabelLeft && EsMovil == false) {
-			<div @ref=elDivX @onclick=@(args => OpenPopup()) data-token=@DataControl.Token style="cursor:pointer" class="dup_input  justify-content-between  dup_input_estandar d-flex align-items-center  align-content-center gap-2 flex-grow-1">
-				@if (ModoCelda == false) {
-					<RadzenLabel ContextMenu=ContextMenuAction key=@(DataControl.Token + "-eti") style=@($"width:{DataControl.LabelWidth}px") class="labelinput" for="@DataControl.Token">
-						@DataControl.Label
-						<span class="ico_IsModified"></span>
-						<span class="ico_IsRequired"></span>
-					</RadzenLabel>
-				}
-				<RadzenTextBox class=@(ModoCelda ? "input-autosize" : "flex-grow-1") Value=@DataControl.Value_Text ReadOnly=true></RadzenTextBox>
-				<div style="margin-left:-24px; font-size:10px; color: var(--bs-gray); width:20px; height:20px" class="DropDownArrow"> </div>
-			</div>
+		@* La miniatura del valor va fuera del marco, como un icono del campo. *@
+		@if (DataControl.Value_Img.IsNotEmpty() && DataControl.Value_Text != "Unidades") {
+			<DnzDynamicRowPreviewIMG Style="margin-right:12px;zoom:0.9" Class="opacity-75" @key=@(DataControl.Token + "-1343499") Data=DataControl></DnzDynamicRowPreviewIMG>
+		}
 
-		} else {
-
-
-			@if (DataControl.Value_Img.IsNotEmpty() && DataControl.Value_Text != "Unidades") {
-				<DnzDynamicRowPreviewIMG Style="margin-right:12px;zoom:0.9" Class="opacity-75" @key=@(DataControl.Token + "-1343499") Data=DataControl></DnzDynamicRowPreviewIMG>
+		@* Una sola rama para las dos colocaciones de la etiqueta: encima (lo normal) o a la
+		   izquierda con ancho fijo. Lo unico que cambia es la direccion de la caja.
+		   En movil la etiqueta nunca va a la izquierda: ese ancho en pixeles deja el campo
+		   sin sitio en un telefono, asi que alli tambien se pinta encima. *@
+		<div Style=" cursor:pointer" @key=@(DataControl.Token + "-2") @ref=elDivX @onclick=@(args => OpenPopup()) data-token=@DataControl.Token class="dup_input dup_input_estandar d-flex w-100 @(DataControl.IsLabelLeft && EsMovil == false ? "align-items-center gap-2" : "flex-column")">
+			@if (ModoCelda == false) {
+				<RadzenLabel ContextMenu=ContextMenuAction @key=@(DataControl.Token + "-eti") style=@(DataControl.IsLabelLeft && EsMovil == false ? $"width:{DataControl.LabelWidth}px" : "") class="labelinput" for="@DataControl.Token">
+					@DataControl.Label
+					<span class="ico_IsModified"></span>
+					<span class="ico_IsRequired"></span>
+				</RadzenLabel>
 			}
 
-			<div Style=" cursor:pointer" @key=@(DataControl.Token + "-2") @ref=elDivX @onclick=@(args => OpenPopup()) data-token=@DataControl.Token class="dup_input  dup_input_estandar d-flex flex-column w-100">
+			@* El marco del campo: valor, acciones y flecha dentro. El tabindex conserva la
+			   tabulacion que daba el cuadro de texto de solo lectura al que sustituye. *@
+			<div class="rz-textbox dnz-selector-caja" tabindex="0">
+
+				<div class="dnz-selector-valor">
+					@if (DataControl.BadgetsStyle.IsNotEmpty()) {
+						@if (DataControl.Value_Text.IsNotEmpty()) {
+							@* Sin estilo a mano: el encaje dentro del marco lo lleva .dnz-selector-valor .badge. *@
+							<DnzBadgetAutoColor Value=@DataControl.Value_Text BadgetStyle=@DataControl.BadgetsStyle />
+						}
+					} else {
+						@DataControl.Value_Text
+					}
+				</div>
+
+				@* Los botones viven dentro del marco, que es el que abre el desplegable al
+				   pulsarlo: sin cortar el clic, quitar una relacion la abriria de nuevo. *@
 				@if (ModoCelda == false) {
-					<RadzenLabel ContextMenu=ContextMenuAction class="labelinput" for="@DataControl.Token">
-						@DataControl.Label
-						<span class="ico_IsModified"></span>
-						<span class="ico_IsRequired"></span>
-					</RadzenLabel>
-				}
-
-				@if (DataControl.BadgetsStyle.IsNotEmpty()) {
-					<div class="d-flex align-items-center rz-textbox p-0 h-auto">
-						<div class="flex-grow-1 " style="padding-left:1px; min-width:0; overflow:hidden">
-							@if (DataControl.Value_Text.IsNotEmpty()) {
-								<DnzBadgetAutoColor Value=@DataControl.Value_Text BadgetStyle=@DataControl.BadgetsStyle Style="display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; vertical-align:middle" />
+					<div class="autoHide">
+						@if (DataControl.IsFilled) {
+							@if (DataControl.IsLocked == false) {
+								<RadzenButton @key=@(DataControl.Token + "-3") Icon="close" Variant="Variant.Text" Click=EliminarRelacion ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" @onclick:stopPropagation="true" data-testid="selector-relational-remove" />
 							}
-						</div>
-						<div style=" font-size:10px; color: var(--bs-gray); width:15px; height:20px" class="DropDownArrow"></div>
-					</div>
-				} else {
-					<div class="d-flex align-items-center">
-						<RadzenTextBox class=@(ModoCelda ? "input-autosize" : "flex-grow-1") Value=@DataControl.Value_Text ReadOnly=true></RadzenTextBox>
-						<div style="margin-left:-19px; font-size:10px; color: var(--bs-gray); width:15px; height:20px" class="DropDownArrow"></div>
+
+							@if (DataControl.TokenList != "" && Client != null) {
+								<RadzenButton Click=@(async () => await AccederAsync()) @key=@(DataControl.Token + "-4") Variant="Variant.Text" Icon="open_in_new" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" @onclick:stopPropagation="true" data-testid="selector-relational-open" />
+							}
+						} else {
+							@if (DataControl.TokenList != "" && DataControl.IsLocked == false && Client != null) {
+								<RadzenButton Click=@(async () => await AgregarAsync()) @key=@(DataControl.Token + "-5") Variant="Variant.Text" Icon="add" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" @onclick:stopPropagation="true" data-testid="selector-relational-add" />
+							}
+						}
 					</div>
 				}
+
+				<div class="DropDownArrow"></div>
 			</div>
-		}
-
-
-		@if (ModoCelda == false) {
-			<div class="autoHide d-flex">
-
-				@if (DataControl.IsFilled) {
-					@if (DataControl.IsLocked == false) {
-						<RadzenButton style="zoom:0.9" @key=@(DataControl.Token + "-3") Icon="close" Variant="Variant.Text" Click=EliminarRelacion ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" data-testid="selector-relational-remove" />
-					}
-
-					@if (DataControl.TokenList != "" && Client != null) {
-						<RadzenButton Click=@(async () => await AccederAsync()) style="zoom:0.9;margin-right:10px" @key=@(DataControl.Token + "-4") Variant="Variant.Text" Icon="open_in_new" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" data-testid="selector-relational-open" />
-					}
-				} else {
-					@if (DataControl.TokenList != "" && DataControl.IsLocked == false && Client != null) {
-						<RadzenButton Click=@(async () => await AgregarAsync()) style="zoom:0.9" @key=@(DataControl.Token + "-5") Variant="Variant.Text" Icon="add" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.ExtraSmall" data-testid="selector-relational-add" />
-					}
-				}
-			</div>
-		}
+		</div>
 
 
 	} else {
