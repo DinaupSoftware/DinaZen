@@ -274,6 +274,11 @@
 	private string _anchorRowId;
 	private string _anchorKeyword;
 	private DinaupReportDTO _report;
+	/// <summary>
+	/// El informe que se ha cargado DE VERDAD. Si ReportId era una sección, el servidor carga su
+	/// informe principal (el del rol, si lo tiene) y este es su id. "" hasta la primera carga.
+	/// </summary>
+	public string LoadedReportId { get { return _report?.Id ?? ""; } }
 	private DinaupReportDataDTO _dataList;
 	private List<DinaupDynamicRowDTO> _rows = new();
 	// Offset de la página actual (0 = primera). La navegación es por OFFSET; el motor de informes lo capa a MaxRows (issue #26).
