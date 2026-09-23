@@ -440,6 +440,18 @@
        que midiera su contenido y el hueco salia mas bajo que los demas. Que parta de su alto
        y siga creciendo a lo ancho cuando la etiqueta va al lado. */
     flex: 1 1 auto;
+    /* El ancho lo pone la columna del campo, no el texto. Sin esto un flex item no baja de
+       su min-content, que aqui es el valor entero (va en nowrap): la caja crecia hasta
+       el ancho del texto, se salia del campo y se comia la etiqueta de al lado. */
+    min-width: 0;
+}
+
+/* Con la etiqueta al lado el eje de la caja es el ancho, y un `auto` partiria del ancho del
+   texto: al encoger, la etiqueta cederia en proporcion y saldria cortada. Desde cero, la
+   etiqueta conserva su ancho y la caja se queda con lo que sobra, como el cuadro de texto
+   al que sustituye. */
+.controlu .dup_input:not(.flex-column) > .dnz-selector-caja {
+    flex-basis: 0;
 }
 
 .controlu .dnz-selector-valor {
