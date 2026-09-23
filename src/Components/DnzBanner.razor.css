@@ -61,6 +61,14 @@
 	font-weight: 600;
 }
 
+/* Un enlace dentro del texto lleva el color del texto y va subrayado: con el azul del tema no
+   se lee sobre el degradado. */
+.banner-text ::deep a,
+.banner-text ::deep a * {
+	color: white;
+	text-decoration: underline;
+}
+
 .banner-btn {
 	flex-shrink: 0;
 	display: flex;
@@ -134,7 +142,9 @@
 
 .banner-gold .banner-text h3,
 .banner-gold .banner-text ::deep p,
-.banner-gold .banner-text ::deep strong {
+.banner-gold .banner-text ::deep strong,
+.banner-gold .banner-text ::deep a,
+.banner-gold .banner-text ::deep a * {
 	color: #4a3800;
 }
 

@@ -55,12 +55,15 @@
 			{
 				@HelpContent
 			}
-			else if (string.IsNullOrEmpty(HelpLink) == false)
+			@* El enlace va también debajo de la ayuda escrita: la tarjeta explica lo corto y la página, lo largo. *@
+			@if (string.IsNullOrEmpty(HelpLink) == false)
 			{
-				<a href="@HelpLink" target="_blank" rel="noopener noreferrer" class="card-title-help-link">
-					<span>Ver documentacion</span>
-					<RadzenIcon Icon="open_in_new" />
-				</a>
+				<div class="card-title-help-link-row @(HelpContent != null ? "has-content" : "")">
+					<a href="@HelpLink" target="_blank" rel="noopener noreferrer" class="card-title-help-link">
+						<span>Ver documentación</span>
+						<RadzenIcon Icon="open_in_new" />
+					</a>
+				</div>
 			}
 		</div>
 		<button type="button" class="card-title-help-close" @onclick="ToggleHelp">
@@ -274,6 +277,10 @@
 
 	.card-title-help-link:hover {
 		text-decoration: underline;
+	}
+
+	.card-title-help-link-row.has-content {
+		margin-top: 0.5rem;
 	}
 
 	.card-title-help-link .rzi {
