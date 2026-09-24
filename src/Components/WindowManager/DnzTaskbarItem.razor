@@ -7,22 +7,21 @@
 	@if (State.IconUrl.IsNotEmpty())
 	{
 		<div class="dnz-taskbar-icon-wrap">
-			<img src="@State.IconUrl" alt="" onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" />
+			@* Sin icono subido la URL da 404: se esconde y aparece el chip de color de al lado *@
+			<img src="@State.IconUrl" alt="" onerror="this.parentElement.style.display='none';this.parentElement.nextElementSibling.style.display=''" />
 		</div>
 	}
-	else
-	{
-		<div class="dnz-taskbar-icon-wrap" style="background:@ChipColor">
-			@if (State.Icon.IsNotEmpty())
-			{
-				<RadzenIcon Icon="@State.Icon" />
-			}
-			else
-			{
-				<span style="font-size:10px;font-weight:700;color:white;">@Initials</span>
-			}
-		</div>
-	}
+	@* El chip va siempre: con URL nace escondido y es el respaldo del 404 *@
+	<div class="dnz-taskbar-icon-wrap" style="background:@ChipColor;@(State.IconUrl.IsNotEmpty() ? "display:none" : "")">
+		@if (State.Icon.IsNotEmpty())
+		{
+			<RadzenIcon Icon="@State.Icon" />
+		}
+		else
+		{
+			<span style="font-size:10px;font-weight:700;color:white;">@Initials</span>
+		}
+	</div>
 
 	@* ── Text ── *@
 	<div class="dnz-taskbar-text">

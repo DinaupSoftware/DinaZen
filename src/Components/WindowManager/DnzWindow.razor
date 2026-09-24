@@ -13,13 +13,14 @@
 		<div class="dnz-win-title">
 			@if (State.IconUrl.IsNotEmpty())
 			{
-				<img src="@State.IconUrl" alt="" class="dnz-win-title-icon" onerror="this.src='https://dinaupcdn.com/up/202505/bullet.svg'" />
+				@* Sin icono subido la URL da 404: se quita y aparece el de Material de al lado *@
+				<img src="@State.IconUrl" alt="" class="dnz-win-title-icon" onerror="this.nextElementSibling?.style.removeProperty('display');this.remove()" />
 			}
-			else if (State.Icon.IsNotEmpty())
+			@if (State.Icon.IsNotEmpty())
 			{
 				@* El gris va por token: es el mismo tono en claro y en oscuro se
 				   invierte solo, sin lo cual el icono desaparece en la barra oscura *@
-				<RadzenIcon Icon="@State.Icon" Style="font-size:16px; color:var(--rz-text-secondary-color, #555);" />
+				<RadzenIcon Icon="@State.Icon" Style=@($"font-size:16px; color:var(--rz-text-secondary-color, #555);{(State.IconUrl.IsNotEmpty() ? "display:none" : "")}") />
 			}
 			<div class="dnz-win-title-text">
 				@if (State.Subtitle.IsNotEmpty())

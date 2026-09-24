@@ -11,7 +11,7 @@
 			<div class="dnz-form-header-info">
 				@if (FormList.Section.IsNotNull() && FormList.Section.ID.IsNotEmpty())
 				{
-					<img onerror="this.onerror=null;this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src=@($"https://dinaupcdn.com/ico/{FormList.Section.ID.STR()}.svg") width="20px" height="20px" />
+					<img onerror="this.nextElementSibling.style.removeProperty('display');this.remove()" src=@($"https://dinaupcdn.com/ico/{FormList.Section.ID.STR()}.svg") width="20px" height="20px" /><RadzenIcon Icon="table_rows" Style="display:none; font-size:20px; color:var(--rz-text-secondary-color);" />
 				}
 				<span>@(FormList.Section.IsNotNull() ? FormList.Section.Label : "")</span>
 				<RadzenBadge BadgeStyle="BadgeStyle.Info" Variant="Variant.Flat" Text="Editando" />

@@ -17,7 +17,7 @@
 				<div class="dnz-backlinks-seccion" @key=@seccion.SectionId>
 
 					<div class="dnz-backlinks-cabecera">
-						<img onerror="this.onerror=null;this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src=@($"https://dinaupcdn.com/ico/{seccion.SectionId.ToGUID().STR()}.svg") width="18px" height="18px" />
+						<img onerror="this.nextElementSibling.style.removeProperty('display');this.remove()" src=@($"https://dinaupcdn.com/ico/{seccion.SectionId.ToGUID().STR()}.svg") width="18px" height="18px" /><RadzenIcon Icon="table_rows" Style="display:none; font-size:18px; color:var(--rz-text-secondary-color);" />
 						<span class="dnz-backlinks-nombre">@seccion.SectionName</span>
 						<RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text=@seccion.TotalCount.STR() />
 					</div>

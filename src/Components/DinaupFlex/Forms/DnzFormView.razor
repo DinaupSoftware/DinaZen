@@ -21,7 +21,7 @@ else if (_virtualForm.IsNotNull())
 		@* ── Header ── *@
 		<div class="dnz-form-header">
 			<div class="dnz-form-header-info">
-				<img onerror="this.onerror=null;this.src='https://dinaupcdn.com/up/202505/bullet.svg'" src=@($"https://dinaupcdn.com/ico/{_virtualForm.MainForm.Section.ID.STR()}.svg") width="20px" height="20px" />
+				<img onerror="this.nextElementSibling.style.removeProperty('display');this.remove()" src=@($"https://dinaupcdn.com/ico/{_virtualForm.MainForm.Section.ID.STR()}.svg") width="20px" height="20px" /><RadzenIcon Icon="description" Style="display:none; font-size:20px; color:var(--rz-text-secondary-color);" />
 				<span>@_virtualForm.MainForm.Section.Label</span>
 				@if (_isNewRecord)
 				{
