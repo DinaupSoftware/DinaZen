@@ -1,6 +1,7 @@
 @namespace DinaZen.Components.DinaupFlex.Components
 @using Radzen.Blazor.Rendering
 @inject DnzWindowManagerService _windowManager
+@inject DnzInterceptorService Interceptor
 
 
 <ErrorBoundary>
@@ -66,8 +67,12 @@
 			@if (Disabled == false && OnAdd.HasDelegate) {
 				<RadzenButton Icon="add" Text="Crear nuevo" Size="ButtonSize.Small" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Click=@OnAddFromPopupClick data-testid="row-selector-popup-add" />
 			}
+			@* La tuerca del informe que lista el desplegable: la misma que en DnzFormSelectorRelacionControl. *@
+			@if (Interceptor.CanConfigureReport && reportControl?.LoadedReportId.IsNotEmpty() == true) {
+				<RadzenButton Icon="settings" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" title="Configurar informe" Click=@OnConfigureReportClick data-testid="row-selector-configure-report" />
+			}
 		</div>
-		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter FetchInterceptor=@FetchInterceptor @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) ReportId=@ReportId Limit="20" />
+		<DnzReportView ShowAdd=false ShowSearch=false ShowTitle=false Client=@Client AdminMode=@AdminMode AdvancedFilter=@AdvancedFilter FetchInterceptor=@FetchInterceptor @ref=reportControl OnItemSelect=@(async (x) => { await SelectAsync(x); }) OnDataChanged=@(() => InvokeAsync(StateHasChanged)) ReportId=@ReportId Limit="20" />
 	</ErrorBoundary>
 </RadzenPopup>
 
@@ -202,6 +207,15 @@
 			try { await popup.CloseAsync(); } catch { }
 		}
 		await OnAddClick();
+	}
+
+	private async Task OnConfigureReportClick() {
+		var reportId = reportControl?.LoadedReportId ?? "";
+		if (reportId.IsEmpty()) return;
+		if (popup.IsNotNull() && popup.IsOpen) {
+			try { await popup.CloseAsync(); } catch { }
+		}
+		await Interceptor.ConfigureReportAsync(new ConfigureReportRequest { ReportId = reportId, Client = Client });
 	}
 
 	private async Task OnClearClick() => await SelectAsync((IDinaupRow)null);

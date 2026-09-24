@@ -162,6 +162,14 @@
 			<RadzenTextBox @ref=@txtBoxSearch @onkeydown=@OnKeyDown @key=@(DataControl.Token + "-7") id=@("search" + idSeach) Placeholder="Escribe para buscar..." Style="width:100%;" @oninput=@(args => {
 																																												  searchString = $"{args.Value}";
 																																											  }) Value="@searchString" />
+			@* LA TUERCA ABRE EL INFORME QUE LISTA ESTE DESPLEGABLE, igual que la de los listados de la app
+			   host: sin ella, cambiar qué columnas salen aquí obligaba a ir a buscar el informe por su nombre.
+			   Solo sale cuando la app host sabe configurar informes y la persona puede (lo decide la app).
+			   Se pinta en cuanto el informe ha cargado, porque el que se configura es el que se ha cargado
+			   (LoadedReportId), no el token del campo. *@
+			@if (Client != null && DataControl.TokenList.IsNotEmpty() && Interceptor.CanConfigureReport && _informe?.LoadedReportId.IsNotEmpty() == true) {
+				<RadzenButton Icon="settings" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" title="Configurar informe" Click=@ConfigurarInformeAsync data-testid="selector-relational-configure-report" />
+			}
 		</div>
 
 		<div class="flex-grow-1 overflow-auto" style="min-height:0">
@@ -190,14 +198,15 @@
 			</div>
 
 		} else if (Client != null && DataControl.TokenList.IsNotEmpty()) {
-			<DnzReportView Client="Client"
+			<DnzReportView @ref=_informe Client="Client"
 							  ReportId="@DataControl.TokenList"
 							  QuerySearch="@searchString"
 							  ShowTitle="false"
 							  ShowSearch="false"
 							  Limit="50"
 							  Filtrable="false"
-							  OnItemSelect="@(async (row) => await SelectOrder(row))" />
+							  OnItemSelect="@(async (row) => await SelectOrder(row))"
+							  OnDataChanged="@(() => InvokeAsync(StateHasChanged))" />
 		}
 		</div>
 	</div>
@@ -224,6 +233,7 @@
 	RadzenTextBox txtBoxSearch;
 	ElementReference elDivX;
 	RadzenPopup popup;
+	DnzReportView _informe;
 	string searchString = "";
 	private string idSeach = Guid.NewGuid().ToString().Replace("-", "");
 	bool subiendoArchivo;
@@ -333,6 +343,15 @@
 			if (selectedItem.IsNotNull())
 				await this.SelectOrder(selectedItem);
 		}
+	}
+
+	// El desplegable se cierra antes: la ventana de configurar se abre encima y el popup se quedaba
+	// flotando sobre ella. Al volver a abrirlo el informe se carga de nuevo (el popup es Lazy).
+	async Task ConfigurarInformeAsync() {
+		var reportId = _informe?.LoadedReportId ?? "";
+		if (reportId.IsEmpty()) return;
+		try { await popup.CloseAsync(); } catch { }
+		await Interceptor.ConfigureReportAsync(new ConfigureReportRequest { ReportId = reportId, Client = Client });
 	}
 
 	// ── Relation actions ──
