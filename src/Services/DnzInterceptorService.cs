@@ -41,6 +41,21 @@ public class DnzInterceptorService
 	/// </summary>
 	public Func<FormExtensionsRequest, Task<List<FormExtensionButton>>> OnGetFormExtensions { get; set; }
 
+	// ── Configurar el informe de un desplegable ──
+	// Tampoco sigue el patron Task(Of bool): DinaZen no sabe configurar informes, solo ofrece el boton.
+
+	/// <summary>
+	/// Abre la configuracion del informe que lista un desplegable (la tuerca de su popup). Si es null,
+	/// la tuerca no aparece.
+	/// </summary>
+	public Func<ConfigureReportRequest, Task> OnConfigureReport { get; set; }
+
+	/// <summary>
+	/// Si la persona de esta sesion puede configurar informes. Si es null, basta con OnConfigureReport.
+	/// Se pregunta al pintar, asi que tiene que ser barato: nada de peticiones.
+	/// </summary>
+	public Func<bool> CanConfigureReportCheck { get; set; }
+
 	// ── Documentos dinamicos ──
 	// Aqui no aplica el patron Task(Of bool): no hay comportamiento por defecto que cancelar.
 	// Si la app host no sabe enviar emails, el boton simplemente no se muestra.
@@ -75,6 +90,14 @@ public class DnzInterceptorService
 
 	internal async Task<List<FormExtensionButton>> GetFormExtensionsAsync(FormExtensionsRequest request)
 		=> OnGetFormExtensions != null ? (await OnGetFormExtensions(request)) ?? new() : new();
+
+	internal bool CanConfigureReport => OnConfigureReport != null && (CanConfigureReportCheck == null || CanConfigureReportCheck());
+
+	internal async Task ConfigureReportAsync(ConfigureReportRequest request)
+	{
+		if (OnConfigureReport == null) return;
+		await OnConfigureReport(request);
+	}
 
 	internal bool CanSendDocumentEmail => OnDocumentSendEmail != null;
 
@@ -128,6 +151,18 @@ public class OpenNewRecordRequest
 {
 	/// <summary>GUID de la seccion donde crear el registro.</summary>
 	public string SectionId { get; set; } = "";
+
+	/// <summary>Cliente DinaupSL activo.</summary>
+	public DinaupClientC Client { get; set; }
+}
+
+/// <summary>
+/// El informe que lista un desplegable y que se quiere configurar.
+/// </summary>
+public class ConfigureReportRequest
+{
+	/// <summary>GUID del informe que ha cargado el desplegable (el real, no la seccion ni el token del campo).</summary>
+	public string ReportId { get; set; } = "";
 
 	/// <summary>Cliente DinaupSL activo.</summary>
 	public DinaupClientC Client { get; set; }
