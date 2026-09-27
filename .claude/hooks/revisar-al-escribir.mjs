@@ -88,11 +88,14 @@ if (herramienta === "Edit" || herramienta === "MultiEdit") {
         }
     }
 }
+// La rutina que revisa un PR lo llama con REVISAR_DESDE=<commit base>: cuenta como escrito todo lo que el PR cambia.
+const desde = process.env.REVISAR_DESDE || "HEAD";
 if (herramienta === "Write") {
     let diff = "";
     try {
         git(["ls-files", "--error-unmatch", "--", fichero]);
-        diff = git(["diff", "--no-color", "-U0", "HEAD", "--", fichero]);
+        git(["cat-file", "-e", `${desde}:${path.relative(raizRepo, fichero).split("\\").join("/")}`]);
+        diff = git(["diff", "--no-color", "-U0", desde, "--", fichero]);
     } catch {
         esFicheroNuevo = true;
     }
