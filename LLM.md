@@ -20,7 +20,7 @@ DinaZen es la librería de componentes Blazor del ecosistema Dinaup. Stack: **Bl
 
 - `_Imports.razor` inyecta globalmente en TODOS los componentes: `NotificationService`, `DialogService`, `ContextMenuService`, `TooltipService`, `IJSRuntime JS`, `ICultureService RegionService`. No hace falta `@inject` por componente.
 - La mayoría de componentes capturan atributos no macheados: `[Parameter(CaptureUnmatchedValues = true)] Dictionary<string, object> AdditionalAttributes` — puedes pasar `data-testid`, `id`, `title`, etc. directamente.
-- Dialogs: se abren con método estático `OpenAsync(DialogService, ...)` y usan `<DnzDialogLayout>` con `TitleContent/BodyContent/FooterContent`. Botón confirmar = `ButtonStyle.Success` + `Variant.Text`, cancelar = `ButtonStyle.Danger` + `Variant.Text`.
+- Dialogs: se abren con método estático `OpenAsync(DialogService, ...)` y usan `<DnzDialogLayout>` con `TitleContent/BodyContent/FooterContent`. Botón confirmar = `ButtonStyle.Success` + `Variant.Text` con el texto «Aceptar», cancelar = `ButtonStyle.Danger` + `Variant.Text` con «Cancelar». Una ventana que solo enseña lleva solo «Cerrar». Mientras guarda, `IsBusy` y nada más: sin `BusyText`, el rótulo no cambia.
 - Formatos de número/fecha siempre vía `RegionService` (cultura del usuario).
 - Convenciones de código: negaciones con `== false`, sin nullable reference types (`Nullable disable`), sentinels (`""`, `Guid.Empty`) en lugar de null.
 
@@ -34,6 +34,19 @@ DinaZen es la librería de componentes Blazor del ecosistema Dinaup. Stack: **Bl
 | `DnzScripts` | Inyecta los `<script>` JS (chart, highlight, uppy, windows, image editor...) con versionado. Sin parámetros. |
 
 ## 2. Layout, tarjetas y envoltorios
+
+### DnzCard
+La card de cualquier app: se usa en vez de `RadzenCard`. Sabe a qué profundidad está anidada y se pinta según eso. La de fuera es la card elevada de siempre; dentro, los niveles alternan un velo neutro sin borde y el fondo de la card con una línea fina. Así, una card dentro de otra no apila sombras.
+- Params: `Variant` (fija el aspecto a mano en ese nivel; sin él, lo decide la profundidad), `Style`, `ChildContent`. `class`, `title` y `data-*` pasan tal cual a la `RadzenCard` de dentro.
+- No se le toca `Variant`, sombra ni fondo para que «se vea bien» anidada: eso ya lo hace sola.
+```razor
+<DnzCard>
+    <DnzCardTitle Title="Cliente" Icon="person" />
+    <DnzCard>
+        <DnzCardTitle Title="Direcciones" Icon="home" Compact=true />
+    </DnzCard>
+</DnzCard>
+```
 
 ### DnzCardTitle (el más usado: ~174 usos)
 Header estándar de card: icono + título + subtítulo + badges + acciones.
@@ -242,10 +255,10 @@ Sistema de ventanas flotantes estilo escritorio dentro de la app:
 
 ```razor
 @* Listado estándar de una sección *@
-<RadzenCard>
+<DnzCard>
     <DnzCardTitle Title="Facturas" Icon="receipt_long" />
     <DnzReportView Client=@Client ReportId="GUID-del-reporte" OnItemSelect=@Abrir />
-</RadzenCard>
+</DnzCard>
 
 @* Dashboard con provider headless *@
 <DnzReportProvider Client=@Client ReportId="GUID">

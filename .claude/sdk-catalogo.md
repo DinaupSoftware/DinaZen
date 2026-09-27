@@ -1,0 +1,592 @@
+# Catálogo del SDK Dinaup
+
+Generado con `node .claude/tools/catalogo-sdk.mjs` desde Dinaup 10.15.0.77: 554 extensiones públicas, por el tipo que reciben. No se edita a mano.
+
+Antes de escribir una función, busca aquí por el tipo que entra y el que sale. Si una hace casi lo que necesitas, úsala; si falta algo, se añade al SDK, no a una copia privada.
+
+## String
+
+- `BOOL(String)` → `Boolean`
+- `CleanControlCharacters(String)` → `String`
+- `ClearDouble_SpacesStartAndEnd(String)` → `String`
+- `ContainsAllWords(CadenaEnLaQueSecompara As String, CAdenaBusqueda() As String)` → `Boolean`
+- `ContainsAllWordsIgnoreDiacritics(CadenaEnLaQueSecompara As String, aString As String)` → `Boolean`
+- `ContainsWebSearchMode(source As String, query As String)` → `Boolean`
+- `ContainsWord(text As String, word As String, ignoreCase As Boolean = True)` → `Boolean`
+- `CountCharacters(Texto As String, Caracter As Char, max As Integer = -1)` → `Integer`
+- `DEC(String)` → `Decimal`
+- `DEC(o As String, culture As CultureInfo)` → `Decimal`
+- `DEC(o As String, culture As CultureInfo, defaultX As Decimal)` → `Decimal`
+- `DEC(o As String, defaultValue As Decimal)` → `Decimal`
+- `DEC_PN(String)` → `Decimal?`
+- `EmpiezaPorRuta(Texto As String, EmpiezaPor As String, Separador As String)` → `Boolean`
+- `EndsWithAnyIgnoreCase(Valor As String, ParamArray Ref() As String)` → `Boolean`
+- `EndsWithIgnoreCase(Valor As String, Ref$)` → `Boolean`
+- `Enquote(str As String, Comilla As String)` → `String`
+- `EnsureEnds(Texto As String, FinCadena As String)` → `String`
+- `EnsureEndsWith(input As String, suffix As String)` → `String`
+- `EqualsIgnoreCase(Valor As String, Ref$)` → `Boolean`
+- `FromBase64(String)` → `Byte()`
+- `FromURL(String)` → `String`
+- `GetFirstSegments(Cadena As String, Separador As Char)` → `String`
+- `GetFirstSegments(Cadena As String, Separador As String, ARecibir% = 1, AIgnorar% = 0, IgnoreCase As Boolean = False)` → `String`
+- `GetFirstSegments(Cadena As String, Separador As Char, ARecibir%, AIgnorar% = 0, IgnoreCase As Boolean = False)` → `String`
+- `GetFirstSegments(input As String, delimiter As String)` → `String`
+- `GetLastSegments(ElSTr As String, SeparadorDeTrozos As Char)` → `String`
+- `GetLastSegments(ElSTr As String, SeparadorDeTrozos As String, CAtnRecibir As Integer = 1, CantidadTrozosAIgnorar As Integer = 0)` → `String`
+- `GetURLQueryParam(url As String, param As String)` → `String`
+- `HasContent(String)` → `Boolean`
+- `IfIsEmpty(x As String, secundario As String)` → `String`
+- `INT(String)` → `Integer`
+- `INT(o As String, Minimo As Integer, Maximo As Integer, SiFalla As Integer)` → `Integer`
+- `INT(o As String, SiPeta As Integer)` → `Integer`
+- `INT(o As String, ExcepcionSiFalla As String)` → `Integer`
+- `INT64(o As String, SiPeta As Long)` → `Long`
+- `INT64(String)` → `Long`
+- `IsDateOnly(String)` → `Boolean`
+- `IsDateOrDateTime(String)` → `Boolean`
+- `IsEmail(String)` → `Boolean`
+- `IsEmpty(String)` → `Boolean`
+- `IsInteger(o As String, VacioEs0 As Boolean = False)` → `Boolean`
+- `IsNotEmpty(String)` → `Boolean`
+- `IsNumeric(String)` → `Boolean`
+- `LikeM(o As String, string1 As String, string2 As String)` → `Boolean`
+- `LikeM(o As String, string1 As String, string2 As String, string3 As String)` → `Boolean`
+- `LikeM(o As String, string1 As String, string2 As String, string3 As String, string4 As String)` → `Boolean`
+- `LikeM(o As String, ParamArray Opciones() As String)` → `Boolean`
+- `LikeMIgnoreCase(o As String, ParamArray Opciones() As String)` → `Boolean`
+- `LNG(String)` → `Long`
+- `LNG(o As String, SiFalle As Long)` → `Long`
+- `MatchAllWords(source As String, query As String)` → `Boolean`
+- `MatchPercentage(source As String, query As String)` → `Double`
+- `QueNoEmpieceEn(Texto As String, QueNoEmpiecePor As String)` → `String`
+- `QueNoTermineEn(Texto As String, FinCadena As String)` → `String`
+- `QueNoTermineEn(Texto As String, FinCadena As Char)` → `String`
+- `QuitarPrimerYUltimoCaracter(String)` → `String`
+- `RemoveAccents(aString As String, PermitirnEñes As Boolean = True)` → `String`
+- `RemoveEnd(_cdn As String, CaracteresQueSequierenEliminar As Integer)` → `String`
+- `RemoveEndIgnorecase(Texto As String, FinCadena As String)` → `String`
+- `RemoveFirstSegments(input As String, delimiter As String)` → `String`
+- `RemoveLastCharacter(String)` → `String`
+- `RemoveLastCharacter(str As String, Caracter As String)` → `String`
+- `RemoveLastPart(inputString As String, delimiter As String, segmentsToRemove As Integer = 1)` → `String`
+- `RemoveLastSegments(ElSTr As String, SeparadorDeTrozos As String, CantidadDeTrozosaEliminar As Integer = 1)` → `String`
+- `RemoveSpecialCharacters(aString As String, PermitirEñes As Boolean = True, SeparadorEspacios As String = " ", DespuesDeEspacioMayuscula As Boolean = False)` → `String`
+- `RemoveStart(ElSTr As String, CaracteresQueSequierenEliminar As Integer)` → `String`
+- `RemoveStartIgnoreCase(Texto As String, QueNoEmpiecePor As String)` → `String`
+- `RemoveWord(text As String, word As String, ignoreCase As Boolean = True)` → `String`
+- `ReplaceIgnoreCase(Valor As String, ValorAnterior As String, NuevoValor As String)` → `String`
+- `ReplaceStart(Texto As String, Esto As String, PorEsto As String)` → `String`
+- `StartsWithIgnoreCase(Valor As String, TextoPorElCualDebeDeEmpezar$)` → `Boolean`
+- `STR(String)` → `String`
+- `StripHtml(String)` → `String`
+- `ThrowIf_HasLowerCase(x As String, argName As String)` → `Sub`
+- `ThrowIf_HasUpperCase(x As String, argName As String)` → `Sub`
+- `ThrowIf_IsEmpty(x As String, argName As String)` → `Sub`
+- `ThrowIf_IsNotEmail(x As String, argName As String)` → `Sub`
+- `ThrowIf_IsNotGuid(x As String, argName As String)` → `Sub`
+- `ThrowIf_IsNotUrl(x As String, argName As String)` → `Sub`
+- `ToBytes(String)` → `Byte()`
+- `ToDate(String)` → `Date`
+- `ToDateDesdeMySQL(elstr As String, kind As DateTimeKind)` → `Date`
+- `ToDateDesdeMySQL(String)` → `Date`
+- `ToDateDesdeMySQL_Local(String)` → `Date`
+- `ToDateDesdeMySQL_utc(String)` → `Date`
+- `ToDateDesdeMySQLNulable(elstr As String, kindx As DateTimeKind = DateTimeKind.Unspecified)` → `Date?`
+- `ToDateDesdeMySQLNulable_Local(String)` → `Date?`
+- `ToDateDesdeMySQLNulable_UTC(String)` → `Date?`
+- `ToDateOnly(String)` → `DateOnly`
+- `ToDateOnly_Nullable(String)` → `DateOnly?`
+- `ToDateTime_Local(String)` → `Date`
+- `ToDateTime_UTC(String)` → `Date`
+- `ToDateTime_UTC_Nullable(String)` → `Date?`
+- `ToEncodeHTML(String)` → `String`
+- `ToFileName(String)` → `String`
+- `ToGUID(String)` → `System.Guid`
+- `ToJSON(String)` → `String`
+- `ToJson_Comillear(String)` → `String`
+- `ToMaterialIcon(String)` → `String` — Icono de Material Symbols para una etiqueta de campo. Cadena vacía si ninguna regla casa. Acepta tanto la etiqueta de pantalla ("Importe …
+- `ToSQL(aString As String, quotes As Boolean = False)` → `String`
+- `ToSQL_String(o As String, quotes As Boolean = False)` → `String`
+- `ToTime(String)` → `DateTime`
+- `ToTime_Nullable(String)` → `DateTime?`
+- `ToTimeOnly(String)` → `TimeOnly`
+- `ToTimeOnly_Nullable(String)` → `TimeOnly?`
+- `ToURL(String)` → `String`
+- `Trim_PN(String)` → `String`
+- `TrimEndWith(input As String, suffix As String)` → `String`
+- `TrimEndWith(input As String, suffixChar As Char)` → `String`
+- `TrimStartWith(input As String, prefix As String)` → `String`
+- `Unquote(str As String, Comilla As String = "'")` → `String`
+- `UppercaseFirst(String)` → `String`
+
+## Fechas y horas
+
+- `AdaptarNombreArchivo_DateTime(o As Date, quotes As Boolean = False)` → `String`
+- `AddBimestre(obj As Date, Cantidad As Integer)` → `Date`
+- `AddCuatrimestre(obj As Date, Cantidad As Integer)` → `Date`
+- `AddSemana(obj As DateTime, Cantidad As Integer)` → `DateTime`
+- `AddSemestre(obj As Date, Cantidad As Integer)` → `Date`
+- `AddTRimestre(obj As Date, Cantidad As Integer)` → `Date`
+- `Between(value As Date, lower As Date, upper As Date)` → `Boolean`
+- `Between(value As DateOnly, lower As DateOnly, upper As DateOnly)` → `Boolean`
+- `Bimestre(Date)` → `Integer`
+- `ComienzoDeBimestre(Date)` → `Date`
+- `ComienzoDeCuatrimestre(Date)` → `Date`
+- `ComienzoDeLaSemana(DateTime)` → `DateTime`
+- `ComienzoDelDia(DateTime)` → `DateTime`
+- `ComienzoDelMes(Date)` → `Date`
+- `ComienzoDelMes(DateOnly)` → `DateOnly`
+- `ComienzoDeQuincena(Date)` → `Date`
+- `ComienzoDeSemestre(Date)` → `Date`
+- `ComienzoDeTrimestre(Date)` → `Date`
+- `ComienzoHoras(Date)` → `Date`
+- `ComienzoMinutos(Date)` → `Date`
+- `Cuatrimestre(Date)` → `Integer`
+- `DiaSemana_DayOfWeekCustom(DateTime)` → `Integer`
+- `DifferenceSeconds(Date)` → `Integer`
+- `EsFinDeSemana(DateTime)` → `Boolean`
+- `Fecha_Trimestre(Date)` → `Integer '@JR Lo he cambiado de Trimestre a Fecha_Trimestre porque daba conflictos con True como parámetros`
+- `FinDeLaSemana(DateTime)` → `DateTime`
+- `FinDelBimestre(Date)` → `Date`
+- `FinDelCuatrimestre(Date)` → `Date`
+- `FinDelDia(DateTime)` → `DateTime`
+- `FinDelMes(Date)` → `Date`
+- `FinDelMes(DateOnly)` → `DateOnly`
+- `FinDeMinutos(Date)` → `Date`
+- `FinDeQuincena(Date)` → `Date`
+- `FinDeSemestre(Date)` → `Date`
+- `FinDeTrimestre(Date)` → `Date`
+- `FinHoras(Date)` → `Date`
+- `HoraEnMinutosUP(Date)` → `Integer`
+- `IfIsEmpty(x As Date, value As Date)` → `Date`
+- `IfIsEmpty(x As Date?, value As Date)` → `Date`
+- `IfIsEmpty(x As DateOnly, value As DateOnly)` → `DateOnly`
+- `IfIsEmpty(x As DateOnly?, value As DateOnly)` → `DateOnly`
+- `IsEmpty(DateOnly?)` → `Boolean`
+- `IsEmpty(DateTime?)` → `Boolean`
+- `IsEmpty(TimeOnly?)` → `Boolean`
+- `IsNotEmpty(DateOnly?)` → `Boolean`
+- `IsNotEmpty(DateTime?)` → `Boolean`
+- `IsNotEmpty(TimeOnly?)` → `Boolean`
+- `IsToday(DateTime?)` → `Boolean`
+- `KindToLocal(DateTime)` → `DateTime`
+- `KindToUnspecified(DateTime)` → `DateTime`
+- `KindToUTC(DateTime)` → `DateTime`
+- `MinutesDifference(t1 As TimeSpan, t2 As TimeSpan)` → `Integer`
+- `ModificarDiaDeLaSemana(time As DateTime, NuevoDia As DayOfWeek)` → `DateTime`
+- `MonthsDifference(date1 As Date, date2 As Date)` → `Integer`
+- `Quincena(Date)` → `Integer`
+- `SemanaDelMes(Date)` → `Integer`
+- `Semestre(Date)` → `Integer`
+- `STR(Date)` → `String`
+- `STR(Date?)` → `String`
+- `STR(DateOnly)` → `String`
+- `STR(value As DayOfWeek, idioma As LenguajeE)` → `String`
+- `STR(TimeOnly)` → `String`
+- `STR_DayAndMonth(o As Date, abbreviated As Boolean = True)` → `String`
+- `STR_Month(o As Date, abbreviated As Boolean = True)` → `String`
+- `ThrowIf_IsEmpty(x As DateOnly, argName As String)` → `Sub`
+- `ThrowIf_IsEmpty(x As DateTime, argName As String)` → `Sub`
+- `ThrowIf_IsTooOld(x As DateTime, argName As String)` → `Sub`
+- `To_StepDays(Desde As Date, hasta As Date)` → `IEnumerable(Of Date)`
+- `To_StepDays(Desde As DateOnly, hasta As DateOnly)` → `IEnumerable(Of DateOnly)`
+- `To_StepHours(Desde As Date, hasta As Date)` → `IEnumerable(Of Date)`
+- `To_StepMonth(Desde As Date, hasta As Date)` → `IEnumerable(Of Date)`
+- `To_StepYears(Desde As Date, hasta As Date)` → `IEnumerable(Of Date)`
+- `ToDateOnly(Date)` → `DateOnly`
+- `ToDateOnly(Date?)` → `DateOnly?`
+- `ToLocalTime_PN(Date?)` → `Date?`
+- `ToLocalTime_PN(utcDate As Date?, timeZoneId$)` → `Date?`
+- `ToSQL(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL(aString As Date?, quotes As Boolean = False)` → `String`
+- `ToSQL(o As DateOnly, quotes As Boolean = False)` → `String`
+- `ToSQL(o As DateOnly?, quotes As Boolean = False)` → `String`
+- `ToSQL(o As TimeOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_ConSegundos_test(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_Date(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_Date(o As DateOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_Date_Nullable(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_Date_Nullable(o As Date?, quotes As Boolean = False)` → `String`
+- `ToSQL_DateOnly_Nullable(o As DateOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_DateOnly_Nullable(o As DateOnly?, quotes As Boolean = False)` → `String`
+- `ToSQL_DateTime(o As DateTime, quotes As Boolean = False)` → `String`
+- `ToSQL_DateTime_Nullable(o As DateTime, quotes As Boolean = False)` → `String`
+- `ToSQL_DateTime_Nullable(o As DateTime?, quotes As Boolean = False)` → `String`
+- `ToSQL_Fecha(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_HoraConSegundos(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_HoraConSegundos(o As TimeOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_HoraSinSegundos(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_HoraSinSegundos(o As TimeOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_SinSegundos(o As Date, quotes As Boolean = False)` → `String`
+- `ToSQL_Time(o As DateTime?, quotes As Boolean = False)` → `String`
+- `ToSQL_Time_Nullable(o As DateTime, quotes As Boolean = False)` → `String`
+- `ToSQL_Time_Nullable(o As DateTime?, quotes As Boolean = False)` → `String`
+- `ToSQL_TimeOnly(o As TimeOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_TimeOnly_Nullable(o As TimeOnly, quotes As Boolean = False)` → `String`
+- `ToSQL_TimeOnly_Nullable(o As TimeOnly?, quotes As Boolean = False)` → `String`
+- `ToTimeMYSQL(o As Date, quotes As Boolean = False)` → `String`
+- `ToTimeOnly(Date)` → `TimeOnly`
+- `ToTimestampSegundos(Date)` → `Long`
+- `ToUTC_PN(utcDate As Date?, timeZoneId$)` → `Date?`
+
+## Números
+
+- `AdaptarDecimalES(Decimal)` → `String`
+- `Between(value As Decimal, lower As Decimal, upper As Decimal, zeroAsNoLimit As Boolean = False)` → `Boolean`
+- `Between(value As Integer, lower As Integer, upper As Integer, zeroAsNoLimit As Boolean = False)` → `Boolean`
+- `Half(Decimal)` → `Decimal`
+- `Half(Integer)` → `Integer`
+- `HasDecimalPlaces(Decimal)` → `Boolean`
+- `HasDecimalPlaces(Double)` → `Boolean`
+- `IfIsEmpty(x As Decimal, value As Decimal)` → `Decimal`
+- `IfIsEmpty(x As Integer, value As Integer)` → `Integer`
+- `IfSign(value As Decimal, negative As t, zero As t, positive As t)` → `t`
+- `IfSign(value As Decimal, negative As String, zero As String, positive As String)` → `String`
+- `IfSign(value As Integer, negative As t, zero As t, positive As t)` → `t`
+- `IfSign(value As Integer, negative As String, zero As String, positive As String)` → `String`
+- `IsMultipleOf(o As Decimal, de As Decimal)` → `Boolean`
+- `IsMultipleOf(o As Double, de As Double)` → `Boolean`
+- `IsMultipleOf(o As Integer, De%)` → `Boolean`
+- `LikeM(o As Decimal, Opcion1 As Decimal)` → `Boolean`
+- `LikeM(o As Decimal, Opcion1 As Decimal, Opcion2 As Decimal)` → `Boolean`
+- `LikeM(o As Decimal, Opcion1 As Decimal, Opcion2 As Decimal, Opcion3 As Decimal)` → `Boolean`
+- `LikeM(o As Decimal, Opcion1 As Decimal, Opcion2 As Decimal, Opcion3 As Decimal, Opcion4 As Decimal)` → `Boolean`
+- `LikeM(o As Decimal, Opcion1 As Decimal, Opcion2 As Decimal, Opcion3 As Decimal, Opcion4 As Decimal, Opcion5 As Decimal)` → `Boolean`
+- `LikeM(o As Decimal, Opciones() As Decimal)` → `Boolean`
+- `LikeM(o As Integer, Opcion1 As Integer)` → `Boolean`
+- `LikeM(o As Integer, Opcion1 As Integer, Opcion2 As Integer)` → `Boolean`
+- `LikeM(o As Integer, Opcion1 As Integer, Opcion2 As Integer, Opcion3 As Integer)` → `Boolean`
+- `LikeM(o As Integer, Opcion1 As Integer, Opcion2 As Integer, Opcion3 As Integer, Opcion4 As Integer)` → `Boolean`
+- `LikeM(o As Integer, Opcion1 As Integer, Opcion2 As Integer, Opcion3 As Integer, Opcion4 As Integer, Opcion5 As Integer)` → `Boolean`
+- `RoundMoney(o As Decimal, maxDecimals As Integer)` → `Decimal`
+- `RoundMoney(o As Double, maxDecimals As Integer)` → `Decimal`
+- `STR(Decimal)` → `String`
+- `STR(Integer)` → `String`
+- `STR(Long)` → `String`
+- `ThrowIf_IsEmpty(x As Decimal, argName As String)` → `Sub`
+- `ThrowIf_IsEmpty(x As Integer, argName As String)` → `Sub`
+- `ThrowIf_IsZero(x As Decimal, argName As String)` → `Sub`
+- `To_Int(startIndex As Integer, endIndex As Integer, stepSize As Integer)` → `IEnumerable(Of Tuple(Of Integer, Integer))`
+- `ToDateDesdeTimesTampSegundos(timestampSeconds As Long, KindX As DateTimeKind)` → `Date`
+- `ToJson(Decimal)` → `String`
+- `ToJson(Integer)` → `String`
+- `ToSQL(Decimal)` → `String`
+- `ToSQL(Integer)` → `String`
+- `ToSQL(Long)` → `String`
+- `ToSQL_Decimal(o As Decimal, quotes As Boolean = False)` → `String`
+- `ToSQL_Integer(o As Integer, quotes As Boolean = False)` → `String`
+- `ToSQL_Long(o As Long, quotes As Boolean = False)` → `String`
+- `ToString(Decimal)` → `String`
+
+## Guid
+
+- `IsEmpty(Guid)` → `Boolean`
+- `LikeM(o As Guid, Char1 As Guid, Char2 As Guid)` → `Boolean`
+- `LikeM(o As Guid, Char1 As Guid, Char2 As Guid, Char3 As Guid, Char4 As Guid)` → `Boolean`
+- `LikeM(o As Guid, Opciones() As Guid)` → `Boolean`
+- `STR(Guid)` → `String`
+- `ThrowIf_IsEmpty(x As Guid, argName As String)` → `Sub`
+- `ToJSON(Guid)` → `String`
+- `ToSQL(o As Guid, quotes As Boolean = False)` → `String`
+- `ToSQL_Guid(o As Guid, quotes As Boolean = False)` → `String`
+
+## Boolean
+
+- `INT(Boolean)` → `Integer`
+- `STR(Boolean)` → `String`
+- `ToJson(Boolean)` → `String`
+- `ToSQL(Boolean)` → `String`
+- `ToSQL_Boolean(o As Boolean, quotes As Boolean = False)` → `String`
+
+## Diccionarios
+
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As Boolean)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As Decimal)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As Double)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As Integer)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As TimeOnly)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As DateOnly)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As String)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As DateTime)` → `Sub`
+- `Add(collection As Dictionary(Of String, String), lakey As String, value As Guid)` → `Sub`
+- `AddM(dicx As ConcurrentDictionary(Of k, List(Of v)), key As k, val As v)` → `Sub`
+- `AddM(dicx As Generic.Dictionary(Of k, List(Of v)), key As k, val As v)` → `Sub`
+- `AddMWithLock(dicx As ConcurrentDictionary(Of K, List(Of V)), key As K, val As V)` → `Sub`
+- `AddOrUpdate(dicx As ConcurrentDictionary(Of k, v), key As k, newValue As v)` → `Sub`
+- `AddOrUpdate(dicData As Dictionary(Of k, v), dicNewData As Dictionary(Of k, v))` → `Sub`
+- `AddOrUpdate(dicx As Generic.Dictionary(Of k, v), key As k, newValue As v)` → `Sub`
+- `AddOrUpdate(dicx As Generic.Dictionary(Of String, String), key As String, newValue As String)` → `Sub`
+- `AddOrUpdate(collection As NameValueCollection, key As String, value As String)` → `Sub`
+- `Duplicate(dicx As Generic.Dictionary(Of k, v))` → `Generic.Dictionary(Of k, v)`
+- `GetByID(data As Dictionary(Of Guid, t), id As Dinaup.DinaupBasicInformation)` → `t`
+- `GetM(dicx As Concurrent.ConcurrentDictionary(Of k, v), key As k)` → `v`
+- `GetM(dicx As Concurrent.ConcurrentDictionary(Of k, v), key As k, defaultValue As v)` → `v`
+- `GetM(dicx As Generic.Dictionary(Of Guid, v), key As DinaupBasicInformation)` → `v`
+- `GetM(dicx As Generic.Dictionary(Of k, v), key As k())` → `List(Of v)`
+- `GetM(dicx As Generic.Dictionary(Of k, v), key As k)` → `v`
+- `GetM(dicx As Generic.Dictionary(Of k, v), key As k, defaultValue As v)` → `v`
+- `GetM(dicx As Generic.Dictionary(Of String, String), key As String)` → `String`
+- `GetM(ElArray() As Generic.Dictionary(Of String, String), i As Integer)` → `Generic.Dictionary(Of String, String)`
+- `GetM(elDic As IDictionary(Of String, Object), key As String, defaultX As Object = Nothing)` → `Object`
+- `GetM(elDic As IDictionary(Of String, String), key As String, defaultX As String = Nothing)` → `String`
+- `GetM_Boolean(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Boolean`
+- `GetM_Date(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Date`
+- `GetM_Date_Nullable(ElSTR As Generic.Dictionary(Of String, String), key$)` → `DateTime?`
+- `GetM_DateOnly(ElSTR As Generic.Dictionary(Of String, String), key$)` → `DateOnly`
+- `GetM_DateOnly_Nullable(ElSTR As Generic.Dictionary(Of String, String), key$)` → `DateOnly?`
+- `GetM_DateTime(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Date`
+- `GetM_DateTime_Nullable(ElSTR As Generic.Dictionary(Of String, String), key$)` → `DateTime?`
+- `GetM_Decimal(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Decimal`
+- `GetM_Guid(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Guid`
+- `GetM_Integer(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Integer`
+- `GetM_Long(ElSTR As Generic.Dictionary(Of String, String), key$)` → `Long`
+- `GetM_String(ElSTR As Generic.Dictionary(Of String, String), key$)` → `String`
+- `GetM_Time(ElSTR As Generic.Dictionary(Of String, String), key$)` → `DateTime`
+- `GetM_Time_Nullable(ElSTR As Generic.Dictionary(Of String, String), key$)` → `DateTime?`
+- `GetM_TimeOnly(ElSTR As Generic.Dictionary(Of String, String), key$)` → `TimeOnly`
+- `GetM_TimeOnly_Nullable(ElSTR As Generic.Dictionary(Of String, String), key$)` → `TimeOnly?`
+- `HasContent(IDictionary)` → `Boolean`
+- `HasElements(collection As Dictionary(Of Guid, DateTime))` → `Boolean`
+- `HasElements(collection As Dictionary(Of Guid, Decimal))` → `Boolean`
+- `HasElements(collection As Dictionary(Of Guid, Guid))` → `Boolean`
+- `HasElements(collection As Dictionary(Of Guid, Integer))` → `Boolean`
+- `HasElements(collection As Dictionary(Of Guid, String))` → `Boolean`
+- `HasElements(collection As Dictionary(Of String, DateTime))` → `Boolean`
+- `HasElements(collection As Dictionary(Of String, Decimal))` → `Boolean`
+- `HasElements(collection As Dictionary(Of String, Guid))` → `Boolean`
+- `HasElements(collection As Dictionary(Of String, Integer))` → `Boolean`
+- `HasElements(collection As Dictionary(Of String, String))` → `Boolean`
+- `HasElements(IDictionary)` → `Boolean`
+- `IsEmpty(x As ConcurrentDictionary(Of k, v))` → `Boolean`
+- `IsEmpty(x As Dictionary(Of t, v))` → `Boolean`
+- `IsEmpty(IDictionary)` → `Boolean`
+- `IsNotEmpty(x As ConcurrentDictionary(Of k, v))` → `Boolean`
+- `IsNotEmpty(x As Dictionary(Of t, v))` → `Boolean`
+- `IsNotEmpty(IDictionary)` → `Boolean`
+- `Iterator_TodosLosElementos(Coleccion As Dictionary(Of t, List(Of x)))` → `IEnumerable(Of x)`
+- `Iterator_TodosLosElementos(Coleccion As Dictionary(Of t, Tuple(Of x, List(Of v))))` → `IEnumerable(Of v)`
+- `MaxFechaIA(data As Dictionary(Of Guid, IDataFechaIA))` → `Date`
+- `MaxFechaIA(data As Dictionary(Of String, IDataFechaIA))` → `Date`
+- `MergeById(data As Dictionary(Of Guid, t), newItems As List(Of t))` → `Sub`
+- `OrEmpty(source As Dictionary(Of Boolean, Integer))` → `Dictionary(Of Boolean, Integer)`
+- `OrEmpty(source As Dictionary(Of Guid, Decimal))` → `Dictionary(Of Guid, Decimal)`
+- `OrEmpty(source As Dictionary(Of Guid, Integer))` → `Dictionary(Of Guid, Integer)`
+- `OrEmpty(source As Dictionary(Of String, Decimal))` → `Dictionary(Of String, Decimal)`
+- `OrEmpty(source As Dictionary(Of String, Integer))` → `Dictionary(Of String, Integer)`
+- `OrEmpty(source As Dictionary(Of String, String))` → `Dictionary(Of String, String)`
+- `OrEmpty(source As Dictionary(Of TKey, TValue))` → `Dictionary(Of TKey, TValue)`
+- `Remove(x As Dictionary(Of k, v), elementosAeliminar As IEnumerable(Of k))` → `Sub`
+- `removeM(dicx As ConcurrentDictionary(Of k, List(Of v)), key As k, val As v)` → `Sub`
+- `removeM(dicx As Generic.Dictionary(Of k, List(Of v)), key As k, val As v)` → `Sub`
+- `RemoveMWithLock(dicx As ConcurrentDictionary(Of K, List(Of V)), key As K, val As V)` → `Sub`
+- `SumM(dicx As Generic.Dictionary(Of Guid, Decimal), key As Guid, Value As Decimal)` → `Sub`
+- `SumM(dicx As Generic.Dictionary(Of Guid, Integer), key As Guid, Value As Integer)` → `Sub`
+- `SumM(dicx As Generic.Dictionary(Of String, Decimal), key As String, Value As Decimal)` → `Sub`
+- `SumM(dicx As Generic.Dictionary(Of String, Integer), key As String, Value As Integer)` → `Sub`
+- `ThrowIf_IsEmpty(x As IDictionary, argName As String)` → `Sub`
+- `ToDic(dicx As Concurrent.ConcurrentDictionary(Of k, v))` → `Generic.Dictionary(Of k, v)`
+- `ToHTMLTable(rows As List(Of Dictionary(Of String, String)))` → `String`
+- `ToURL(aString As Generic.Dictionary(Of String, String))` → `String`
+- `TryAddM(dicx As ConcurrentDictionary(Of Guid, ConcurrentDictionary(Of Guid, val)), _key1 As Guid, _key2 As Guid, _val As val)` → `Sub`
+- `TryAddM(dicx As ConcurrentDictionary(Of key1, ConcurrentDictionary(Of key2, val)), _key1 As key1, _key2 As key2, _val As val)` → `Sub`
+- `TryAddM(dicx As Dictionary(Of Guid, ConcurrentDictionary(Of Guid, val)), _key1 As Guid, _key2 As Guid, _val As val)` → `Sub`
+- `TryAddM(dicx As Dictionary(Of key1, ConcurrentDictionary(Of key2, val)), _key1 As key1, _key2 As key2, _val As val)` → `Sub`
+
+## Arrays y listas
+
+- `AddRange(O As HashSet(Of Date), Val As Date())` → `Sub`
+- `AddRange(O As HashSet(Of Decimal), val As HashSet(Of Decimal))` → `Sub`
+- `AddRange(O As HashSet(Of Decimal), val As List(Of Decimal))` → `Sub`
+- `AddRange(O As HashSet(Of Decimal), val As Decimal())` → `Sub`
+- `AddRange(O As HashSet(Of Guid), val As HashSet(Of Guid))` → `Sub`
+- `AddRange(O As HashSet(Of Guid), val As IEnumerable(Of Guid))` → `Sub`
+- `AddRange(O As HashSet(Of Guid), val As Guid())` → `Boolean`
+- `AddRange(O As HashSet(Of String), val As IEnumerable(Of String))` → `Boolean`
+- `AddRange(O As HashSet(Of String), Val As List(Of String))` → `Boolean`
+- `AddRange(O As HashSet(Of String), Val As HashSet(Of String))` → `Boolean`
+- `CleanControlCharacters(String())` → `Sub`
+- `GetByID(data As List(Of t), id As Dinaup.DinaupBasicInformation)` → `t`
+- `GetByID(data As List(Of t), id As Guid)` → `t`
+- `GetIDs(IEnumerable(Of t))` → `List(Of Guid)`
+- `GetIDs(List(Of t))` → `List(Of Guid)`
+- `GetM(ElArray As Guid(), i As Integer)` → `Guid`
+- `GetM(ElArray() As Integer, i As Integer)` → `Integer`
+- `GetM(ElArray As List(Of Guid), i As Integer)` → `Guid`
+- `GetM(ElArray As List(Of String), i As Integer)` → `String`
+- `GetM(ElArray As List(Of String), i As Integer, Defecto As String)` → `String`
+- `GetM(ElArray As List(Of t), i As Integer)` → `t`
+- `GetM(ElArray() As String, i As Integer, ValorDefecto As String)` → `String`
+- `GetM(ElArray() As String, i As Integer)` → `String`
+- `GetM_Generico(ElArray() As t, i As Integer)` → `t`
+- `GetRandom(IEnumerable(Of t))` → `t`
+- `Gzip_Compress(Byte())` → `Byte()`
+- `Gzip_Decompress(Byte())` → `Byte()`
+- `Gzip_Decompress_Async(Byte())` → `Task(Of Byte())`
+- `HasContent(IEnumerable(Of T))` → `Boolean`
+- `HasElements(Boolean())` → `Boolean`
+- `HasElements(Date())` → `Boolean`
+- `HasElements(Decimal())` → `Boolean`
+- `HasElements(Guid())` → `Boolean`
+- `HasElements(IList)` → `Boolean`
+- `HasElements(Integer())` → `Boolean`
+- `HasElements(List(Of Boolean))` → `Boolean`
+- `HasElements(List(Of Date))` → `Boolean`
+- `HasElements(List(Of Decimal))` → `Boolean`
+- `HasElements(List(Of Guid))` → `Boolean`
+- `HasElements(List(Of Integer))` → `Boolean`
+- `HasElements(List(Of Long))` → `Boolean`
+- `HasElements(List(Of String))` → `Boolean`
+- `HasElements(Long())` → `Boolean`
+- `HasElements(String())` → `Boolean`
+- `IndexOf(c As List(Of String), key1 As String, key2 As String)` → `Integer`
+- `IsEmpty(IEnumerable(Of rx))` → `Boolean`
+- `IsEmpty(IList)` → `Boolean`
+- `IsEmpty(List(Of rx))` → `Boolean`
+- `IsEmpty(rx())` → `Boolean`
+- `IsEmpty(System.Text.Json.JsonElement.ArrayEnumerator)` → `Boolean`
+- `IsNotEmpty(IEnumerable(Of rx))` → `Boolean`
+- `IsNotEmpty(IList)` → `Boolean`
+- `IsNotEmpty(List(Of rx))` → `Boolean`
+- `IsNotEmpty(rx())` → `Boolean`
+- `MaxFechaIA(IEnumerable(Of IDataFechaIA))` → `Date`
+- `MaxFechaIA(List(Of IDataFechaIA))` → `Date`
+- `MoveItemDown(Lista As List(Of t), Item As t, Cantidad As Integer = 1)` → `Sub`
+- `MoveItemUp(Lista As List(Of t), Item As t, Cantidad As Integer = 1)` → `Sub`
+- `OrEmpty(IEnumerable(Of T))` → `IEnumerable(Of T)`
+- `OrEmpty(List(Of String))` → `List(Of String)`
+- `OrEmpty(List(Of T))` → `List(Of T)`
+- `Remove(x As HashSet(Of Guid), elementosAeliminar As IEnumerable(Of Guid))` → `Sub`
+- `RemoveById(data As List(Of t), newitem As Guid)` → `Sub`
+- `RemoveById(data As List(Of t), newitem As t)` → `Sub`
+- `STR(Byte())` → `String`
+- `STRJoin(o As List(Of Guid), Separador As String = "")` → `String`
+- `STRJoin(o As List(Of String), Separador As String = "")` → `String`
+- `STRJoin(o As String(), Separador As String = "")` → `String`
+- `ThrowIf_IsEmpty(x As IList, argName As String)` → `Sub`
+- `ThrowIf_IsEmpty(x As List(Of Guid), argName As String)` → `Sub`
+- `ThrowIf_IsEmpty(x As List(Of String), argName As String)` → `Sub`
+- `ToASCIITable(List(Of String()))` → `String`
+- `ToBase64(Byte())` → `String`
+- `ToDic(List(Of t))` → `Dictionary(Of Guid, t)`
+- `ToDic(cols As String(), Data As String())` → `List(Of Dictionary(Of String, String))`
+- `ToHTMLTable(List(Of String()))` → `String`
+- `ToJSON_PN(Decimal())` → `String`
+- `ToJSON_PN(Integer())` → `String`
+- `ToJSON_PN(List(Of Boolean))` → `String`
+- `ToJSON_PN(List(Of Decimal))` → `String`
+- `ToJSON_PN(List(Of Integer))` → `String`
+- `ToJSON_PN(List(Of JsonStringBuilderC))` → `String`
+- `ToJSON_PN(List(Of String))` → `String`
+- `ToJSON_PN(String())` → `String`
+- `TryAdd(list As List(Of k), val As k)` → `Sub`
+- `UpdateById(data As List(Of t), newitems As List(Of t))` → `Sub`
+- `UpdateById(data As List(Of t), newitem As t)` → `Sub`
+
+## Enums
+
+- `STR(value As [Enum], idioma As LenguajeE)` → `String`
+
+## Excepciones
+
+- `GetDescription(Exception)` → `String`
+
+## JSON
+
+- `BOOL(System.Text.Json.JsonElement)` → `Boolean`
+- `Dec(o As System.Text.Json.JsonElement, defaultValue As Decimal = 0)` → `Decimal`
+- `DEC(System.Text.Json.JsonElement)` → `Decimal`
+- `EsNulo(System.Text.Json.JsonElement)` → `Boolean`
+- `INT(o As System.Text.Json.JsonElement, defecto As Integer = 0)` → `Integer`
+- `IsEmpty(System.Text.Json.JsonElement)` → `Boolean`
+- `IsNotNull(System.Text.Json.JsonElement)` → `Boolean`
+- `LeerDEC(o As System.Text.Json.JsonElement, key$, valordefecto As Decimal = 0)` → `Decimal`
+- `NoEsNulo(System.Text.Json.JsonElement)` → `Boolean`
+- `ReadBool(o As System.Text.Json.JsonElement, key$)` → `Boolean`
+- `ReadDec(o As System.Text.Json.JsonElement, key As String)` → `Decimal`
+- `ReadDic_GuidStr(o As System.Text.Json.JsonElement, key As String)` → `Generic.Dictionary(Of Guid, String)`
+- `ReadDic_IntStr(o As System.Text.Json.JsonElement, key As String)` → `Generic.Dictionary(Of Integer, String)`
+- `ReadDic_StrInt(o As System.Text.Json.JsonElement, key As String)` → `Generic.Dictionary(Of String, Integer)`
+- `ReadDic_StrStr(o As System.Text.Json.JsonElement, key As String)` → `Generic.Dictionary(Of String, String)`
+- `ReadGeneric(o As System.Text.Json.JsonElement, key As String)` → `t`
+- `ReadGuid(o As System.Text.Json.JsonElement, key$)` → `Guid`
+- `ReadINT(o As System.Text.Json.JsonElement, key$, valordefecto As Integer = 0)` → `Integer`
+- `ReadListDirectInt(o As System.Text.Json.JsonElement, key As String)` → `List(Of Integer)`
+- `ReadListDirectSTR(o As System.Text.Json.JsonElement, key As String)` → `List(Of String)`
+- `ReadListINT(o As System.Text.Json.JsonElement, key As String)` → `List(Of Integer)`
+- `ReadListSTR(o As System.Text.Json.JsonElement, key As String)` → `List(Of String)`
+- `ReadProperty(o As System.Text.Json.JsonElement, key As String)` → `System.Text.Json.JsonElement`
+- `ReadSTR(o As System.Text.Json.JsonElement, key$, valordefecto As String = "")` → `String`
+- `STR(o As System.Text.Json.JsonElement, defecto$ = "")` → `String`
+- `ToDate(System.Text.Json.JsonElement)` → `Date?`
+- `ToDateTime_Local(System.Text.Json.JsonElement)` → `Date`
+- `ToDateTime_UTC(System.Text.Json.JsonElement)` → `Date`
+- `ToGUID(System.Text.Json.JsonElement)` → `System.Guid`
+
+## Otros
+
+- `Between(IComparable(Of T))` → `?`
+- `ContainsAnyLetter(Cadena$)` → `Boolean`
+- `ContainsAnyNumber(Cadena$)` → `Boolean`
+- `ContainsChar(Cadena$, O As Char)` → `Boolean`
+- `ContainsChar(Cadena$, O As Char())` → `Boolean`
+- `ContainsIgnoreCase(Cadena$, Valor$)` → `Boolean`
+- `ContainsInCommaSeparated(ValoresSeparadosPorcomas$, busqueda$)` → `Boolean`
+- `DuplicateJSON(T)` → `T`
+- `GetFieldsName(Type)` → `List(Of String)` — Returns the column names (in declaration order) of all writable public instance properties of .
+- `GetHost(HttpContext)` → `String`
+- `GetOrSet(cache As IMemoryCache, key As String, factory As Func(Of T), expirationSeconds As Decimal)` → `T`
+- `GetOrSetAsync(cache As IMemoryCache, key As String, factory As Func(Of Task(Of T)), expirationSeconds As Decimal)` → `Task(Of T)`
+- `IfIsEmpty(x As Decimal?, value As Decimal)` → `Decimal`
+- `IfIsEmpty(x As Integer?, value As Integer)` → `Integer`
+- `INT(o As Char, Defecto As Integer)` → `Integer`
+- `INT(o As Integer?, d As Integer = 0)` → `Integer`
+- `INT(IntPtr)` → `Integer`
+- `INT(Object)` → `Integer`
+- `IsDegraded(HealthStatus)` → `Task(Of Boolean)`
+- `IsEmpty(DinaupBasicInformation)` → `Boolean`
+- `IsEmpty(Guid?)` → `Boolean`
+- `IsEmpty(IDinaupRow)` → `Boolean`
+- `IsHealthy(HealthStatus)` → `Task(Of Boolean)`
+- `IsMultipleOf(o As ULong, De As ULong)` → `Boolean`
+- `IsNotEmpty(DinaupBasicInformation)` → `Boolean`
+- `IsNotEmpty(IDinaupRow)` → `Boolean`
+- `IsNotEmpty(System.Guid)` → `Boolean`
+- `IsNotNull(Object)` → `Boolean`
+- `IsNotNull(System.Guid)` → `Boolean`
+- `IsNull(Object)` → `Boolean`
+- `IsNull(System.Guid)` → `Boolean`
+- `IsTrue(Boolean?)` → `Boolean`
+- `IsUnhealthy(HealthStatus)` → `Task(Of Boolean)`
+- `LikeM(o As Char, Char1 As Char, Char2 As Char)` → `Boolean`
+- `LikeM(o As Char, Char1 As Char, Char2 As Char, Char3 As Char)` → `Boolean`
+- `LikeM(o As Char, Char1 As Char, Char2 As Char, Char3 As Char, Char4 As Char)` → `Boolean`
+- `LikeM(o As Char, ParamArray Opciones() As Char)` → `Boolean`
+- `MapDinaupEnv(WebApplication)` → `WebApplication`
+- `NotEmpty(System.Guid)` → `Boolean`
+- `NotNull(Object)` → `Boolean`
+- `ParseBetween(Texto$, Inicio$, Fin$)` → `String`
+- `ReadGet(_request As HttpRequest, _Clave$)` → `String`
+- `ReadGET(navigationManager As NavigationManager, key As String)` → `String`
+- `ReadGetOrPost(request As HttpRequest, key$)` → `String`
+- `ReadGetOrPostDic(HttpRequest)` → `Dictionary(Of String, String)`
+- `ReadPost(_request As HttpRequest, _Clave$)` → `String`
+- `RemoveFirstSegments(Cadena$, Separador$, TrozosAEliminar% = 1, ignorecase As Boolean = False)` → `String`
+- `SetValues(obj As T, dic As Dictionary(Of String, String))` → `Sub` — Populates the public writable properties of from a column→value dictionary. Column names are matched case-insensitively. Nullable targets…
+- `StandardizeLineBreaks(Texto$)` → `String`
+- `StatusAsyn(healthCheck As IHealthCheck, context As HealthCheckContext = Nothing, CancellationToken As CancellationToken = Nothing)` → `Task(Of HealthStatus)`
+- `STR(Decimal?)` → `String`
+- `STR(Guid?)` → `String`
+- `STR(Integer?)` → `String`
+- `STR(Stream)` → `String`
+- `STR(Suscribible(Of Guid?))` → `String`
+- `STR(Suscribible(Of Guid))` → `String`
+- `STR(Suscribible(Of String))` → `String`
+- `STR(ULong)` → `String`
+- `ThrowIf_InvalidDataAnnotations(obj As T, argName As String)` → `Sub`
+- `ThrowIf_IsNull(x As T, argName As String)` → `Sub`
+- `ToGUID(Guid?)` → `Guid`
+- `UseCorrelationId(IApplicationBuilder)` → `IApplicationBuilder`
+- `ValidatePassword(pass$, login$, lenguaje As LenguajeE)` → `String`
+- `VariantFileName(size As ImageSizeE, id As Guid, extension As String = "dat")` → `String` — Nombre del objeto: {id}.dat, {id}_01.dat, ...
+- `VariantSuffix(ImageSizeE)` → `String`
