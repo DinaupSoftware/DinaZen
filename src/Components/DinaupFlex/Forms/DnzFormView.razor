@@ -77,10 +77,26 @@ else if (_virtualForm.IsNotNull())
 		@* ── Mode indicator (thin line) ── *@
 		<div class="dnz-form-mode-strip @(_isNewRecord ? "dnz-mode-new" : "dnz-mode-edit")"></div>
 
+		@* ── Avisos de la ventana: bajo la cabecera y fuera del scroll, para que se vean sin
+		   bajar hasta el final de una ficha larga. Van donde los mensajes de script. ── *@
+		@if (_successMessage.IsNotEmpty())
+		{
+			<RadzenAlert AlertStyle="AlertStyle.Success" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _successMessage = "")" class="dnz-form-aviso m-2">
+				@_successMessage
+			</RadzenAlert>
+		}
+
+		@if (_errorMessage.IsNotEmpty())
+		{
+			<RadzenAlert data-testid="form-error" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _errorMessage = "")" class="dnz-form-aviso m-2">
+				@_errorMessage
+			</RadzenAlert>
+		}
+
 		@* ── Mensajes del formulario (los pide un script; el server los retira al responder) ── *@
 		@foreach (var msg in _virtualForm.MainForm.DialogList_Msgbox ?? new())
 		{
-			<RadzenAlert @key=@($"fv-msg-{msg.ID}") AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Icon="warning" Title="" class="m-2">
+			<RadzenAlert @key=@($"fv-msg-{msg.ID}") AlertStyle="AlertStyle.Warning" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Icon="warning" Title="" class="dnz-form-aviso m-2">
 				<div class="d-flex flex-column gap-2">
 					<span>@msg.Text</span>
 					<div class="d-flex flex-wrap gap-2">
@@ -173,19 +189,6 @@ else if (_virtualForm.IsNotNull())
 				</RadzenTabs>
 			}
 
-			@if (_successMessage.IsNotEmpty())
-			{
-				<RadzenAlert AlertStyle="AlertStyle.Success" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _successMessage = "")" class="rz-mx-4 rz-mb-4">
-					@_successMessage
-				</RadzenAlert>
-			}
-
-			@if (_errorMessage.IsNotEmpty())
-			{
-				<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="true" Close="@(() => _errorMessage = "")" class="rz-mx-4 rz-mb-4">
-					@_errorMessage
-				</RadzenAlert>
-			}
 		</div>
 
 		@* ── Footer with Extensions + Save / Cancel ── *@
@@ -369,6 +372,10 @@ else if (_errorMessage.IsNotEmpty())
 	private VirtualFormDTO _virtualForm;
 	private bool _isLoading = false;
 	private bool _isSaving = false;
+	// No se dice «sesion caducada»: cae aqui cualquier fallo al sincronizar, tambien el 503
+	// de un Servidor que esta arrancando. Tras el fallo la ventana queda en solo lectura
+	// (_sessionExpired), asi que lo que sirve es cerrarla y abrirla otra vez.
+	private const string AvisoSinSincronizar = "Esta ventana ya no está sincronizada con el servidor. Ciérrala y vuelve a abrirla. Motivo: ";
 	private string _errorMessage = "";
 	private string _successMessage = "";
 	private string _loadedSectionId;
@@ -568,7 +575,7 @@ else if (_errorMessage.IsNotEmpty())
 		catch (Exception ex)
 		{
 			_sessionExpired = true;
-			_errorMessage = "Sesion caducada: " + ex.Message;
+			_errorMessage = AvisoSinSincronizar + ex.Message;
 			await InvokeAsync(StateHasChanged);
 		}
 	}
@@ -968,7 +975,7 @@ else if (_errorMessage.IsNotEmpty())
 		catch (Exception ex)
 		{
 			_sessionExpired = true;
-			_errorMessage = "Sesion caducada: " + ex.Message;
+			_errorMessage = AvisoSinSincronizar + ex.Message;
 			await InvokeAsync(StateHasChanged);
 			return null;
 		}
