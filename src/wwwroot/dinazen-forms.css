@@ -303,6 +303,11 @@
     flex-shrink: 0;
 }
 
+/* Avisos bajo la cabecera: fuera del scroll y sin encogerse cuando el cuerpo pide alto. */
+.dnz-form-aviso {
+    flex-shrink: 0;
+}
+
 .dnz-form-body {
     flex: 1;
     overflow: auto;
