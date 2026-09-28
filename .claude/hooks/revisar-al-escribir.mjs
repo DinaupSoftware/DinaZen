@@ -131,6 +131,7 @@ const nombreFichero = path.basename(fichero);
 // El Servidor no tiene contenedor de DI (sus servicios son Shared) y DinaZen es la librería que envuelve a Radzen.
 const esServidor = /dinaupservidor/i.test(path.basename(raizRepo));
 const esDinaZen = /dinazen/i.test(path.basename(raizRepo));
+const esSdk = /^dinaup$/i.test(path.basename(raizRepo)) && /(^|\/)src\//.test(rutaNormal);
 // Las líneas de cada bloque `@code { … }` de un .razor, contando llaves: puede haber varios, y de una sola línea.
 const enBloqueCode = new Array(lineas.length).fill(false);
 for (let i = 0; esRazor && i < lineas.length; i++) {
@@ -160,6 +161,18 @@ lineas.forEach((linea, i) => {
     }
     if (linea.includes("</FooterContent>")) pie = null;
 });
+
+// Las líneas dentro del `<Start>` o el `<End>` de un `RadzenFormField`, que se pintan dentro de la caja del campo.
+const enCajaDeCampo = new Array(lineas.length).fill(false);
+let camposAbiertos = 0;
+let ranuraAbierta = false;
+for (let i = 0; esRazor && i < lineas.length; i++) {
+    camposAbiertos += (lineas[i].match(/<RadzenFormField\b/g) || []).length;
+    if (camposAbiertos > 0 && /<(?:Start|End)>/.test(lineas[i])) ranuraAbierta = true;
+    enCajaDeCampo[i] = ranuraAbierta;
+    if (/<\/(?:Start|End)>/.test(lineas[i])) ranuraAbierta = false;
+    camposAbiertos = Math.max(0, camposAbiertos - (lineas[i].match(/<\/RadzenFormField>/g) || []).length);
+}
 
 // Las cadenas de varias líneas (el SQL del Servidor, @"…" y """…""" de C#): lo que va dentro es texto, no código.
 // empiezaEnCadena[i]: la línea i empieza dentro de una; acabaEnCadena[i]: la deja abierta al acabar.
@@ -228,6 +241,8 @@ const detectores = [
     { nivel: "🔴", donde: [".razor"], re: /<RadzenStack\b/, si: () => esDinaZen === false, dice: "`RadzenStack`: usa un `<div class=\"d-flex …\">` de Bootstrap.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /style="[^"]*\b(?:gap|padding|margin)(?:-(?:top|bottom|left|right))?\s*:\s*(?:0\.25|\.25|0\.5|\.5|1|1\.5|3)rem/, dice: "Espaciado en `style`: usa `gap-N`, `p-N` o `m-N`.", regla: "codigo/reglas-forzadas" },
     { nivel: "🔴", donde: [".razor"], re: /<InputFile\b/, dice: "`InputFile`: usa `DnzFileUploaderButton`.", regla: "codigo/reglas-criticas-ui" },
+    { nivel: "🔴", donde: [".razor"], re: /<RadzenLink\b[^>]*doc\.dinaup\.com|<a\b[^>]*doc\.dinaup\.com[^>]*>\s*[^<\s]/, si: () => esDinaZen === false && /\/Pages\/Apps\/Ayuda\//.test(rutaNormal) === false, dice: "Enlace suelto a la doc: usa `AyudaDocU`, el «?» gris de la ayuda.", regla: "codigo/reglas-criticas-ui" },
+    { nivel: "🔴", donde: [".razor"], re: /<(?:RadzenButton|RadzenToggleButton|RadzenSplitButton|button)\b/, si: i => esDinaZen === false && enCajaDeCampo[i], dice: "Botón dentro de la caja de un campo (`<End>` o `<Start>` del `RadzenFormField`): va aparte, a la derecha del campo.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /\bProperty="[A-Z]\w*"/, dice: "Nombre de propiedad escrito a mano: `Property=\"@nameof(Tipo.Campo)\"`.", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".razor"], re: /style="[^"]*#[0-9a-fA-F]{3,8}\b/, si: i => /style="[^"]*#[0-9a-fA-F]{3,8}\b/.test(lineas[i].replace(/var\([^()]*\)/g, "")), dice: "Color escrito a mano: usa las variables de Radzen.", regla: "codigo/no-hacer" },
     { nivel: "🟡", donde: [".css"], re: /^\s*(?!--)[\w-]+\s*:[^;]*#[0-9a-fA-F]{3,8}\b/, si: i => /#[0-9a-fA-F]{3,8}\b/.test(lineas[i].replace(/var\([^()]*\)/g, "")), dice: "Color escrito a mano: usa las variables de Radzen.", regla: "codigo/no-hacer" },
@@ -251,6 +266,8 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".vb"], re: /Debugger\.IsAttached/, dice: "`Debugger.IsAttached`: con el depurador el código hace otra cosa que en producción. Un permiso nunca depende de él.", regla: "tests/contra-una-licencia" },
     { nivel: "🟡", donde: [".cs", ".vb"], re: /if\s*\(.*(?:IsNullOrEmpty|IsEmpty\(\)|==\s*null).*\)\s*return\s*;|If\s.*(?:IsNullOrEmpty|IsEmpty\(\)|Is Nothing).*Then\s+Return\s*$/, si: () => esTest, dice: "Test que sale en verde sin credenciales: que falle, o `Skip.If(…, motivo)`.", regla: "tests/contra-una-licencia" },
     { nivel: "🟡", donde: [".cs", ".vb", ".csproj", ".vbproj"], re: /\bMock<|Substitute\.For<|Include="(?:Moq|NSubstitute|FakeItEasy|WireMock\.Net|RichardSzalay\.MockHttp)"/, dice: "Doble de algo que da una licencia de prueba: prueba contra la licencia.", regla: "tests/contra-una-licencia" },
+    { nivel: "🟡", donde: [".vb"], re: /\bFunction\s+FJson_\w+\s*\(/, si: () => esServidor, dice: "Función nueva de la API del Servidor: ¿la necesita el propio Servidor (ticks, kiosco, registro legal, permisos) o solo la va a llamar Play? Si solo Play, va en Dinaup.Play.", regla: "codigo/donde-va-cada-funcion" },
+    { nivel: "🟡", donde: [".vb", ".cs"], re: /^\s*(?:Public|public)\s+(?:(?:Shared|Async|Overridable|Overloads|static|async|virtual)\s+)*(?:Function|Sub|[\w<>\[\],.?]+\s+[A-Z]\w*\s*\()/, si: () => esSdk && esTest === false, dice: "Función pública nueva en el SDK: solo entran las genéricas, las que usaría cualquier integración con Dinaup. Si solo la usa Play, va en Dinaup.Play.", regla: "codigo/donde-va-cada-funcion" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /(?:solo|sólo) para (?:los )?tests?|para poder probarl[oa]|inyectable para tests?/i, si: () => esTest === false, comentario: true, enCadena: true, dice: "Código de producción deformado para un test.", regla: "tests/contra-una-licencia" }
 ];
 
@@ -272,6 +289,220 @@ for (const i of ordenadas) {
         if (d.si !== undefined && d.si(i) === false) continue;
         avisos.push({ nivel: d.nivel, linea: i + 1, dice: d.dice, regla: d.regla });
     }
+}
+
+// Cada función de la API del Servidor dice quién la usa: Public_ (cualquier integración) o Play_ (solo Play).
+if (esServidor && nombreFichero === "Enumeraciones.cs") {
+    const inicioEnum = lineas.findIndex(l => /\benum\s+APIFunctionE\b/.test(l));
+    const finEnum = inicioEnum < 0 ? -1 : lineas.findIndex((l, k) => k > inicioEnum && /^\s*}/.test(l));
+    for (const i of ordenadas) {
+        if (i <= inicioEnum || i >= finEnum) continue;
+        const miembro = lineas[i].match(/^\s*([A-Za-z_]\w*)\s*(?:=|,|$)/);
+        if (miembro === null || miembro[1] === "Indefinido" || /^(?:Public|Play)_/.test(miembro[1])) continue;
+        avisos.push({ nivel: "🔴", linea: i + 1, dice: `\`${miembro[1]}\` no dice quién la usa: \`Public_\` si la puede llamar cualquier integración, \`Play_\` si solo la llama Play. Antes, lee si debe estar en el Servidor.`, regla: "codigo/donde-va-cada-funcion" });
+    }
+}
+
+// El catálogo de DinaScript es lo que lee quien escribe un script (la ventana «Funciones» de play, Yudo): va entero en
+// inglés, y cada parámetro con su nombre y su descripción. El castellano solo entra entre «», al citar lo que devuelve.
+if (esServidor && esVb && /FuncionDinamicaC|\.AddParametro\(/.test(texto)) {
+    const enCastellano = frase => /[áéíóúñÁÉÍÓÚÑ¿¡]|\b(?:que|del|los|las|para|con|una|valor|fecha|texto|campo)\b/i.test(frase.replace(/«[^»]*»/g, ""));
+    for (const i of ordenadas) {
+        const linea = lineas[i];
+        if (/^\s*'/.test(linea)) continue;
+        const descripcion = linea.match(/\.Descripcion\s*=\s*"((?:[^"]|"")*)"/);
+        if (descripcion && enCastellano(descripcion[1])) {
+            avisos.push({ nivel: "🔴", linea: i + 1, dice: "Descripción de una función de DinaScript en castellano: el catálogo va entero en inglés.", regla: "codigo/dinascript-funciones" });
+        }
+        const inicio = linea.indexOf(".AddParametro(");
+        if (inicio < 0) continue;
+        // Los argumentos: (ranura, tipo, nombre, descripción[, tabla]). Las comas de dentro de una cadena o un paréntesis no parten.
+        const argumentos = [];
+        let actual = "";
+        let nivel = 0;
+        let enTexto = false;
+        for (const letra of linea.slice(inicio + ".AddParametro(".length)) {
+            if (letra === "\"") enTexto = enTexto === false;
+            if (enTexto === false && letra === "(") nivel++;
+            if (enTexto === false && letra === ")") {
+                if (nivel === 0) break;
+                nivel--;
+            }
+            if (enTexto === false && nivel === 0 && letra === ",") {
+                argumentos.push(actual.trim());
+                actual = "";
+                continue;
+            }
+            actual += letra;
+        }
+        argumentos.push(actual.trim());
+        const nombre = /^"(?:[^"]|"")*"$/.test(argumentos[2] || "") ? argumentos[2].slice(1, -1) : null;
+        const ayuda = /^"(?:[^"]|"")*"$/.test(argumentos[3] || "") ? argumentos[3].slice(1, -1) : null;
+        if (nombre !== null && (nombre.trim() === "" || /^v\d+$/i.test(nombre.trim()))) {
+            avisos.push({ nivel: "🔴", linea: i + 1, dice: "Parámetro de DinaScript sin nombre: el tercer argumento es el que lee quien escribe el script (`Value`, `Decimals`), nunca `v1`.", regla: "codigo/dinascript-funciones" });
+        }
+        if (ayuda !== null && ayuda.trim() === "") {
+            avisos.push({ nivel: "🔴", linea: i + 1, dice: "Parámetro de DinaScript sin descripción: el cuarto argumento dice qué recibe, en inglés.", regla: "codigo/dinascript-funciones" });
+        }
+        if (enCastellano((nombre || "") + " " + (ayuda || ""))) {
+            avisos.push({ nivel: "🔴", linea: i + 1, dice: "Parámetro de DinaScript en castellano: el nombre y la descripción van en inglés.", regla: "codigo/dinascript-funciones" });
+        }
+    }
+}
+
+// Una ventana que se abre sin alto (`Height = null`, sin `Height`, sin opciones, o `MostrarDialogGenerico` con `alto: null`)
+// necesita `AltoAuto=true` en su maqueta (`DnzDialogLayout`, o las de play que la envuelven: `AgentDialogLayout` y
+// `DialogLayout`): sin él se queda en 150 px, el mínimo de Radzen. Se cruzan la maqueta y las llamadas que la abren.
+// Las etiquetas de maqueta sin AltoAuto, con su primera y su última línea.
+function maquetasSinAltoAuto(ls) {
+    const sin = [];
+    ls.forEach((l, i) => {
+        if (/<(?:Dnz|Agent)?DialogLayout\b/.test(l) === false) return;
+        let etiqueta = "";
+        let fin = i;
+        for (; fin < Math.min(ls.length, i + 10); fin++) {
+            etiqueta += " " + ls[fin];
+            if (/(?:^|[^=])>\s*$|\/>/.test(ls[fin])) break;
+        }
+        if (/\bAltoAuto\b(?!\s*=\s*"?\s*false\b)/.test(etiqueta) === false) sin.push({ inicio: i, fin });
+    });
+    return sin;
+}
+// Con qué alto abre la llamada `OpenAsync<X>(…)` o `MostrarDialogGenerico<X>(…)` de la línea j: "nulo", "fijo", o ""
+// si no se ve desde este fichero. `desde` y `hasta` son las líneas de donde salen sus opciones.
+const abreVentana = /(OpenAsync|MostrarDialogGenerico)<(?:\w+\.)*(\w+)>\s*\(/;
+function altoAlAbrir(ls, j) {
+    const metodo = ls[j].match(abreVentana);
+    // Sin comentarios `// …` (pueden llevar comas y comillas) ni flechas `=>` (el `>` no cierra nada).
+    const resto = (ls[j].slice(metodo.index) + "\n" + ls.slice(j + 1, j + 25).join("\n")).replace(/(^|\s)\/\/.*$/gm, "$1").replace(/=>/g, "  ");
+    // Los argumentos, partidos por las comas de fuera: sin contar las de cadenas, llaves, paréntesis ni genéricos.
+    const argumentos = [];
+    let actual = "";
+    let nivel = 0;
+    let genericos = 0;
+    let enCadena = false;
+    let cierre = -1;
+    for (let c = resto.indexOf("(") + 1; c < resto.length; c++) {
+        const letra = resto[c];
+        if (enCadena) {
+            if (letra === "\\") c++;
+            else if (letra === "\"") enCadena = false;
+            continue;
+        }
+        if (letra === "\"") {
+            enCadena = true;
+            continue;
+        }
+        if ("([{".includes(letra)) nivel++;
+        if (")]}".includes(letra)) nivel--;
+        if (letra === "<" && /\w/.test(resto[c - 1])) genericos++;
+        if (letra === ">" && genericos > 0 && /[\w\]?>]/.test(resto[c - 1])) genericos--;
+        if (nivel < 0) {
+            cierre = c;
+            break;
+        }
+        if (letra === "," && nivel === 0 && genericos === 0) {
+            argumentos.push(actual);
+            actual = "";
+            continue;
+        }
+        actual += letra;
+    }
+    if (cierre < 0) return { alto: "" };
+    argumentos.push(actual);
+    const hastaLlamada = j + resto.slice(0, cierre).split("\n").length - 1;
+    // `MostrarDialogGenerico(titulo, valores, ancho = "800px", alto = "90%")`: sin alto, abre al 90 %.
+    if (metodo[1] === "MostrarDialogGenerico") {
+        const alto = argumentos.find(a => /^\s*alto\s*:/.test(a)) || argumentos[3] || "";
+        return { alto: /^\s*(?:alto\s*:)?\s*null\s*$/.test(alto) ? "nulo" : "fijo", desde: j, hasta: hastaLlamada };
+    }
+    const nombrado = argumentos.find(a => /^\s*options\s*:/.test(a));
+    const opciones = nombrado === undefined ? argumentos[2] : nombrado.replace(/^\s*options\s*:/, "");
+    if (opciones === undefined || /^\s*null\s*$/.test(opciones)) return { alto: "nulo", desde: j, hasta: hastaLlamada };
+    // Las opciones salen de una función del fichero (`Opciones()`), de una variable de más arriba o de un `new` en la llamada.
+    let desde = j;
+    let hasta = hastaLlamada;
+    const funcion = opciones.match(/^\s*(\w+)\(\)\s*$/);
+    const variable = opciones.match(/^\s*(\w+)\s*$/);
+    if (funcion) {
+        desde = ls.findIndex(l => new RegExp(`DialogOptions\\s+${funcion[1]}\\s*\\(`).test(l));
+        if (desde < 0) return { alto: "" };
+        let llaves = 0;
+        for (hasta = desde; hasta < Math.min(ls.length, desde + 40); hasta++) {
+            llaves += (ls[hasta].match(/\{/g) || []).length - (ls[hasta].match(/\}/g) || []).length;
+            if (llaves <= 0 && (hasta > desde ? /[;}]\s*$/ : /;\s*$/).test(ls[hasta])) break;
+        }
+    } else if (variable) {
+        desde = -1;
+        for (let k = j; k >= 0 && desde < 0; k--) {
+            if (new RegExp(`\\b${variable[1]}\\s*=\\s*new\\b`).test(ls[k])) desde = k;
+        }
+        if (desde < 0) return { alto: "" };
+    } else if (/^\s*new\b/.test(opciones) === false) {
+        return { alto: "" };
+    }
+    const bloque = ls.slice(desde, hasta + 1).join("\n").replace(/(^|\s)\/\/.*$/gm, "$1");
+    if (/\bHeight\s*=\s*null\b/.test(bloque)) return { alto: "nulo", desde, hasta };
+    if (/\bHeight\s*=/.test(bloque)) return { alto: "fijo", desde, hasta };
+    return { alto: "nulo", desde, hasta };
+}
+if (esRazor || extension === ".cs") {
+    const nombreVentana = path.basename(fichero, extension);
+    const avisadas = new Set();
+    const avisarDelAlto = (i, ventana) => {
+        if (avisadas.has(i)) return;
+        avisadas.add(i);
+        avisos.push({ nivel: "🔴", linea: i + 1, dice: `\`${ventana}\` se abre sin alto y su maqueta no lleva \`AltoAuto=true\`: se queda en 150 px, el mínimo de Radzen.`, regla: "codigo/dialogos-play" });
+    };
+    // Si la maqueta de una ventana deja alguna etiqueta sin AltoAuto. La de otra ventana se busca por su nombre en el repo.
+    const sinAltoAuto = new Map();
+    const maquetaSinAltoAuto = ventana => {
+        if (sinAltoAuto.has(ventana)) return sinAltoAuto.get(ventana);
+        let maqueta = [];
+        if (ventana === nombreVentana && esRazor) maqueta = lineas;
+        else {
+            try {
+                const ruta = git(["ls-files", "--", `*/${ventana}.razor`, `${ventana}.razor`], raizRepo).split(/\r?\n/)[0];
+                if (ruta) maqueta = fs.readFileSync(path.resolve(raizRepo, ruta), "utf8").split(/\r?\n/);
+            } catch { }
+        }
+        sinAltoAuto.set(ventana, maquetasSinAltoAuto(maqueta).length > 0);
+        return sinAltoAuto.get(ventana);
+    };
+    // 1. Una etiqueta de maqueta recién escrita sin AltoAuto: ¿la abre sin alto alguna llamada, aquí o en otro fichero?
+    const etiquetasEscritas = esRazor ? maquetasSinAltoAuto(lineas).filter(e => ordenadas.some(i => i >= e.inicio && i <= e.fin)) : [];
+    if (etiquetasEscritas.length > 0) {
+        const altos = [];
+        lineas.forEach((l, j) => {
+            const llamada = l.match(abreVentana);
+            if (llamada && llamada[2] === nombreVentana) altos.push(altoAlAbrir(lineas, j).alto);
+        });
+        let fuera = "";
+        try {
+            fuera = git(["grep", "-n", "-E", `(OpenAsync|MostrarDialogGenerico)<([A-Za-z0-9_]+\\.)*${nombreVentana}>`, "--", "*.cs", "*.razor"], raizRepo);
+        } catch { }
+        for (const fila of fuera.split(/\r?\n/)) {
+            const partes = fila.match(/^(.+?):(\d+):/);
+            if (partes === null || path.resolve(raizRepo, partes[1]) === path.resolve(fichero)) continue;
+            try {
+                altos.push(altoAlAbrir(fs.readFileSync(path.resolve(raizRepo, partes[1]), "utf8").split(/\r?\n/), Number(partes[2]) - 1).alto);
+            } catch { }
+        }
+        if (altos.includes("nulo")) etiquetasEscritas.forEach(e => avisarDelAlto(e.inicio, nombreVentana));
+    }
+    // 2. Una llamada recién escrita, o el `Height = null` de sus opciones: la ventana que abre sin alto no lleva AltoAuto.
+    lineas.forEach((l, j) => {
+        const llamada = l.match(abreVentana);
+        if (llamada === null) return;
+        if (llamada[2] === nombreVentana && etiquetasEscritas.length > 0) return;
+        const alto = altoAlAbrir(lineas, j);
+        if (alto.alto !== "nulo") return;
+        let aviso = escritas.has(j) ? j : -1;
+        for (let i = alto.desde; i <= alto.hasta && aviso < 0; i++) {
+            if (escritas.has(i) && /\bHeight\s*=\s*null\b/.test(lineas[i])) aviso = i;
+        }
+        if (aviso >= 0 && maquetaSinAltoAuto(llamada[2])) avisarDelAlto(aviso, llamada[2]);
+    });
 }
 
 // Ficheros nuevos con nombre de cajón o de code-behind.

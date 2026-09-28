@@ -7,14 +7,18 @@ paths:
 
 # Reglas de código de Dinaup
 
-Resumen de doc-in: `codigo/no-hacer`, `codigo/reglas-duras`, `codigo/codigo-lineal` y `codigo/client-y-service`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
+Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/reglas-duras`, `codigo/codigo-lineal`, `codigo/client-y-service`, `codigo/dinascript-funciones` y `codigo/tono-de-voz`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
 
 ## Antes de crear una función
 
+- Primero, quién la va a usar ([Dónde va cada función](https://doc-in.dinaup.com/docs/codigo/donde-va-cada-funcion)). Si solo la usa Play, va en Dinaup.Play. El Servidor solo implementa lo que él mismo necesita: ticks, kiosco, registro legal, permisos y escrituras con su lógica. El SDK solo acepta funciones genéricas, las que usaría cualquier integración. En la duda, va en Play.
 - Busca si ya existe: en `.claude/sdk-catalogo.md` (el SDK, por el tipo que entra y el que sale) y en este repo (`git grep -n "Function Nombre\|Nombre("`). No puede haber cuatro funciones que hagan lo mismo.
 - Si no existe, dilo al entregar: «busqué X y no hay».
+- Un cálculo de negocio (saldos, horas, importes) se escribe una sola vez, como `CalcularX(entrada)`. Pantallas, pruebas (`/AppTest`), tarjetas y exportaciones lo llaman: ninguna rehace la cuenta.
+- Una función nueva de la API del Servidor (`APIFunctionE`) lleva `Public_` si la puede llamar cualquier integración o `Play_` si solo la llama Play. Lo que llega por la petición no cambia.
 - Una función corta y sin reglas de negocio no se esconde como `Private Shared` / `private static` en un servicio: va como extensión en `<Servicio>.Extensions.vb`, donde la encuentra quien busque. Si la van a usar varios repos, se propone para el SDK.
 - No copies ids de campo (`pr_…`) ni enums de una sección: vienen en el paquete de MyDinaup.
+- Una función de DinaScript (`FuncionDinamicaC` en el Servidor) se describe en inglés: `R.Descripcion` y, en cada `AddParametro`, el nombre que se ve (`Value`, nunca `v1`) y su descripción. Ninguno vacío.
 
 ## Código lineal
 
@@ -23,6 +27,12 @@ Resumen de doc-in: `codigo/no-hacer`, `codigo/reglas-duras`, `codigo/codigo-line
 - Nada de envoltorios de una línea (`Citar(x)`, `Formatear(x)`): la expresión va donde se usa, o en una variable local con nombre.
 - Para dar aire a una función larga, comentarios numerados (`// 1. …`), no funciones.
 - La firma de un método y cada llamada van enteras en una línea, por largas que salgan.
+
+## Comentarios
+
+- La primera frase dice qué hace, en palabras del negocio y como se lo dirías a quien no ha visto el código: «Crea los turnos de hoy de cada empleado desde su horario».
+- Después, solo el porqué que no se ve en el código. Lo que repite el código sobra.
+- Sin la historia del cambio (va en el commit), sin mayúsculas para gritar, sin jerga propia y sin personificar.
 
 ## C# y VB
 
