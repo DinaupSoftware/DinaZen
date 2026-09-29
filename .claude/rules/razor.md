@@ -20,6 +20,12 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - Colores con las variables de Radzen, nunca `#RRGGBB`. Lista vacía: `EmptyListAddButtomCardU`.
 - Todo lo que un test toca lleva `data-testid`.
 
+## Listados
+
+- Un filtro de un solo valor es un `RadzenDropDown` normal, sin `Multiple` ni `Chips`. Las fechas se filtran con `DnzDateRangeSelector`, no con «Desde» y «Hasta».
+- Los filtros caben en una fila: el buscador con ancho fijo, no `flex:1`.
+- Las cifras de un listado van en `DnzKpiInline` dentro de su card, no en una fila de `DnzKpiCard`.
+
 ## Diálogos: el molde
 
 - El diálogo publica su `OpenAsync` estático y sus `Opciones()`: quien lo abre no pasa medidas.

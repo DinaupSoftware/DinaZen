@@ -7,18 +7,21 @@ paths:
 
 # Reglas de código de Dinaup
 
-Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/reglas-duras`, `codigo/codigo-lineal`, `codigo/client-y-service`, `codigo/dinascript-funciones` y `codigo/tono-de-voz`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
+Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/reglas-duras`, `codigo/codigo-lineal`, `codigo/client-y-service`, `codigo/dinascript-funciones`, `codigo/yudo` y `codigo/tono-de-voz`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
 
 ## Antes de crear una función
 
 - Primero, quién la va a usar ([Dónde va cada función](https://doc-in.dinaup.com/docs/codigo/donde-va-cada-funcion)). Si solo la usa Play, va en Dinaup.Play. El Servidor solo implementa lo que él mismo necesita: ticks, kiosco, registro legal, permisos y escrituras con su lógica. El SDK solo acepta funciones genéricas, las que usaría cualquier integración. En la duda, va en Play.
 - Busca si ya existe: en `.claude/sdk-catalogo.md` (el SDK, por el tipo que entra y el que sale) y en este repo (`git grep -n "Function Nombre\|Nombre("`). No puede haber cuatro funciones que hagan lo mismo.
 - Si no existe, dilo al entregar: «busqué X y no hay».
+- Un formato que crea una parte y lee otra (un token firmado, la firma de una petición) vive entero en el SDK: crear y leer. El Servidor y Play llaman al SDK, sin copia propia.
 - Un cálculo de negocio (saldos, horas, importes) se escribe una sola vez, como `CalcularX(entrada)`. Pantallas, pruebas (`/AppTest`), tarjetas y exportaciones lo llaman: ninguna rehace la cuenta.
 - Una función nueva de la API del Servidor (`APIFunctionE`) lleva `Public_` si la puede llamar cualquier integración o `Play_` si solo la llama Play. Lo que llega por la petición no cambia.
 - Una función corta y sin reglas de negocio no se esconde como `Private Shared` / `private static` en un servicio: va como extensión en `<Servicio>.Extensions.vb`, donde la encuentra quien busque. Si la van a usar varios repos, se propone para el SDK.
 - No copies ids de campo (`pr_…`) ni enums de una sección: vienen en el paquete de MyDinaup.
+- Un registro de serie (un estado, un método de pago, un tipo) se reconoce por su constante: `id == DemoUp.MyDinaup.Constants.MetodosDePago.DomiciliacionBancaria.Id`. Sin una segunda condición por su tipo o su nombre, y sin cargar el catálogo para buscarlo.
 - Una función de DinaScript (`FuncionDinamicaC` en el Servidor) se describe en inglés: `R.Descripcion` y, en cada `AddParametro`, el nombre que se ve (`Value`, nunca `v1`) y su descripción. Ninguno vacío.
+- Algo nuevo en los documentos, el correo o las reglas de DinaScript (una marca, una clave de metadatos, qué prefijo vale dónde) va también a la guía de Yudo en `CopilotoDeCodigo.cs`, en el mismo cambio. Una función nueva no: Yudo la encuentra en el catálogo.
 
 ## Código lineal
 
@@ -26,6 +29,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Solo se separa si se usa de verdad desde varios sitios, si es preparación (abrir una conexión) o si el nombre explica una condición de negocio que el cuerpo no.
 - Nada de envoltorios de una línea (`Citar(x)`, `Formatear(x)`): la expresión va donde se usa, o en una variable local con nombre.
 - Para dar aire a una función larga, comentarios numerados (`// 1. …`), no funciones.
+- Solo lo que pide el caso: nada de cálculos ni opciones «por si acaso». Una regla fija del negocio va en el código, no en un interruptor.
 - La firma de un método y cada llamada van enteras en una línea, por largas que salgan.
 
 ## Comentarios
