@@ -729,6 +729,14 @@ else if (_errorMessage.IsNotEmpty())
 	{
 		if (_virtualForm?.MainForm?.PrintDynamicDocumentoList.IsEmpty() != false) return;
 
+		// El documento se genera con lo guardado en el Servidor: con cambios pendientes saldria
+		// con los datos viejos. La misma condicion que pinta el boton Guardar como pendiente.
+		if (_hasChanges || _virtualForm.HasChanged())
+		{
+			HandleRequiereGuardar("Guarda los cambios antes de imprimir");
+			return;
+		}
+
 		try
 		{
 			var doc = _virtualForm.MainForm.PrintDynamicDocumentoList.First();
