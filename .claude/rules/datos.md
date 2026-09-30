@@ -7,7 +7,7 @@ paths:
 
 # Leer y escribir datos
 
-Resumen de doc-in: `codigo/escribir-datos`, `codigo/leer-db0` y `codigo/dinaupclient`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
+Resumen de doc-in: `codigo/escribir-datos`, `codigo/leer-db0`, `codigo/dinaupclient` y `codigo/una-consulta-por-pantalla`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
 
 - Un dato de negocio (un historial, un vínculo hecho a mano, una lista que crece) va a una sección de Dinaup. El KV de Dinaup0 (`AllServices.KV`) solo guarda configuración pequeña y preferencias.
 - Alta con `Guid.Empty`, nunca `Guid.NewGuid()`. El id que devuelve el servidor se guarda antes que nada.
@@ -17,6 +17,10 @@ Resumen de doc-in: `codigo/escribir-datos`, `codigo/leer-db0` y `codigo/dinaupcl
 - No mandes los campos que pone el servidor (`fecha`, `fecham`, `modificado`, `usuarioid`, `ubicacion`…): se borran del envío sin avisar.
 - Filtro por referencia vacía: `Guid.Empty.STR()`, nunca `"0"`.
 - Para traer volumen, un informe con `LoadAllRowsAsync`. `SectionsD.XxxD.GetRowsAsync` recorta a 500 filas sin avisar.
-- Un módulo lee su sección y los registros a los que apunta su fila. Nunca el informe de otra sección para cruzar lo que su fila ya trae.
+- Una pantalla lee sus datos en una sola IAQuery sobre la sección de lo que enseña, y lo relacionado llega por ruta: `<campoRelación>.<idSecciónDestino>.<campo>`, encadenable. Si una tabla sale con una consulta, nunca dos; si basta un DTO, nunca dos.
+- La sección de cada tramo es la que apunta la relación, casi siempre la base (`EntidadesBaseD`, con sus constantes `…BaseES`); la derivada da B-326. El texto principal de un registro es `nombre`.
+- Un alias por columna: `AddField(campo, "", alias)`. Los filtros van en el `WHERE` y solo se carga lo que la pantalla usa.
+- Sin leer por bloques de ids (`Op = "IN"`, `ids.Chunk(…)`) las fichas a las que apuntan las filas, sin clases ni diccionarios que solo llevan datos de una consulta a otra, y sin rellenar en Play lo que ya rellena un script del Servidor. Nunca el informe de otra sección para cruzar lo que su fila ya trae.
+- Hoy las rutas de relación de IAQuery solo funcionan por el MCP: desde Play dan E-4633 hasta que se arregle el Servidor.
 - De DB0 se lee con `QueryListAsync` / `ReadObjectListAsync` y DTO que hereden de `BaseModelConverter`. Nada de trocear a mano el array de `ReadCopy`.
 - Un timeout no es un fallo: la escritura pudo entrar. Antes de reintentar, dedupe por clave de negocio.

@@ -20,6 +20,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Una función corta y sin reglas de negocio no se esconde como `Private Shared` / `private static` en un servicio: va como extensión en `<Servicio>.Extensions.vb`, donde la encuentra quien busque. Si la van a usar varios repos, se propone para el SDK.
 - No copies ids de campo (`pr_…`) ni enums de una sección: vienen en el paquete de MyDinaup.
 - Un registro de serie (un estado, un método de pago, un tipo) se reconoce por su constante: `id == DemoUp.MyDinaup.Constants.MetodosDePago.DomiciliacionBancaria.Id`. Sin una segunda condición por su tipo o su nombre, y sin cargar el catálogo para buscarlo.
+- El NIF y la razón social de un cliente o un proveedor salen de sus datos fiscales predeterminados (`ReferenciaDatosFiscalesPredeterminados`, por ruta), no de la ficha de Entidades. Una venta o una compra ya trae los suyos (`NIFCliente`, `NIFProveedor`).
 - Una función de DinaScript (`FuncionDinamicaC` en el Servidor) se describe en inglés: `R.Descripcion` y, en cada `AddParametro`, el nombre que se ve (`Value`, nunca `v1`) y su descripción. Ninguno vacío.
 - Algo nuevo en los documentos, el correo o las reglas de DinaScript (una marca, una clave de metadatos, qué prefijo vale dónde) va también a la guía de Yudo en `CopilotoDeCodigo.cs`, en el mismo cambio. Una función nueva no: Yudo la encuentra en el catálogo.
 
@@ -30,6 +31,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Nada de envoltorios de una línea (`Citar(x)`, `Formatear(x)`): la expresión va donde se usa, o en una variable local con nombre.
 - Para dar aire a una función larga, comentarios numerados (`// 1. …`), no funciones.
 - Solo lo que pide el caso: nada de cálculos ni opciones «por si acaso». Una regla fija del negocio va en el código, no en un interruptor.
+- Simplificar es quitar código, no moverlo a otro componente. Antes de decir que algo es más sencillo, se cuentan antes y después líneas, clases, funciones, consultas y bucles, y las cifras van en la entrega. Si solo se ha movido, se dice.
 - La firma de un método y cada llamada van enteras en una línea, por largas que salgan.
 
 ## Comentarios
