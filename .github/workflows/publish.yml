@@ -44,6 +44,8 @@ jobs:
         run: dotnet pack src/DinaZen.csproj --configuration Release --no-build --output ./nupkg
 
       - name: Push to GitHub Packages
+        # nuget.org is the public feed; a GitHub Packages billing limit must not stop it.
+        continue-on-error: true
         run: |
           dotnet nuget push ./nupkg/*.nupkg \
             --source github-dsl \
