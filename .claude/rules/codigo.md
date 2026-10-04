@@ -17,6 +17,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Ante la duda entre la forma sencilla y un service o un refactor, pregunta con las dos: A) sencilla, B) service o refactor, con la recomendada marcada. Mientras no contesten, sigue con la A.
 - Al entregar, una línea con las líneas cambiadas y los ficheros nuevos, y por qué hacía falta cada fichero nuevo.
 - Lo que rompe o deja a medias tu cambio se arregla en el mismo cambio: tests, pantallas o informes que aún leen lo viejo, otro repo que lo usa, la constante o el comentario que solo servían a lo quitado. No se entrega como aviso ni como «pendiente». En la entrega va solo lo que tiene que hacer o decidir Angel.
+- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte.
 
 ## Antes de crear una función
 
