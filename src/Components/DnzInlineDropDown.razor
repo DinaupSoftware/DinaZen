@@ -1,13 +1,26 @@
 @* DnzInlineDropDown - Desplegable que se lee como texto: sin caja, en negrita y con su flecha,
    como el «Octubre 2026 ⌄» de DnzPeriodSelector. Es un RadzenDropDown con otro aspecto cerrado:
    la lista que se abre, el teclado y el sitio donde flota son los de Radzen.
-   Sin Data, con un enum, enseña todos sus valores con la etiqueta de [Display] o [Description]. *@
+   Sin Data, con un enum, enseña todos sus valores con la etiqueta de [Display] o [Description].
+   Como filtro, con Label: sin elegir se lee «País ⌄» en gris; elegido, «País: España ✕». Sin el
+   «País:» solo se leería «España» y no se sabría qué se está filtrando. *@
 @namespace DinaZen.Components
 @typeparam TValue
 
-<span class="dnz-idd">
-	<RadzenDropDown TValue="TValue" Data="@Opciones" TextProperty="@(Data == null ? "Text" : TextProperty)" ValueProperty="@(Data == null ? "Value" : ValueProperty)"
-					Value="@Value" ValueChanged="@ValueChanged" Disabled="@Disabled" @attributes="AdditionalAttributes" />
+<span class=@(Label.IsNotEmpty() && SinElegir == false ? "dnz-idd dnz-idd--elegido" : "dnz-idd")>
+	<RadzenDropDown TValue="TValue" Data="@Opciones" TextProperty="@Texto" ValueProperty="@(Data == null ? "Value" : ValueProperty)"
+					Value="@Value" ValueChanged="@ValueChanged" Disabled="@Disabled" Placeholder="@Label" AllowClear="@(Label.IsNotEmpty())" @attributes="AdditionalAttributes">
+		<ValueTemplate>
+			@if (Label.IsNotEmpty())
+			{
+				@($"{Label}: {Radzen.PropertyAccess.GetValue(context, Texto)}")
+			}
+			else
+			{
+				@(Radzen.PropertyAccess.GetValue(context, Texto))
+			}
+		</ValueTemplate>
+	</RadzenDropDown>
 </span>
 
 @code {
@@ -18,7 +31,25 @@
 	[Parameter] public TValue Value { get; set; }
 	[Parameter] public EventCallback<TValue> ValueChanged { get; set; }
 	[Parameter] public bool Disabled { get; set; } = false;
+	/// <summary>Nombre del filtro («País»). Con él, el desplegable se puede vaciar con su ✕ y el valor elegido se lee «País: España».</summary>
+	[Parameter] public string Label { get; set; } = "";
 	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+	private string Texto
+	{
+		get
+		{
+			return Data == null ? "Text" : TextProperty;
+		}
+	}
+
+	private bool SinElegir
+	{
+		get
+		{
+			return EqualityComparer<TValue>.Default.Equals(Value, default) || (Value is string s && s.IsEmpty());
+		}
+	}
 
 	private IEnumerable<object> Opciones
 	{

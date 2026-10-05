@@ -42,3 +42,16 @@
 	color: var(--rz-text-tertiary-color);
 }
 .dnz-idd ::deep .rz-dropdown-trigger .rzi-chevron-down:before { content: "expand_more"; }
+
+/* Sin elegir, el nombre del filtro va en gris: es una pista, no un valor. */
+.dnz-idd ::deep .rz-dropdown-label.rz-placeholder {
+	font-weight: 500;
+	color: var(--rz-text-tertiary-color);
+}
+
+/* Elegido, la ✕ va entre el texto y la flecha: el texto deja hueco para las dos. */
+.dnz-idd--elegido ::deep .rz-dropdown-label { padding-inline-end: 50px; }
+.dnz-idd ::deep .rz-dropdown-clear-icon {
+	inset-inline-end: 28px;
+	font-size: 16px;
+}
