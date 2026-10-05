@@ -68,7 +68,7 @@
 	// Una Description VACIA no cuenta: 19 miembros "Indefinido" del SDK la llevan a "" y dejarian
 	// la opcion en blanco. Sin este guardarrail, el desplegable enseñaba el nombre crudo del
 	// miembro ("ImpedirIniciar" en vez de "Impedir Iniciar").
-	private static string GetDisplayName(object value)
+	internal static string GetDisplayName(object value)
 	{
 		var field = value.GetType().GetField(value.ToString()!);
 		if (field == null) return value.ToString()!;

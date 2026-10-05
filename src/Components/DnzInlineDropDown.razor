@@ -1,0 +1,31 @@
+@* DnzInlineDropDown - Desplegable que se lee como texto: sin caja, en negrita y con su flecha,
+   como el «Octubre 2026 ⌄» de DnzPeriodSelector. Es un RadzenDropDown con otro aspecto cerrado:
+   la lista que se abre, el teclado y el sitio donde flota son los de Radzen.
+   Sin Data, con un enum, enseña todos sus valores con la etiqueta de [Display] o [Description]. *@
+@namespace DinaZen.Components
+@typeparam TValue
+
+<span class="dnz-idd">
+	<RadzenDropDown TValue="TValue" Data="@Opciones" TextProperty="@(Data == null ? "Text" : TextProperty)" ValueProperty="@(Data == null ? "Value" : ValueProperty)"
+					Value="@Value" ValueChanged="@ValueChanged" Disabled="@Disabled" @attributes="AdditionalAttributes" />
+</span>
+
+@code {
+	/// <summary>Las opciones. Sin asignar y con un enum, todos sus valores.</summary>
+	[Parameter] public IEnumerable<object> Data { get; set; }
+	[Parameter] public string TextProperty { get; set; } = "Text";
+	[Parameter] public string ValueProperty { get; set; } = "Value";
+	[Parameter] public TValue Value { get; set; }
+	[Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+	[Parameter] public bool Disabled { get; set; } = false;
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+	private IEnumerable<object> Opciones
+	{
+		get
+		{
+			if (Data != null) return Data;
+			return Enum.GetValues(typeof(TValue)).Cast<TValue>().Select(e => (object)new { Text = DnzEnumDropDown<TValue>.GetDisplayName(e!), Value = e }).ToList();
+		}
+	}
+}

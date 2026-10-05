@@ -1,0 +1,44 @@
+/* ───────── Desplegable en línea: el valor elegido como texto, con su flecha ─────────
+   Copia el aspecto de .dnz-ps-label de DnzPeriodSelector para que «Mes» y «Octubre 2026»
+   se lean como dos piezas de la misma barra. Solo se toca el estado cerrado: la lista
+   abierta Radzen la mueve al body y queda fuera de este CSS aislado. */
+
+.dnz-idd { display: inline-block; }
+
+.dnz-idd ::deep .rz-dropdown,
+.dnz-idd ::deep .rz-dropdown:not(.rz-state-disabled):hover,
+.dnz-idd ::deep .rz-dropdown:not(.rz-state-disabled):focus,
+.dnz-idd ::deep .rz-dropdown.rz-dropdown-open {
+	width: auto;
+	height: auto;
+	padding: 0;
+	border: none;
+	box-shadow: none;
+	background-color: transparent;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background .12s;
+}
+
+.dnz-idd ::deep .rz-dropdown:not(.rz-state-disabled):hover { background-color: var(--rz-base-100); }
+
+/* Mismo motivo que en DnzPeriodSelector: en oscuro el gris claro sería un parche blanco. */
+[data-bs-theme="dark"] .dnz-idd ::deep .rz-dropdown:not(.rz-state-disabled):hover { background-color: var(--rz-base-700); }
+
+.dnz-idd ::deep .rz-dropdown-label {
+	padding: 5px 30px 5px 8px;
+	font-weight: 600;
+	font-size: 14.5px;
+	color: var(--rz-text-color);
+}
+
+/* La flecha de Radzen es arrow_drop_down; la del periodo, expand_more y más pequeña. */
+.dnz-idd ::deep .rz-dropdown-trigger { inset-inline-end: 6px; }
+.dnz-idd ::deep .rz-dropdown-trigger .rzi {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+	margin: 0;
+	color: var(--rz-text-tertiary-color);
+}
+.dnz-idd ::deep .rz-dropdown-trigger .rzi-chevron-down:before { content: "expand_more"; }
