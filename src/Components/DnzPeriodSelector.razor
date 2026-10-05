@@ -17,7 +17,7 @@
 		<RadzenIcon Icon="calendar_month" Style="font-size:18px;color:var(--rz-text-tertiary-color);" />
 
 		<div class="dnz-ps-grain">
-			<DnzEnumDropDown TEnum="PeriodGrain" @bind-Value="_grain" @bind-Value:after="OnGrainChanged" Style="width:100%;" />
+			<DnzInlineDropDown TValue="PeriodGrain" @bind-Value="_grain" @bind-Value:after="OnGrainChanged" />
 		</div>
 
 		<span class="dnz-ps-divider"></span>

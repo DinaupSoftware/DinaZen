@@ -11,8 +11,6 @@
 	padding: 5px 8px;
 }
 
-.dnz-ps-grain { min-width: 118px; }
-.dnz-ps-grain ::deep .rz-dropdown { border-radius: 8px; }
 
 .dnz-ps-divider {
 	width: 1px;
