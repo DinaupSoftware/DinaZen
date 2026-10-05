@@ -17,14 +17,14 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Ante la duda entre la forma sencilla y un service o un refactor, pregunta con las dos: A) sencilla, B) service o refactor, con la recomendada marcada. Mientras no contesten, sigue con la A.
 - Al entregar, una línea con las líneas cambiadas y los ficheros nuevos, y por qué hacía falta cada fichero nuevo.
 - Lo que rompe o deja a medias tu cambio se arregla en el mismo cambio: tests, pantallas o informes que aún leen lo viejo, otro repo que lo usa, la constante o el comentario que solo servían a lo quitado. No se entrega como aviso ni como «pendiente». En la entrega va solo lo que tiene que hacer o decidir Angel.
-- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte.
+- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo. Un término técnico (WAL, slot, DDL) se explica antes de usarlo.
 
 ## Antes de crear una función
 
-- Primero, quién la va a usar ([Dónde va cada función](https://doc-in.dinaup.com/docs/codigo/donde-va-cada-funcion)). Si solo la usa Play, va en Dinaup.Play. El Servidor solo implementa lo que él mismo necesita: ticks, kiosco, registro legal, permisos y escrituras con su lógica. El SDK solo acepta funciones genéricas, las que usaría cualquier integración. En la duda, va en Play.
-- Busca si ya existe: en `.claude/sdk-catalogo.md` (el SDK, por el tipo que entra y el que sale) y en este repo (`git grep -n "Function Nombre\|Nombre("`). No puede haber cuatro funciones que hagan lo mismo.
+- Primero, quién la va a usar ([Dónde va cada función](https://doc-in.dinaup.com/docs/codigo/donde-va-cada-funcion)): las llamadas reales de hoy, no las que podría hacer una integración. Si solo la usa Play, va en Dinaup.Play. El Servidor solo implementa lo que él mismo necesita: ticks, kiosco, registro legal, permisos y escrituras con su lógica. El SDK solo acepta funciones genéricas, las que usa cualquier integración. El cliente de una función del Servidor que solo llama Play va en una parte de `PlaySesion`, con sus DTO, aunque el trabajo solo lo pueda hacer el Servidor. En la duda, va en Play.
+- Busca si ya existe: en `.claude/sdk-catalogo.md` (el SDK, por el tipo que entra y el que sale) y en este repo (`git grep -n "Function Nombre\|Nombre("`). No puede haber cuatro funciones que hagan lo mismo. Igual antes de proponer una ventana nueva (si una que ya existe hace casi lo mismo, se amplía esa) o una función nueva del motor (las que hay están en el enum `FuncionesScriptE` del Servidor, aunque trabajes desde play).
 - Si no existe, dilo al entregar: «busqué X y no hay».
-- Un formato que crea una parte y lee otra (un token firmado, la firma de una petición) vive entero en el SDK: crear y leer. El Servidor y Play llaman al SDK, sin copia propia.
+- Un formato que crea una parte y lee otra (un token firmado, la firma de una petición) vive entero en el SDK: crear y leer. El Servidor y Play llaman al SDK, sin copia propia. El DTO de una función que solo llama Play no es uno de estos formatos: va con su cliente en `PlaySesion`.
 - Una convención vale igual en todas las entradas: Servidor, SDK y Play; IAQuery, informes, datos2 y Exportar. Se exige una sola forma, no dos, y el SDK la comprueba y lanza error antes de llamar. Un fallo se arregla en todas las entradas, no solo en la que falló.
 - Un cálculo de negocio (saldos, horas, importes) se escribe una sola vez, como `CalcularX(entrada)`. Pantallas, pruebas (`/AppTest`), tarjetas y exportaciones lo llaman: ninguna rehace la cuenta.
 - Una función nueva de la API del Servidor (`APIFunctionE`) lleva `Public_` si la puede llamar cualquier integración o `Play_` si solo la llama Play. Lo que llega por la petición no cambia.
@@ -33,6 +33,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Un registro de serie (un estado, un método de pago, un tipo) se reconoce por su constante: `id == DemoUp.MyDinaup.Constants.MetodosDePago.DomiciliacionBancaria.Id`. Sin una segunda condición por su tipo o su nombre, y sin cargar el catálogo para buscarlo.
 - El NIF y la razón social de un cliente o un proveedor salen de sus datos fiscales predeterminados (`ReferenciaDatosFiscalesPredeterminados`, por ruta), no de la ficha de Entidades. Una venta o una compra ya trae los suyos (`NIFCliente`, `NIFProveedor`).
 - Una función de DinaScript (`FuncionDinamicaC` en el Servidor) se describe en inglés: `R.Descripcion` y, en cada `AddParametro`, el nombre que se ve (`Value`, nunca `v1`) y su descripción. Ninguno vacío.
+- En una condición de informe, el valor que pide cada operador sale del parámetro de su función del motor (`ReportFilterOperatorDTO.ValueFormat`), no del campo. Un operador nuevo no lleva caso especial: su función ya dice qué recibe.
 - Algo nuevo en los documentos, el correo o las reglas de DinaScript (una marca, una clave de metadatos, qué prefijo vale dónde) va también a la guía de Yudo en `CopilotoDeCodigo.cs`, en el mismo cambio. Una función nueva no: Yudo la encuentra en el catálogo.
 
 ## Código lineal
@@ -42,6 +43,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Nada de envoltorios de una línea (`Citar(x)`, `Formatear(x)`): la expresión va donde se usa, o en una variable local con nombre.
 - Para dar aire a una función larga, comentarios numerados (`// 1. …`), no funciones.
 - Solo lo que pide el caso: nada de cálculos ni opciones «por si acaso». Una regla fija del negocio va en el código, no en un interruptor. Un dato que da un tercero no es una regla fija: el sufijo de acreedor que pone el banco en el contrato sigue siendo un campo.
+- No se migran datos: cuando un dato pasa a otro sitio (de un campo de la ficha a una sección nueva), no se escribe código que copie lo que ya había. Lo nuevo empieza vacío.
 - Primero lo que ya hay: antes de crear un DTO, una función o sus tests, prueba el cambio en la pantalla con lo que ya existe. Rellenar un campo con lo que trae una ficha (`GetRowByIdAsync`, la ruta de la IAQuery) no es un cálculo. Lo mínimo sigue cubriendo todo lo pedido.
 - Simplificar es quitar código, no moverlo a otro componente. Antes de decir que algo es más sencillo, se cuentan antes y después líneas, clases, funciones, consultas y bucles, y las cifras van en la entrega. Si solo se ha movido, se dice.
 - La firma de un método y cada llamada van enteras en una línea, por largas que salgan.
