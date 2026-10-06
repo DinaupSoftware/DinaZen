@@ -17,6 +17,7 @@
 	 data-IncorrectValueStatus=@DataControl.IncorrectValueStatus
 	 data-fieldid=@DataControl.FieldId
 	 data-fieldkey=@DataControl.Id
+	 title=@MotivoBloqueo
 	 class="controlu @(EsMovil ? "controlu-movil" : "")"
 	 style="@(  ((ModoCelda || EsMovil) ? $"": $"position: absolute; left: {DataControl.X}px; top: {DataControl.Y}px; width: {DataControl.Width}px; height: {DataControl.Height}px;" ))">
 
@@ -276,6 +277,21 @@
 	/// Se pinta con puntos, con ojo para revelar y boton de copiar.
 	/// </summary>
 	private bool EsSensible => DataControl.IsSensitive || DataControl.InputType == "password";
+
+	/// <summary>
+	/// Por qué no se puede editar, para el tooltip. Llega del Servidor en estado_bloqueo: el de un script trae
+	/// detrás " [~] " y el id del módulo, que no se enseña, y el de un bloqueo sin motivo es «Bloqueo genérico»,
+	/// que no dice nada. Vacío deja el control sin tooltip.
+	/// </summary>
+	private string MotivoBloqueo
+	{
+		get
+		{
+			var motivo = DataControl.LockStatus.STR().Split(" [~] ")[0].Trim();
+			if (motivo == "Bloqueo genérico") return "";
+			return motivo;
+		}
+	}
 
 	public void Dispose()
 	{
