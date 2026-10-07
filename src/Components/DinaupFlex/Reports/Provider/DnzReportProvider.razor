@@ -79,7 +79,7 @@
 				_showResponse = response.DataList.IsNull();
 				_context.DataList = response.DataList;
 				_context.Rows = _context.DataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
-				_context.TotalResults = _context.DataList?.TotalResults ?? _context.Rows.Count;
+				_context.TotalResults = _context.Rows.Count;
 				_context.Mapping = ReportColumnMapping.Analyze(
 					_context.DataList?.Columns?.ToList()
 				);

@@ -134,8 +134,7 @@
 					</tr>
 					<tr><td class="dnz-rdebug-key">Report ID</td><td class="dnz-rdebug-val mono">@Show(ReportId)</td></tr>
 					<tr><td class="dnz-rdebug-key">Sección ID</td><td class="dnz-rdebug-val mono">@Show(_sectionId)</td></tr>
-					<tr><td class="dnz-rdebug-key">Total resultados</td><td class="dnz-rdebug-val">@_totalResults</td></tr>
-					<tr><td class="dnz-rdebug-key">Página</td><td class="dnz-rdebug-val">@_currentPage / @_totalPages</td></tr>
+					<tr><td class="dnz-rdebug-key">Página</td><td class="dnz-rdebug-val">@_currentPage</td></tr>
 					<tr><td class="dnz-rdebug-key">Resultados por página</td><td class="dnz-rdebug-val">@_rpp</td></tr>
 					<tr><td class="dnz-rdebug-key">Filas en esta página</td><td class="dnz-rdebug-val">@_count</td></tr>
 					<tr><td class="dnz-rdebug-key">Columnas</td><td class="dnz-rdebug-val">@_columns</td></tr>
@@ -275,7 +274,7 @@
 	private bool _hasTransport;
 
 	private string _traceId = "", _appName = "", _sectionId = "", _search = "", _notices = "", _cfRay = "", _cfPop = "";
-	private int _totalResults, _currentPage, _totalPages, _rpp, _count, _columns;
+	private int _currentPage, _rpp, _count, _columns;
 
 	protected override void OnParametersSet()
 	{
@@ -307,9 +306,7 @@
 		_sectionId = Data.SectionId;
 		_search = Data.QuerySearch;
 		_notices = Data.Notices == null ? "" : string.Join(" · ", Data.Notices);
-		_totalResults = Data.TotalResults;
 		_currentPage = Data.CurrentPage;
-		_totalPages = Data.TotalPages;
 		_rpp = Data.ResultsPerPage;
 		_count = Data.Count;
 		_columns = Data.Columns == null ? 0 : Data.Columns.Count;

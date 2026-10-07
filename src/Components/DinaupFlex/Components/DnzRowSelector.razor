@@ -164,7 +164,6 @@
 			paramsX.AddFilter("id", "=", ID);
 			// AdminMode fijo a proposito: la precarga resuelve la etiqueta de un valor YA guardado aunque el informe filtre por permisos.
 			paramsX.AdminMode = true;
-			paramsX.GetPageSummary = false;
 			var result = await Client.Report_GetAsync(paramsX);
 			var rows = result.DataList.GetDynamicsRowsOBJ();
 			if (rows.IsNotEmpty()) await SelectAsync(rows.FirstOrDefault());
