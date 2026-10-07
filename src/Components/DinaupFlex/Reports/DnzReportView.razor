@@ -468,7 +468,6 @@
 		p.ApplyLoadingConfiguration(filter);
 		p.QuerySearch = this.QuerySearch;
 		var key = ToSHA1( string.Join("¬", ReportId  ,    FilterKey(p) ,  this.QuerySearch , _pageSize  , p.CurrentPage) );
-		p.GetPageSummary = false;
 		if (!force && key.IsNotEmpty() && key == _lastLoadedKey) return;
 		if (_loadInFlight) { _pendingFilter = filter; _pendingForce = force; return; }
 
@@ -572,7 +571,6 @@
 				var p = BaseRequest();
 				p.ApplyLoadingConfiguration(cfg);
 				p.QuerySearch = this.QuerySearch;
-				p.GetPageSummary = false;
 				var response = await Client.Report_GetAsync(p);
 				var rows = response?.DataList?.GetDynamicsRowsOBJ()?.ToList() ?? new();
 				if (response.IsNotNull() && response.DataList.IsNotNull()) data = response.DataList;
