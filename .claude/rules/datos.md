@@ -25,3 +25,4 @@ Resumen de doc-in: `codigo/escribir-datos`, `codigo/leer-db0`, `codigo/dinaupcli
 - De DB0 se lee con `QueryListAsync` / `ReadObjectListAsync` y DTO que hereden de `BaseModelConverter`. Nada de trocear a mano el array de `ReadCopy`.
 - Un timeout no es un fallo: la escritura pudo entrar. Antes de reintentar, dedupe por clave de negocio.
 - El SQL a mano (en el Servidor) se lee de arriba abajo, como se diría en voz alta. Antes de afinar el plan de Postgres (`MATERIALIZED`, `LATERAL` con `OFFSET 0`, varias ramas de `UNION`), busca una forma directa de llegar a los mismos datos.
+- En el Servidor, una lectura que aguanta unos segundos de retraso (un historial, unas reglas, un listado) va a la réplica con `QueryRO`. `QueryRW` solo si el resultado decide una escritura que saldría mal con un dato viejo, avanza una marca de agua o lee lo que el usuario acaba de guardar, y el motivo va escrito al lado. El `QueryRW` de al lado no es modelo: casi ninguno lo dice.

@@ -16,8 +16,8 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Cambio mínimo: solo las líneas que pide la tarea, sin reformatear, renombrar, mover ni arreglar de paso. Lo que veas fuera del encargo se apunta en la entrega. Un PR hace una sola cosa.
 - Ante la duda entre la forma sencilla y un service o un refactor, pregunta con las dos: A) sencilla, B) service o refactor, con la recomendada marcada. Mientras no contesten, sigue con la A.
 - Al entregar, una línea con las líneas cambiadas y los ficheros nuevos, y por qué hacía falta cada fichero nuevo.
-- Lo que rompe o deja a medias tu cambio se arregla en el mismo cambio: tests, pantallas o informes que aún leen lo viejo, otro repo que lo usa, la constante o el comentario que solo servían a lo quitado. No se entrega como aviso ni como «pendiente». En la entrega va solo lo que tiene que hacer o decidir Angel.
-- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo. Un término técnico (WAL, slot, DDL) se explica antes de usarlo.
+- Lo que rompe o deja a medias tu cambio se arregla en el mismo cambio: tests, pantallas o informes que aún leen lo viejo, otro repo que lo usa, la constante o el comentario que solo servían a lo quitado. No se entrega como aviso ni como «pendiente». En la entrega va solo lo que tiene que hacer o decidir Angel. Si el fallo está en los restos de algo que ya no se usa, el arreglo los quita y deja el camino directo: no se parchea encima.
+- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. Cada cosa, por su nombre en el negocio: una tabla, por su sección (Recursos de la empresa, no `tpr_…`); un proceso, por lo que hace, no por la etiqueta de su log. En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo. Un término técnico (WAL, slot, DDL) se explica antes de usarlo.
 
 ## Antes de crear una función
 
@@ -39,7 +39,8 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 ## Código lineal
 
 - Una función larga que se lee de arriba abajo gana a seis pequeñas. La duda se resuelve dejándolo dentro.
-- Solo se separa si se usa de verdad desde varios sitios, si es preparación (abrir una conexión) o si el nombre explica una condición de negocio que el cuerpo no.
+- Lo nuevo, de la forma más sencilla que cumpla, también por dentro: un hilo propio, un contador o una sincronización de más tienen que demostrar que hacen falta.
+- Solo se separa si se usa de verdad desde varios sitios, si es preparación (abrir una conexión) o si el nombre explica una condición de negocio que el cuerpo no. Que un proceso tenga dos fases no es motivo: lo que detecta y lo que escribe van en una función y un fichero, no en un par `Calculate` / `Flush`.
 - Nada de envoltorios de una línea (`Citar(x)`, `Formatear(x)`): la expresión va donde se usa, o en una variable local con nombre.
 - Para dar aire a una función larga, comentarios numerados (`// 1. …`), no funciones.
 - Solo lo que pide el caso: nada de cálculos ni opciones «por si acaso». Una regla fija del negocio va en el código, no en un interruptor. Un dato que da un tercero no es una regla fija: el sufijo de acreedor que pone el banco en el contrato sigue siendo un campo.
@@ -60,6 +61,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - `.STR()` en vez de `.ToString()`; `.INT()`, `.DEC()`, `.BOOL()` para convertir.
 - `.IsEmpty()` / `.IsNotEmpty()` para nulos y vacíos. Nunca se niega una: se usa la inversa (`x.IsEmpty()`, no `x.IsNotEmpty() == false` ni `!x.IsNotEmpty()`).
 - `x.Eliminado == false` en vez de `!x.Eliminado`.
+- Nada de un `If` vacío con el trabajo en el `ElseIf` o el `Else`: se escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima (`Dim YaTraeLaVersion = …` e `If YaTraeLaVersion = False Then`).
 - Diccionarios con `dic.GetM("clave")` o `dic.GetM("clave", porDefecto)`, nunca `TryGetValue` ni `ContainsKey`.
 - Cuerpos de método, propiedad y constructor con llaves y `return`, nunca `=>`. Los lambdas y los `RenderFragment` siguen como están.
 - `nameof(Tipo.Campo)` para nombres de propiedad, nunca el texto a mano.
@@ -69,7 +71,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 
 ## Client y Service
 
-- `Client` conecta con una API o una base de datos y no decide nada. `Service` aplica las reglas y llama a los `Client`. Un `Service` no abre conexiones (`new HttpClient()`, `SmtpClient`).
+- `Client` conecta con una API o una base de datos y no decide nada. `Service` aplica las reglas y llama a los `Client`. Un `Service` no abre conexiones (`new HttpClient()`, `SmtpClient`). Un conector con otro nombre también es un `Client`: `ConectorPGD` del Servidor solo escribe, y lo que se completa por sección antes de insertar va en `Services/WriteOperationInterceptor.vb`, al que el conector llama en una línea.
 - Se crea con `new` o lo crea el contenedor de DI. Nada de factorías (`XxxFactory`).
 - Sin estado en `static` / `Shared`: los servicios y los `Client` se inyectan. Estático solo lo puro: extensiones, constantes y conversiones. Nada de `Instance` junto al registro en DI. No aplica al Servidor, que no tiene contenedor de DI.
 - Un servicio por módulo, área o solución RTG, no por sección. Crece en ficheros `Servicio.Tema.ext` (`PymesService.Fiscal.vb`), nunca `.Helpers`, `.Utils` ni `.Varios`.

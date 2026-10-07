@@ -219,6 +219,26 @@ function fueraDeCadena(linea, hasta) {
     return (antes.match(/"/g) || []).length % 2 === 0;
 }
 
+// Una lectura del primario (`QueryRW`) dice al lado por qué no va a la réplica: en la línea, encima en la misma función o en
+// su cabecera. No cuentan las que van en una transacción ni las que lanzan una escritura (UPDATE, INSERT … RETURNING).
+const motivoDelPrimario = /primario|r[eé]plica|reci[eé]n (?:guardad|escrit|cread|insertad|subid)|acaban? de (?:guardar|escribir|crear|insertar|subir)|marca de agua|decide (?:una|la|qu[eé]|si se) escri|transacci[oó]n|arranque|estado real|\bRW\b/i;
+function rwSinMotivo(i) {
+    const linea = lineas[i];
+    if (/\bFunction\s|\bQuery\w*RO\s*\(|RW\s*\(\s*(?:TR|Tr|tr|[Tt]ransacci)\w*\s*,|RW\s*\(\s*(?:Ell)?SQL\s*,\s*(?:timeoutsegundos\s*,\s*)?motivo\s*\)/.test(linea)) return false;
+    if (/'/.test(linea.replace(/"[^"]*"/g, ""))) return false;
+    const variable = (linea.match(/RW\s*\(\s*(?:Nothing\s*,\s*)?([A-Za-z_]\w*)\s*[,)]/) || [])[1];
+    let desde = i;
+    while (variable !== undefined && desde > 0 && desde > i - 80 && new RegExp(`\\b${variable}\\s*=`).test(lineas[desde]) === false) desde--;
+    if (/\b(?:update\s+\S+\s+set|insert\s+into|delete\s+from|on\s+conflict|returning)\b/i.test(lineas.slice(desde, i + 4).join("\n"))) return false;
+    for (let k = i - 1; k >= 0 && k >= i - 80; k--) {
+        if (/^\s*'/.test(lineas[k]) && motivoDelPrimario.test(lineas[k])) return false;
+        if (/^\s*(?:(?:Public|Private|Friend|Protected|Shared|Async|Overrides|Overridable|Iterator)\s+)*(?:Function|Sub)\s/.test(lineas[k]) === false) continue;
+        for (let j = k - 1; j >= 0 && /^\s*'/.test(lineas[j]); j--) if (motivoDelPrimario.test(lineas[j])) return false;
+        return true;
+    }
+    return true;
+}
+
 const anchosDeLaTabla = ["min(95%,1806px)", "min(96%,1200px)", "min(96%,1100px)", "min(95%,900px)", "min(95%,700px)", "min(95%,480px)"];
 const ciclosDeVida = new Set(["OnInitialized", "OnInitializedAsync", "OnParametersSet", "OnParametersSetAsync", "OnAfterRender", "OnAfterRenderAsync", "SetParametersAsync", "ShouldRender", "BuildRenderTree", "Dispose", "DisposeAsync", "ToString", "Equals", "GetHashCode", "Main", "Configure", "ConfigureServices", "OpenAsync", "Opciones"]);
 const palabrasReservadas = new Set(["return", "await", "new", "throw", "else", "case", "yield", "using", "var", "if", "while", "for", "foreach", "switch", "catch", "lock", "goto", "in", "is", "as", "typeof", "nameof", "default", "base", "this", "out", "ref", "params", "await", "when", "select", "from", "where", "let", "not", "and", "or"]);
@@ -232,6 +252,8 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /\.ToString\(\)/, dice: "`.ToString()`: usa `.STR()`.", regla: "codigo/reglas-duras" },
     { nivel: "🔴", donde: [".cs", ".razor"], re: /^\s*(?:(?:public|private|protected|internal|static|async|override|virtual|sealed|new|partial|readonly|unsafe|extern)\s+)*(?!return\b|await\b|new\b|var\b|case\b|else\b|if\b|throw\b|yield\b|RenderFragment\b)[\w<>\[\],.?]+\s+[A-Za-z_]\w*\s*(?:<[^>(]*>)?\s*\([^;]*\)\s*=>/, dice: "Cuerpo con `=>`: llaves y `return`, una condición por línea.", regla: "codigo/reglas-duras" },
     { nivel: "🔴", donde: [".cs", ".razor"], re: /^\s*(?:(?:public|private|protected|internal|static|override|virtual|sealed|new)\s+)+(?!RenderFragment\b)[\w<>\[\],.?]+\s+[A-Za-z_]\w*\s*=>/, dice: "Propiedad con `=>`: llaves y `return`.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".vb"], re: /^\s*(?:Else)?If\b.*\bThen\s*$/, si: i => /^\s*Else(?:If\b|\s*$)/.test(lineas[i + 1] || ""), dice: "`If` vacío con el trabajo en el `ElseIf` o el `Else`: escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".cs", ".razor"], re: /^\s*(?:@|\}\s*)?(?:else\s+)?if\s*\(/, si: i => /\{\s*\}\s*else\b/.test(lineas[i]) || (/\{\s*\}\s*$/.test(lineas[i]) && /^\s*else\b/.test(lineas[i + 1] || "")) || (/\)\s*$/.test(lineas[i]) && /^\s*\{\s*$/.test(lineas[i + 1] || "") && /^\s*\}\s*$/.test(lineas[i + 2] || "") && /^\s*else\b/.test(lineas[i + 3] || "")), dice: "`if` vacío con el trabajo en el `else`: escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima.", regla: "codigo/reglas-duras" },
     { nivel: "🔴", donde: [".cs", ".vb"], re: /\b(?:class|Class|Module|interface|Interface)\s+\w+Factory\b/, dice: "Factoría: se crea con `new` o por DI.", regla: "codigo/client-y-service" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\b(?:static|Shared)\s+(?:readonly\s+|ReadOnly\s+)?(?:\w+\s+)?Instance\b.*(?:=\s*new\b|As\s+New\b)/, si: () => esServidor === false, dice: "Singleton a mano: regístralo en DI e inyéctalo.", regla: "codigo/client-y-service" },
     { nivel: "🟡", donde: [".cs", ".vb"], re: /\.Iniciar\(\s*\w*[Aa]ll[Ss]ervices/, si: () => esServidor === false, dice: "Servicio guardado en un estático con `Iniciar(allServices)`: inyéctalo.", regla: "codigo/client-y-service" },
@@ -262,6 +284,7 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /Guid\.NewGuid\b/, si: i => esTest === false && /Token\s*=\s*Guid\.NewGuid/.test(lineas[i]) === false && /WriteOperation|DataMainRow|DataListRow|\.Add\("id"/i.test(lineas[i]), dice: "Id de una fila nueva inventado en el cliente: el alta va con `Guid.Empty` y el id lo da el servidor.", regla: "codigo/escribir-datos" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /SectionsD\.\w+D\.GetRows/, dice: "Listar por la API de secciones recorta a 500 filas sin avisar: un informe con `LoadAllRowsAsync`.", regla: "codigo/dinaupclient" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /\bOp\s*=\s*"IN"|\bids\w*\.Chunk\(/i, si: () => esSdk === false, dice: "Leer fichas por bloques de ids para cruzarlas después: trae esos datos por ruta de relación en la consulta principal.", regla: "codigo/una-consulta-por-pantalla" },
+    { nivel: "🟡", donde: [".vb"], re: /\bQuery(?:SuperUser)?(?:Value|List|HashSet|Dic|Json|WithColumns)?RW\s*\(/, si: i => esServidor && esTest === false && rwSinMotivo(i), dice: "`QueryRW` sin decir por qué va al primario: si la lectura aguanta unos segundos de retraso, `QueryRO` (la réplica). Si no, escribe al lado el motivo: decide una escritura, avanza una marca de agua o lee lo que el usuario acaba de guardar.", regla: "codigo/sql-postgres" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /(?:\*|\+=)\s*\w*(?:campos|cols|fields)\.Length/, dice: "Modelo armado a mano desde el array de `ReadCopy`: `QueryListAsync` o `ReadObjectListAsync`.", regla: "codigo/leer-db0" },
     { nivel: "🔴", donde: [".cs"], re: /static\s+\w+\s+Desde\s*\(\s*Dictionary<string,\s*string>/, dice: "Mapeador de fila propio: `FromDic` de `BaseModelConverter`.", regla: "codigo/leer-db0" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /Referencia\w*.*Value\s*=\s*"0"|Value\s*=\s*"0".*Referencia/, enCadena: true, dice: "Referencia vacía: `Guid.Empty.STR()`, no `\"0\"`.", regla: "codigo/reglas-duras" },

@@ -24,6 +24,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - Sin code-behind `.razor.cs`: todo en `@code { }`.
 - Colores con las variables de Radzen, nunca `#RRGGBB`. Lista vacía: `EmptyListAddButtomCardU`.
 - Todo lo que un test toca lleva `data-testid`.
+- Lo que se lee va en orden de lectura: el principio (la ruta, el contexto) arriba a la izquierda y el final (el dato) abajo a la derecha. En el selector de datos relacionados, la ruta arriba y el nombre del dato debajo.
 
 ## Listados
 
@@ -60,4 +61,4 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso».
 - Sin jerga del modelo de datos en pantalla («registro», «criterio»).
 - Un texto público (la doc, la ayuda de una ventana, una nota de versión) explica solo Dinaup, lo más corto posible: lo que Dinaup da o pide para llevarlo a otra herramienta, no cómo funciona esa herramienta. Sin infraestructura interna ni historia de versiones.
-- Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; nada que ya esté en el panel del diseñador o en el menú del botón derecho.
+- Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; nada que ya esté en el panel del diseñador o en el menú del botón derecho; ninguna card sin nada que enseñar en ese caso, tampoco con una nota de dónde se configura. Un campo que no se puede cambiar enseña lo que le aplica, con su valor y sin dejar cambiarlo.
