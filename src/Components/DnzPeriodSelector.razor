@@ -4,7 +4,9 @@
    RadzenDatePicker; mes/trimestre/año con rejilla. Hojear la rejilla NO cambia la selección
    (solo tocar una celda emite), al cambiar de granularidad se conserva el periodo que se estaba
    viendo, y el botón "hoy" vuelve al periodo actual. Emite (inicio, fin) + granularidad, sin
-   duplicados: el mismo periodo nunca se emite dos veces seguidas. *@
+   duplicados: el mismo periodo nunca se emite dos veces seguidas.
+   Grains limita las granularidades (un impuesto se presenta por trimestre o por año, nunca por
+   semana): los atajos que llevarían a otra no salen, y con una sola tampoco sale su desplegable. *@
 @namespace DinaZen.Components
 @using System.Globalization
 @using System.ComponentModel.DataAnnotations
@@ -16,11 +18,14 @@
 	<div @ref="_anchor" class="dnz-ps-bar">
 		<RadzenIcon Icon="calendar_month" Style="font-size:18px;color:var(--rz-text-tertiary-color);" />
 
-		<div class="dnz-ps-grain">
-			<DnzInlineDropDown TValue="PeriodGrain" @bind-Value="_grain" @bind-Value:after="OnGrainChanged" />
-		</div>
+		@if (_grains.Length > 1)
+		{
+			<div class="dnz-ps-grain">
+				<DnzInlineDropDown TValue="PeriodGrain" Data="@_grainItems" @bind-Value="_grain" @bind-Value:after="OnGrainChanged" />
+			</div>
 
-		<span class="dnz-ps-divider"></span>
+			<span class="dnz-ps-divider"></span>
+		}
 
 		@if (cur.Start.HasValue)
 		{
@@ -167,16 +172,19 @@
 			}
 
 			@* ── Atajos rápidos ── *@
-			<div class="dnz-ps-sc-wrap">
-				<div class="dnz-ps-sc-h">Rápidos · respecto a hoy</div>
-				<div class="dnz-ps-sc-row">
-					@foreach (var sc in _shortcuts)
-					{
-						var key = sc.Key;
-						<button type="button" class="dnz-ps-sc" @onclick="() => ApplyShortcut(key)">@sc.Label</button>
-					}
+			@if (_shortcutsVisibles.IsNotEmpty())
+			{
+				<div class="dnz-ps-sc-wrap">
+					<div class="dnz-ps-sc-h">Rápidos · respecto a hoy</div>
+					<div class="dnz-ps-sc-row">
+						@foreach (var sc in _shortcutsVisibles)
+						{
+							var key = sc.Key;
+							<button type="button" class="dnz-ps-sc" @onclick="() => ApplyShortcut(key)">@sc.Label</button>
+						}
+					</div>
 				</div>
-			</div>
+			}
 
 			<div class="dnz-ps-foot">
 				<RadzenButton Text="Listo" Click="ClosePanelAsync" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Small" />
@@ -201,6 +209,9 @@
 	/// <summary>Fin del periodo inicial. Solo se usa con granularidad Rango; en el resto el fin se deriva.</summary>
 	[Parameter] public DateOnly? InitialEnd { get; set; }
 
+	/// <summary>Granularidades que se pueden elegir, en el orden en que salen. Sin asignar, todas. InitialGrain tiene que ser una de ellas.</summary>
+	[Parameter] public PeriodGrain[] Grains { get; set; }
+
 	/// <summary>Fecha "hoy" de referencia. Sin asignar, el día de la empresa (RegionService), no el del servidor: el contenedor corre en UTC. Inyectable para tests.</summary>
 	[Parameter] public DateOnly Today { get; set; }
 
@@ -222,6 +233,10 @@
 	// Vista del panel, independiente de la selección: hojear no emite nada.
 	private int _panelYear;     // año mostrado en la rejilla de mes/trimestre
 	private int _yearBase;      // primer año del bloque de 12 en la rejilla de años
+
+	private PeriodGrain[] _grains;
+	private List<object> _grainItems;
+	private List<(string Key, string Label, PeriodGrain Grain)> _shortcutsVisibles;
 
 	private PeriodSelection _last;  // último periodo emitido (dedupe + ancla al cambiar granularidad)
 	private bool _panelOpen;
@@ -255,6 +270,9 @@
 		// Aquí y no como valor inicial de la propiedad: ese valor se calcula antes de inyectar RegionService.
 		Today = Today.IfIsEmpty(RegionService.DateOnlyNow());
 		_grain = InitialGrain;
+		_grains = Grains.IsEmpty() ? Enum.GetValues<PeriodGrain>() : Grains;
+		_grainItems = _grains.Select(g => (object)new { Text = DnzEnumDropDown<PeriodGrain>.GetDisplayName(g), Value = g }).ToList();
+		_shortcutsVisibles = _shortcuts.Where(sc => _grains.Contains(sc.Grain)).ToList();
 		_year = Today.Year;
 		_month = Today.Month;
 		_quarter = CurQuarter;
@@ -602,12 +620,13 @@
 	private static readonly string[] _mShort = { "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic" };
 	private static readonly string[] _wdAbbr = { "dom", "lun", "mar", "mié", "jue", "vie", "sáb" }; // índice = DayOfWeek (domingo=0)
 
-	private static readonly (string Key, string Label)[] _shortcuts =
+	// Cada atajo con la granularidad a la que lleva, para no enseñar los que Grains no deja.
+	private static readonly (string Key, string Label, PeriodGrain Grain)[] _shortcuts =
 	{
-		("hoy", "Hoy"), ("ayer", "Ayer"), ("semA", "Esta semana"), ("semP", "Sem. pasada"),
-		("mesA", "Este mes"), ("mesP", "Mes pasado"), ("triA", "Este trimestre"),
-		("triP", "Trim. anterior"), ("anioA", "Este año"), ("ytd", "Año hasta hoy"),
-		("d7", "Últimos 7 días"), ("d30", "Últimos 30 días"), ("d90", "Últimos 90 días")
+		("hoy", "Hoy", PeriodGrain.Dia), ("ayer", "Ayer", PeriodGrain.Dia), ("semA", "Esta semana", PeriodGrain.Semana), ("semP", "Sem. pasada", PeriodGrain.Semana),
+		("mesA", "Este mes", PeriodGrain.Mes), ("mesP", "Mes pasado", PeriodGrain.Mes), ("triA", "Este trimestre", PeriodGrain.Trimestre),
+		("triP", "Trim. anterior", PeriodGrain.Trimestre), ("anioA", "Este año", PeriodGrain.Anio), ("ytd", "Año hasta hoy", PeriodGrain.Rango),
+		("d7", "Últimos 7 días", PeriodGrain.Rango), ("d30", "Últimos 30 días", PeriodGrain.Rango), ("d90", "Últimos 90 días", PeriodGrain.Rango)
 	};
 
 	private static string MFull(int m) => _mFull[m - 1];
