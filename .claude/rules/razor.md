@@ -11,13 +11,14 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 ## Componentes
 
 - Radzen y DinaZen, nunca HTML ni CSS propios para lo básico: `RadzenButton`, `DnzSearchInput`, `RadzenDataGrid`, `DnzLoader`, `DnzSpanMoney`, `DnzFileUploaderButton` (nunca `<InputFile>`).
+- Antes de escribir CSS o un componente, mira lo que ya pinta eso (`site.css`, un componente de DinaZen o de play). Si le falta algo, se le añade un parámetro (`CuentaChapaU` con `ConTitulo`): no se redibuja en el `.razor.css` de la pantalla. Una maqueta de hace días se repasa contra los controles de hoy antes de codificarla.
 - Un buscador es `DnzSearchInput`, que espera a que se deje de teclear: nunca un `RadzenTextBox` con `@oninput`, `@bind-Value:event="oninput"` o un temporizador.
 - Un desplegable con todos los valores de un enum es `DnzEnumDropDown`: la etiqueta sale del propio enum (`[Display]`). Sin una clase ni una lista solo para dar texto a las opciones.
 - Cada bloque va en una `DnzCard` titulada con `DnzCardTitle`. Nada suelto sobre el fondo.
 - Un enlace a la doc es `AyudaDocU`, el «?» gris de la ayuda: nunca un `RadzenLink` o un `<a>` suelto.
 - Un campo va en `RadzenFormField Variant="Variant.Flat"`, que `site.css` pinta sin caja (fondo suave, sin borde): nunca `Outlined`, `Filled` ni `Text`, ni borde o fondo propios. Los formularios dinámicos (`DnzControl`) van aparte.
 - Un botón que hace algo con el valor de un campo va aparte, a la derecha del `RadzenFormField`: nunca en su `<End>` o `<Start>`.
-- Una acción que cambia datos (conciliar, crear un cobro, borrar) va en un `RadzenButton` con su texto, a la vista: pulsar la tarjeta, la fila o una flecha no escribe.
+- Una acción que cambia datos (conciliar, crear un cobro, borrar) no se dispara al pulsar la tarjeta, la fila o una flecha: va en un `RadzenButton` con su texto, a la vista, o la tarjeta abre una ventana que enseña lo que se va a hacer y lo confirma en su pie.
 - Un botón al que le faltan datos va habilitado: al pulsarlo, `NotificationService.Notify` dice qué falta y `return`. `Disabled` solo para lo que el rol o los permisos no dejan.
 - `DnzCard`, nunca `RadzenCard`. Una card dentro de otra se pinta sola según su profundidad: sin tocar `Variant`, sombra ni fondo.
 - Sin `RadzenStack`: `<div class="d-flex …">` de Bootstrap. Espaciado con `gap-N`, `p-N`, `m-N`, no en `style`.
@@ -38,6 +39,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - El diálogo publica su `OpenAsync` estático y sus `Opciones()`: quien lo abre no pasa medidas.
 - Ancho, uno de seis: `min(95%, 1806px)` denso, `min(96%, 1200px)` grande, `min(96%, 1100px)` formulario, `min(95%, 900px)` columna, `min(95%, 700px)` simple, `min(95%, 480px)` confirmación.
 - Alto: `AltoAuto=true` en la maqueta y `Height = null` en las opciones. Una ventana que abre sin alto y sin `AltoAuto=true` se queda en 150 px, el mínimo de Radzen. Un alto fijo lleva un comentario con el motivo.
+- Un solo scroll, en la ventana y en la página: si el cuerpo scrolla, nada de dentro scrolla por su cuenta; si una lista o un editor scrollan por dentro, el cuerpo no. En la ventana, `ContentStyle="overflow:hidden"`; en la página, el `RadzenBody` con `position:relative; overflow:hidden` y lo de dentro con `position:absolute; inset:0`, como /App/Chat. Nunca un alto restado a ojo como `calc(100vh - 160px)`. Se mira en pantalla con la lista llena y la ventana baja; si no se ha podido, la entrega lo dice.
 - `CloseDialogOnOverlayClick = true` en consultas; `false` con comentario en formularios.
 - Mientras lee: `IsLoading=@cargando` (nace en `true`) y el fallo en `ErrorText`, con `OnRetry` si reintentar sirve. Nunca `@if (x == null) return;`.
 - «Aceptar» no aparece hasta que la lectura acaba bien.
@@ -61,4 +63,4 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso».
 - Sin jerga del modelo de datos en pantalla («registro», «criterio»).
 - Un texto público (la doc, la ayuda de una ventana, una nota de versión) explica solo Dinaup, lo más corto posible: lo que Dinaup da o pide para llevarlo a otra herramienta, no cómo funciona esa herramienta. Sin infraestructura interna ni historia de versiones.
-- Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; nada que ya esté en el panel del diseñador o en el menú del botón derecho; ninguna card sin nada que enseñar en ese caso, tampoco con una nota de dónde se configura. Un campo que no se puede cambiar enseña lo que le aplica, con su valor y sin dejar cambiarlo.
+- Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; un dato sale una vez por pantalla: la cabecera no destaca lo que ya está en las cifras de debajo, y nada repite el panel del diseñador o el menú del botón derecho; ninguna card sin nada que enseñar en ese caso, tampoco con una nota de dónde se configura. Un campo que no se puede cambiar enseña lo que le aplica, con su valor y sin dejar cambiarlo.

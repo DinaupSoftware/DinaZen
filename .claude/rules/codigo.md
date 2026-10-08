@@ -18,6 +18,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Al entregar, una línea con las líneas cambiadas y los ficheros nuevos, y por qué hacía falta cada fichero nuevo.
 - Lo que rompe o deja a medias tu cambio se arregla en el mismo cambio: tests, pantallas o informes que aún leen lo viejo, otro repo que lo usa, la constante o el comentario que solo servían a lo quitado. No se entrega como aviso ni como «pendiente». En la entrega va solo lo que tiene que hacer o decidir Angel. Si el fallo está en los restos de algo que ya no se usa, el arreglo los quita y deja el camino directo: no se parchea encima.
 - La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. Cada cosa, por su nombre en el negocio: una tabla, por su sección (Recursos de la empresa, no `tpr_…`); un proceso, por lo que hace, no por la etiqueta de su log. En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo. Un término técnico (WAL, slot, DDL) se explica antes de usarlo.
+- Lo que no has comprobado no se da por hecho: una causa sin reproducir o un arreglo sin verlo funcionar (en pantalla, en el log, en un test) se dice como deducción, con lo que falta para confirmarlo, aunque coincida con lo que sospecha Angel. Antes de darle la razón, mira que cuadre con lo que él ha contado.
 
 ## Antes de crear una función
 
