@@ -1,6 +1,6 @@
 # Catálogo del SDK Dinaup
 
-Generado con `node .claude/tools/catalogo-sdk.mjs` desde Dinaup 10.15.0.84: 554 extensiones públicas, por el tipo que reciben. No se edita a mano.
+Generado con `node .claude/tools/catalogo-sdk.mjs` desde Dinaup 10.15.0.86: 554 extensiones públicas, por el tipo que reciben. No se edita a mano.
 
 Antes de escribir una función, busca aquí por el tipo que entra y el que sale. Si una hace casi lo que necesitas, úsala; si falta algo, se añade al SDK, no a una copia privada.
 

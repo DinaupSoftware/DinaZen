@@ -8,10 +8,15 @@ paths:
 
 Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/desplegables`, `codigo/una-sola-vez` y `codigo/tono-de-voz`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
 
+## Antes de escribir
+
+- Una ventana nueva, una pieza de pantalla nueva o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, con lo que hay ahora y una o dos propuestas, la recomendada marcada. El código espera a que Angel elija.
+
 ## Componentes
 
 - Radzen y DinaZen, nunca HTML ni CSS propios para lo básico: `RadzenButton`, `DnzSearchInput`, `RadzenDataGrid`, `DnzLoader`, `DnzSpanMoney`, `DnzFileUploaderButton` (nunca `<InputFile>`).
 - Antes de escribir CSS o un componente, mira lo que ya pinta eso (`site.css`, un componente de DinaZen o de play). Si le falta algo, se le añade un parámetro (`CuentaChapaU` con `ConTitulo`): no se redibuja en el `.razor.css` de la pantalla. Una maqueta de hace días se repasa contra los controles de hoy antes de codificarla.
+- Un icono se elige en el buscador de iconos de play (`IconSearchU`, o `UpDialogs.SeleccionarIconoAsync`), con un botón que enseña el elegido: nunca en una casilla donde se escribe su nombre.
 - Un buscador es `DnzSearchInput`, que espera a que se deje de teclear: nunca un `RadzenTextBox` con `@oninput`, `@bind-Value:event="oninput"` o un temporizador.
 - Un desplegable con todos los valores de un enum es `DnzEnumDropDown`: la etiqueta sale del propio enum (`[Display]`). Sin una clase ni una lista solo para dar texto a las opciones.
 - Cada bloque va en una `DnzCard` titulada con `DnzCardTitle`. Nada suelto sobre el fondo.
@@ -33,6 +38,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - Los filtros caben en una fila: el buscador a la izquierda, con ancho fijo (no `flex:1`), y los desplegables juntos a la derecha, en su `<div class="d-flex … ms-auto">`.
 - Las cifras de un listado van en `DnzKpiInline` dentro de su card, no en una fila de `DnzKpiCard`.
 - Un texto largo en una lista o una fila va en una línea con «…» (`text-truncate`, con el texto entero en `title`): no salta de línea ni ensancha la página. Su columna se estrecha: `minmax(0, 1fr)` en un grid, no `1fr`; `min-width:0` en un `d-flex`.
+- Lo que hay que leer para decidir se ve sin pasar el ratón. El «…» con `title` es para las filas; en la ventana que confirma o compara una cosa, su texto va entero aunque salte de línea (`text-break`). Las marcas que se comprueban (lo que la IA leyó en un PDF) salen siempre, y un botón las oculta si estorban.
 
 ## Diálogos: el molde
 

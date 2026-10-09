@@ -12,12 +12,13 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 ## Antes de cambiar código
 
 - Lee la convención del tema en doc-in y síguela, aunque conozcas otra forma.
-- Mide el cambio. Si toca más de 200 líneas, más de un repo o una API pública, o crea un service, es grande: antes de escribir, compara al menos dos enfoques (líneas, ficheros nuevos, qué rompe), enseña la comparación a Angel y espera a que elija.
-- Cambio mínimo: solo las líneas que pide la tarea, sin reformatear, renombrar, mover ni arreglar de paso. Lo que veas fuera del encargo se apunta en la entrega. Un PR hace una sola cosa.
+- Mide el cambio. Si toca más de 200 líneas, más de un repo o una API pública, o crea un service, es grande: antes de escribir, compara al menos dos enfoques (líneas, ficheros nuevos, qué rompe), enseña la comparación a Angel y espera a que elija. Si lo sumas a un PR abierto, se mide el PR entero (`git diff --stat origin/main...HEAD`), no tu commit.
+- Una ventana nueva, una pieza de pantalla nueva o un rediseño se enseñan antes en una previa (una página HTML con el CSS de play), aunque estés en el Servidor: el código de la pantalla espera a que Angel elija.
+- Cambio mínimo: solo las líneas que pide la tarea, sin reformatear, renombrar, mover ni arreglar de paso. Lo que veas fuera del encargo se apunta en la entrega. Un PR hace una sola cosa: lo que se pide con el PR ya abierto y no lo arregla va en otro PR, aunque use su código, y lo que dijiste que iría «en otro PR» va en otro.
 - Ante la duda entre la forma sencilla y un service o un refactor, pregunta con las dos: A) sencilla, B) service o refactor, con la recomendada marcada. Mientras no contesten, sigue con la A.
-- Al entregar, una línea con las líneas cambiadas y los ficheros nuevos, y por qué hacía falta cada fichero nuevo.
+- Al entregar, una línea con las líneas cambiadas del PR entero, no solo de tu commit, y los ficheros nuevos, y por qué hacía falta cada fichero nuevo.
 - Lo que rompe o deja a medias tu cambio se arregla en el mismo cambio: tests, pantallas o informes que aún leen lo viejo, otro repo que lo usa, la constante o el comentario que solo servían a lo quitado. No se entrega como aviso ni como «pendiente». En la entrega va solo lo que tiene que hacer o decidir Angel. Si el fallo está en los restos de algo que ya no se usa, el arreglo los quita y deja el camino directo: no se parchea encima.
-- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. Cada cosa, por su nombre en el negocio: una tabla, por su sección (Recursos de la empresa, no `tpr_…`); un proceso, por lo que hace, no por la etiqueta de su log. En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo. Un término técnico (WAL, slot, DDL) se explica antes de usarlo.
+- La explicación a Angel se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. Cada cosa, por su nombre en el negocio: una tabla, por su sección (Recursos de la empresa, no `tpr_…`); un proceso, por lo que hace, no por la etiqueta de su log. Una pieza interna, tampoco por un nombre que le pongas tú: «la reserva de numeración» o «el vigilante del candado de escritura» no le dicen nada. Di lo que hace («si un guardado lleva un minuto sin dejar guardar a los demás, avisa») cada vez que salga, también en el título de un PR. En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo. Un término técnico (WAL, slot, DDL) se explica antes de usarlo.
 - Lo que no has comprobado no se da por hecho: una causa sin reproducir o un arreglo sin verlo funcionar (en pantalla, en el log, en un test) se dice como deducción, con lo que falta para confirmarlo, aunque coincida con lo que sospecha Angel. Antes de darle la razón, mira que cuadre con lo que él ha contado.
 
 ## Antes de crear una función
@@ -43,12 +44,19 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Lo nuevo, de la forma más sencilla que cumpla, también por dentro: un hilo propio, un contador o una sincronización de más tienen que demostrar que hacen falta.
 - Solo se separa si se usa de verdad desde varios sitios, si es preparación (abrir una conexión) o si el nombre explica una condición de negocio que el cuerpo no. Que un proceso tenga dos fases no es motivo: lo que detecta y lo que escribe van en una función y un fichero, no en un par `Calculate` / `Flush`.
 - Nada de envoltorios de una línea (`Citar(x)`, `Formatear(x)`): la expresión va donde se usa, o en una variable local con nombre.
+- Pocos parámetros: lo que sale de lo que la función ya recibe se calcula dentro, y si solo se llama desde un sitio, su cuerpo vuelve a ese sitio. Nunca se juntan en una clase nueva. Un DTO o un enum nuevos también son clases nuevas, y la entrega los cuenta.
 - Para dar aire a una función larga, comentarios numerados (`// 1. …`), no funciones.
 - Solo lo que pide el caso: nada de cálculos ni opciones «por si acaso». Una regla fija del negocio va en el código, no en un interruptor. Un dato que da un tercero no es una regla fija: el sufijo de acreedor que pone el banco en el contrato sigue siendo un campo.
 - No se migran datos: cuando un dato pasa a otro sitio (de un campo de la ficha a una sección nueva), no se escribe código que copie lo que ya había. Lo nuevo empieza vacío.
 - Primero lo que ya hay: antes de crear un DTO, una función o sus tests, prueba el cambio en la pantalla con lo que ya existe. Rellenar un campo con lo que trae una ficha (`GetRowByIdAsync`, la ruta de la IAQuery) no es un cálculo. Lo mínimo sigue cubriendo todo lo pedido.
 - Simplificar es quitar código, no moverlo a otro componente. Antes de decir que algo es más sencillo, se cuentan antes y después líneas, clases, funciones, consultas y bucles, y las cifras van en la entrega. Si solo se ha movido, se dice.
 - La firma de un método y cada llamada van enteras en una línea, por largas que salgan.
+
+## Textos que ve el usuario
+
+- Lo que el Servidor o un service escriben para el usuario (un estado del arranque, un error de la API, un aviso) sigue el tono de voz (`codigo/tono-de-voz`) igual que una pantalla: lo leen tal cual play, quien llama a la API y los agentes.
+- Un estado dice qué está pasando en pocas palabras: «Reindexando tabla recambios», no cómo funciona por dentro ni por qué tarda.
+- Un agente dice lo que puede hacer en palabras del negocio («Puedo leer tus ventas y tus movimientos»), nunca cómo lo hace: ni herramientas, consultas, secciones, campos ni su memoria.
 
 ## Comentarios
 

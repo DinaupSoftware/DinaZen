@@ -9,7 +9,7 @@ paths:
 
 Resumen de doc-in: `codigo/escribir-datos`, `codigo/leer-db0`, `codigo/dinaupclient`, `codigo/una-consulta-por-pantalla` y `codigo/sql-postgres`. Si algo no cuadra, manda doc-in. No se edita aquí: se cambia en doc-in (`revision/claude/rules`) y se copia a cada repo.
 
-- Un dato de negocio (un historial, un vínculo hecho a mano, una lista que crece, un pendiente) va a una sección de Dinaup. Antes de proponer dónde se guarda, busca si ya hay una sección que sirva. El KV de Dinaup0 (`AllServices.KV`) solo guarda configuración pequeña y preferencias. Lo que ya está en el KV no es modelo: las notas de cada usuario (`NotesService`) son de antes de la regla.
+- Un dato de negocio (un historial, un vínculo hecho a mano, una lista que crece, un pendiente) va a una sección de Dinaup. Antes de proponer dónde se guarda, busca si ya hay una sección que sirva. El KV de Dinaup0 (`AllServices.KV`) solo guarda configuración pequeña y preferencias. Lo que ya está en el KV no es modelo: las notas de cada usuario (`NotesService`) son de antes de la regla, y las tareas de «Para hoy» de cada usuario, en su panel, van ahí porque lo eligió Angel (08/10/2026) frente a una sección.
 - Alta con `Guid.Empty`, nunca `Guid.NewGuid()`. El id que devuelve el servidor se guarda antes que nada.
 - Guarda la respuesta de `RunWriteOperationAsync`. Si `resp.UserError` trae texto, ese texto va a pantalla. `EnsureSuccess()` no lo sustituye.
 - Tercer parámetro en `true` salvo en borrados y lotes grandes. Un borrado (`eliminado = "1"`) va con `false`, o con `RunWriteOperationDeleteAsync` / `RowDeleteAsync`.
