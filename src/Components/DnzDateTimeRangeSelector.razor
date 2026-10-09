@@ -11,14 +11,14 @@
 	{
 		<div class="d-flex gap-3 justify-content-start w-100">
 			<RadzenFormField Text="Desde" class="flex-grow-1" Variant="Variant.Flat">
-				<RadzenDatePicker TValue="DateTime?"
+				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?"
 								  Value="@_from"
 								  DateFormat="dd/MM/yyyy HH:mm"
 								  ShowTime="true"
 								  Change="@OnFromChanged" />
 			</RadzenFormField>
 			<RadzenFormField Text="Hasta" class="flex-grow-1" Variant="Variant.Flat">
-				<RadzenDatePicker TValue="DateTime?"
+				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?"
 								  Value="@_to"
 								  DateFormat="dd/MM/yyyy HH:mm"
 								  ShowTime="true"

@@ -37,7 +37,7 @@
 		</div>
 
 		<div class="dnz-form-body">
-			<RadzenTabs RenderMode="TabRenderMode.Server">
+			<RadzenTabs Overflow="TabsOverflow.Collapse" RenderMode="TabRenderMode.Server">
 				<Tabs>
 					@foreach (var tab in FormList.Tabs.Where(tab => tab.TabName != "*").OrderByDescending(tab => tab.TabName == "General"))
 					{
