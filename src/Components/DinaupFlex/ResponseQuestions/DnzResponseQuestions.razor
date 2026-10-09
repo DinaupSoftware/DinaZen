@@ -119,7 +119,7 @@
 							case FieldFormatE.TIME:
 							case FieldFormatE.DateAndTime:
 								<RadzenFormField Text=@row.Label Variant="Variant.Flat" class=@RowClass(row)>
-									<RadzenDatePicker TValue="DateTime?" Name=@row.Key Value=@GetDate(row.Variable)
+									<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?" Name=@row.Key Value=@GetDate(row.Variable)
 													  Change=@(v => SetDate(row.Variable, v))
 													  Culture=@RegionService.Culture
 													  ShowTime=@row.Variable.ShowTime

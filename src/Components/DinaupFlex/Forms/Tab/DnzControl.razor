@@ -155,7 +155,7 @@
 
 				@if (DataControl.FormatEnum == FieldFormatE.TIME || DataControl.FormatEnum == FieldFormatE.DATE || DataControl.FormatEnum == FieldFormatE.DateAndTime)
 				{
-					<RadzenDatePicker Culture=@RegionService.Culture
+					<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" Culture=@RegionService.Culture
 									  @bind-value:after=@(async () => await HandleDatacontrolChangedDatePicket( DataControl ) )
 									  @bind-value=@DataControl.Value_DateTimeNullable
 									  Style="width: none !important; flex:1"
@@ -203,7 +203,7 @@
 
 
 
-						<RadzenDatePicker Culture=@RegionService.Culture
+						<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" Culture=@RegionService.Culture
 						@bind-value:after=@(async () => { await HandleDatacontrolChangedDatePicket( DataControl ); } )
 						@bind-value=@DataControl.Value_DateTimeNullable TValue="DateTime?" Style="width: none !important; flex:1" @key=@(DataControl.Token + "-valor") ShowTime=DataControl.ShowTime ShowSeconds=DataControl.ShowSeconds TimeOnly=@(DataControl.FormatEnum == FieldFormatE.TIME) HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat=@DataControl.DateForma>
 

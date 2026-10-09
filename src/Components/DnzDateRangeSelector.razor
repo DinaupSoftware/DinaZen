@@ -11,7 +11,7 @@
 	{
 		<div class="d-flex gap-3 justify-content-start w-100">
 			<RadzenFormField Text="Desde" class="flex-grow-1" Variant="Variant.Flat">
-				<RadzenDatePicker TValue="DateTime?"
+				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?"
 								  Value="@_fromDateTime"
 								  DateFormat="dd/MM/yyyy"
 								  ShowTime="false"
@@ -19,7 +19,7 @@
 								  data-testid="dnz-range-from" />
 			</RadzenFormField>
 			<RadzenFormField Text="Hasta" class="flex-grow-1" Variant="Variant.Flat">
-				<RadzenDatePicker TValue="DateTime?"
+				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?"
 								  Value="@_toDateTime"
 								  DateFormat="dd/MM/yyyy"
 								  ShowTime="false"

@@ -64,11 +64,11 @@
 
 			@if (_grain == PeriodGrain.Dia)
 			{
-				<RadzenDatePicker TValue="DateTime?" Value="@(_day.ToDateTime(TimeOnly.MinValue))" Change="@OnDiaPicked" Inline="true" />
+				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?" Value="@(_day.ToDateTime(TimeOnly.MinValue))" Change="@OnDiaPicked" Inline="true" />
 			}
 			else if (_grain == PeriodGrain.Semana)
 			{
-				<RadzenDatePicker TValue="DateTime?" Value="@(_weekStart.ToDateTime(TimeOnly.MinValue))" Change="@OnSemanaPicked"
+				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?" Value="@(_weekStart.ToDateTime(TimeOnly.MinValue))" Change="@OnSemanaPicked"
 								  Inline="true" ShowCalendarWeek="true" CalendarWeekTitle="sem" />
 				<div class="dnz-ps-hint">Elige cualquier día: se toma su semana completa (lun–dom).</div>
 			}
@@ -76,11 +76,11 @@
 			{
 				<div class="d-flex flex-column gap-2">
 					<RadzenFormField Text="Desde" Variant="Variant.Flat" class="w-100">
-						<RadzenDatePicker TValue="DateTime?" Value="@_rangoDesdeDT" Change="@OnRangoDesde"
+						<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?" Value="@_rangoDesdeDT" Change="@OnRangoDesde"
 										  DateFormat="dd/MM/yyyy" ShowTime="false" Style="width:100%" />
 					</RadzenFormField>
 					<RadzenFormField Text="Hasta" Variant="Variant.Flat" class="w-100">
-						<RadzenDatePicker TValue="DateTime?" Value="@_rangoHastaDT" Change="@OnRangoHasta"
+						<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?" Value="@_rangoHastaDT" Change="@OnRangoHasta"
 										  DateFormat="dd/MM/yyyy" ShowTime="false" Style="width:100%" />
 					</RadzenFormField>
 				</div>

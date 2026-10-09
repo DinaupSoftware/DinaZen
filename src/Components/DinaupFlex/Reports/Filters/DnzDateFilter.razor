@@ -26,7 +26,7 @@
 			<RadzenTabsItem Text="Igual">
 				<div class="d-flex gap-3 align-items-center">
 					<b>Igual</b>
-					<RadzenDatePicker @bind-Value="exactDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
+					<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" @bind-Value="exactDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
 				</div>
 				<div class="d-flex justify-content-end pt-2 pe-2">
 					<RadzenButton Text="Aplicar" Icon="search" Click=@(() => ApplyFilterAsync("Equals")) Size="ButtonSize.Small" Variant="Variant.Text" />
@@ -36,11 +36,11 @@
 			<RadzenTabsItem Text="Rango">
 				<div class="d-flex gap-3 align-items-center">
 					<b>Mayor que</b>
-					<RadzenDatePicker @bind-Value="minDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
+					<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" @bind-Value="minDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
 				</div>
 				<div class="d-flex gap-3 align-items-center">
 					<b>Menor que</b>
-					<RadzenDatePicker @bind-Value="maxDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
+					<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" @bind-Value="maxDate" Style="width: 200px" DateFormat=@RegionService.Culture.DateTimeFormat.ShortDatePattern ShowTime="false" Culture=@RegionService.Culture />
 				</div>
 				<div class="d-flex justify-content-end pt-2 pe-2">
 					<RadzenButton Text="Aplicar" Icon="search" Click=@(() => ApplyFilterAsync("Range")) Size="ButtonSize.Small" Variant="Variant.Text" />
