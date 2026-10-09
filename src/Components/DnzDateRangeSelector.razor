@@ -4,7 +4,7 @@
 <div class="d-flex gap-2 align-items-center flex-wrap" @attributes="AdditionalAttributes">
 
 	<RadzenFormField Text="Rango" Variant="Variant.Flat" Style="min-width:240px">
-		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Style="width: 100%;" data-testid="dnz-range-preset" />
+		<DnzEnumDropDown TEnum="DateRangePreset" @bind-Value="SelectedPreset" @bind-Value:after="OnPresetChanged" Hidden="@(ShortRanges ? Array.Empty<DateRangePreset>() : RangosCortos.Keys.ToArray())" Style="width: 100%;" data-testid="dnz-range-preset" />
 	</RadzenFormField>
 
 	@if (SelectedPreset == DateRangePreset.Custom)
@@ -20,6 +20,10 @@
 	[Parameter] public EventCallback<(DateOnly From, DateOnly To)> OnRangeChanged { get; set; }
 	[Parameter] public DateRangePreset SelectedPreset { get; set; } = DateRangePreset.Last7Days;
 	[Parameter] public EventCallback<DateRangePreset> SelectedPresetChanged { get; set; }
+	// Añade al desplegable los últimos 5 minutos, la última hora y las últimas 3 horas. Al elegir uno se llama a
+	// OnLastMinutesChanged con los minutos, y no a OnRangeChanged, que solo lleva días.
+	[Parameter] public bool ShortRanges { get; set; }
+	[Parameter] public EventCallback<int> OnLastMinutesChanged { get; set; }
 	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private DateOnly? _from;
@@ -47,8 +51,18 @@
 		await SetPreset(SelectedPreset);
 	}
 
+	private static readonly Dictionary<DateRangePreset, int> RangosCortos = new() { [DateRangePreset.Last5Minutes] = 5, [DateRangePreset.LastHour] = 60, [DateRangePreset.Last3Hours] = 180 };
+
 	private async Task SetPreset(DateRangePreset preset)
 	{
+		if (RangosCortos.GetM(preset, 0) > 0)
+		{
+			SelectedPreset = preset;
+			await SelectedPresetChanged.InvokeAsync(SelectedPreset);
+			await OnLastMinutesChanged.InvokeAsync(RangosCortos.GetM(preset, 0));
+			return;
+		}
+
 		// El día de la empresa, no el del servidor (UTC): si no, durante 1-2 h tras la medianoche "Hoy" sería ayer.
 		var today = RegionService.DateOnlyNow();
 
@@ -138,6 +152,12 @@
 
 	public enum DateRangePreset
 	{
+		[Display(Name = "Últimos 5 minutos")]
+		Last5Minutes,
+		[Display(Name = "Última hora")]
+		LastHour,
+		[Display(Name = "Últimas 3 horas")]
+		Last3Hours,
 		[Display(Name = "Hoy")]
 		Today,
 		[Display(Name = "Ayer")]

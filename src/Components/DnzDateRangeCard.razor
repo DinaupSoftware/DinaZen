@@ -4,6 +4,8 @@
 	<DnzCardTitle Title="@Title" Icon="@Icon" />
 
 	<DnzDateRangeSelector OnRangeChanged="@HandleRangeChanged"
+					   ShortRanges="@ShortRanges"
+					   OnLastMinutesChanged="@HandleLastMinutesChanged"
 					   SelectedPreset="@DefaultPreset"
 					   SelectedPresetChanged="@OnPresetChanged" />
 	<hr />
@@ -52,6 +54,8 @@
 	[Parameter] public DnzDateRangeSelector.DateRangePreset DefaultPreset { get; set; } = DnzDateRangeSelector.DateRangePreset.Last7Days;
 	[Parameter] public EventCallback<DnzDateRangeSelector.DateRangePreset> PresetChanged { get; set; }
 	[Parameter] public EventCallback<(DateTime From, DateTime To)> OnRangeChanged { get; set; }
+	// Con los rangos cortos, OnRangeChanged llega con el momento de hace 5, 60 o 180 minutos y el de ahora, en hora de la empresa.
+	[Parameter] public bool ShortRanges { get; set; }
 	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private DateOnly? _from;
@@ -70,6 +74,15 @@
 			// Hora de la empresa: DateTime.Now es la del servidor, que va en UTC (2 h menos en verano).
 			_lastUpdated = RegionService.LocalNow();
 		}
+	}
+
+	private async Task HandleLastMinutesChanged(int minutes)
+	{
+		var now = RegionService.LocalNow();
+		_from = DateOnly.FromDateTime(now.AddMinutes(-minutes));
+		_to = DateOnly.FromDateTime(now);
+		await OnRangeChanged.InvokeAsync((now.AddMinutes(-minutes), now));
+		_lastUpdated = now;
 	}
 
 	private async Task OnPresetChanged(DnzDateRangeSelector.DateRangePreset preset)
