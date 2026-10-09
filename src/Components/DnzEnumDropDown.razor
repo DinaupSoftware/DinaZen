@@ -20,10 +20,13 @@
 	[Parameter] public bool Disabled { get; set; } = false;
 	[Parameter] public TEnum Value { get; set; }
 	[Parameter] public EventCallback<TEnum> ValueChanged { get; set; }
+	// Valores del enum que no salen en el desplegable.
+	[Parameter] public IEnumerable<TEnum> Hidden { get; set; } = [];
 	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> AdditionalAttributes { get; set; }
 
 	private List<EnumItem> Items => Enum.GetValues(typeof(TEnum))
 		.Cast<TEnum>()
+		.Where(e => Hidden.Contains(e) == false)
 		.Select(e => new EnumItem(GetDisplayName(e!), e))
 		.ToList();
 
