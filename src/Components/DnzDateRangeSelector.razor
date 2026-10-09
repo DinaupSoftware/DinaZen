@@ -9,24 +9,10 @@
 
 	@if (SelectedPreset == DateRangePreset.Custom)
 	{
-		<div class="d-flex gap-3 justify-content-start w-100">
-			<RadzenFormField Text="Desde" class="flex-grow-1" Variant="Variant.Flat">
-				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?"
-								  Value="@_fromDateTime"
-								  DateFormat="dd/MM/yyyy"
-								  ShowTime="false"
-								  Change="@OnFromChanged"
-								  data-testid="dnz-range-from" />
-			</RadzenFormField>
-			<RadzenFormField Text="Hasta" class="flex-grow-1" Variant="Variant.Flat">
-				<RadzenDatePicker NavigationMode="DatePickerNavigationMode.DropDown" TValue="DateTime?"
-								  Value="@_toDateTime"
-								  DateFormat="dd/MM/yyyy"
-								  ShowTime="false"
-								  Change="@OnToChanged"
-								  data-testid="dnz-range-to" />
-			</RadzenFormField>
-		</div>
+		@* Un solo campo: clic en el día de inicio y clic en el de fin, en un calendario de dos meses. *@
+		<RadzenFormField Text="Fechas" class="w-100" Variant="Variant.Flat">
+			<RadzenDateRangePicker Value="@_rango" ValueChanged="@OnRangoChanged" DateFormat="dd/MM/yyyy" data-testid="dnz-range-dates" />
+		</RadzenFormField>
 	}
 </div>
 
@@ -40,6 +26,7 @@
 	private DateOnly? _to;
 	private DateTime? _fromDateTime => _from?.ToDateTime(TimeOnly.MinValue);
 	private DateTime? _toDateTime => _to?.ToDateTime(TimeOnly.MinValue);
+	private DateRange _rango => new DateRange { Start = _fromDateTime, End = _toDateTime };
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -135,22 +122,10 @@
 		StateHasChanged();
 	}
 
-	private async Task OnFromChanged(DateTime? value)
+	private async Task OnRangoChanged(DateRange rango)
 	{
-		_from = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
-		if (_from.HasValue && _to.HasValue)
-			await OnRangeChanged.InvokeAsync((_from.Value, _to.Value));
-	}
-
-	private async Task OnToChanged(DateTime? value)
-	{
-		_to = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
-		if (SelectedPreset != DateRangePreset.Custom)
-		{
-			SelectedPreset = DateRangePreset.Custom;
-			await SelectedPresetChanged.InvokeAsync(SelectedPreset);
-		}
-
+		_from = rango?.Start.HasValue == true ? DateOnly.FromDateTime(rango.Start.Value) : null;
+		_to = rango?.End.HasValue == true ? DateOnly.FromDateTime(rango.End.Value) : null;
 		if (_from.HasValue && _to.HasValue)
 			await OnRangeChanged.InvokeAsync((_from.Value, _to.Value));
 	}

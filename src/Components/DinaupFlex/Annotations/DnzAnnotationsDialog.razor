@@ -17,7 +17,7 @@
 	<BodyContent>
 		<div class="dnz-annotations-dialog" @attributes="AdditionalAttributes">
 			@* ── Tab selector ── *@
-			<RadzenTabs @bind-SelectedIndex="@_selectedTabIndex" Change="@OnTabChanged">
+			<RadzenTabs Overflow="TabsOverflow.Collapse" @bind-SelectedIndex="@_selectedTabIndex" Change="@OnTabChanged">
 				<Tabs>
 					<RadzenTabsItem Text="Comentarios" Icon="chat" />
 					<RadzenTabsItem Text="Archivos" Icon="attach_file" />
