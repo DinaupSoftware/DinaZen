@@ -10,7 +10,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 ## Antes de escribir
 
-- Una ventana nueva, una pieza de pantalla nueva o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, con lo que hay ahora y una o dos propuestas, la recomendada marcada. El código espera a que Angel elija.
+- Una ventana nueva, una pieza de pantalla nueva o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, con lo que hay ahora y una o dos propuestas, la recomendada marcada. El código espera a que Angel elija. Rehacer una pantalla que no le gusta («mucho texto») también es un rediseño, aunque el encargo diga «abre un PR»: ni código ni PR antes de que elija.
 
 ## Componentes
 
@@ -34,11 +34,11 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 ## Listados
 
-- Un filtro de un solo valor es un `DnzInlineDropDown` con `Label` (sin elegir, «País ⌄»; elegido, «País: España ✕»), sin `Multiple` ni `Chips`. Las fechas se filtran con `DnzDateRangeSelector`, no con «Desde» y «Hasta».
+- Un filtro de un solo valor es un `DnzInlineDropDown` con `Label` (sin elegir, «País ⌄»; elegido, «País: España ✕»), sin `Multiple` ni `Chips`. Las fechas se filtran con `DnzDateRangeSelector` y sus presets: ni «Desde» y «Hasta», ni botones de periodo («Este mes», «5 min», «1 h») hechos a mano, tampoco junto al rango. El periodo que falta se añade a los presets en DinaZen (los últimos minutos y horas, con `ShortRanges=true`).
 - Los filtros caben en una fila: el buscador a la izquierda, con ancho fijo (no `flex:1`), y los desplegables juntos a la derecha, en su `<div class="d-flex … ms-auto">`.
 - Las cifras de un listado van en `DnzKpiInline` dentro de su card, no en una fila de `DnzKpiCard`.
 - Un texto largo en una lista o una fila va en una línea con «…» (`text-truncate`, con el texto entero en `title`): no salta de línea ni ensancha la página. Su columna se estrecha: `minmax(0, 1fr)` en un grid, no `1fr`; `min-width:0` en un `d-flex`.
-- Lo que hay que leer para decidir se ve sin pasar el ratón. El «…» con `title` es para las filas; en la ventana que confirma o compara una cosa, su texto va entero aunque salte de línea (`text-break`). Las marcas que se comprueban (lo que la IA leyó en un PDF) salen siempre, y un botón las oculta si estorban.
+- Lo que hay que leer para decidir se ve sin pasar el ratón. El «…» con `title` es para las filas; en la ventana que confirma o compara una cosa, su texto va entero aunque salte de línea (`text-break`). Las marcas que se comprueban (lo que la IA leyó en un PDF) salen siempre, y un botón las oculta si estorban. Lo que solo explica una cifra que se ve (qué mide, con qué se compara) sí va en su `title`.
 
 ## Diálogos: el molde
 
@@ -67,6 +67,9 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 - Tono de Cloudflare sin historias: frases cortas, voz activa, el siguiente paso.
 - El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso».
+- Un consejo o un aviso dicen qué hacer («Pide solo lo que ha cambiado desde la última vez», «Si recibes un 429, espera lo que indica Retry-After»): no se justifican con cómo está montado Dinaup («La API la comparten todas las empresas»).
 - Sin jerga del modelo de datos en pantalla («registro», «criterio»).
 - Un texto público (la doc, la ayuda de una ventana, una nota de versión) explica solo Dinaup, lo más corto posible: lo que Dinaup da o pide para llevarlo a otra herramienta, no cómo funciona esa herramienta. Sin infraestructura interna ni historia de versiones.
+- Un vídeo y su descripción se despiden solo con «Pruébalo en dinaup.com»: sin mandar a otro dominio (go.dinaup.com) ni pedir que se suscriban.
 - Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; un dato sale una vez por pantalla: la cabecera no destaca lo que ya está en las cifras de debajo, y nada repite el panel del diseñador o el menú del botón derecho; ninguna card sin nada que enseñar en ese caso, tampoco con una nota de dónde se configura. Un campo que no se puede cambiar enseña lo que le aplica, con su valor y sin dejar cambiarlo.
+- Una cifra lleva su rótulo y nada debajo: una frase que dice qué mide o qué pasa al llegar al tope satura, y más repetida en cada tarjeta. Si hace falta, va en el `title` de la cifra. Lo secundario (lo que está en curso, el pico) va más pequeño.
