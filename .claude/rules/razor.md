@@ -68,7 +68,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - Tono de Cloudflare sin historias: frases cortas, voz activa, el siguiente paso.
 - El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso».
 - Un consejo o un aviso dicen qué hacer («Pide solo lo que ha cambiado desde la última vez», «Si recibes un 429, espera lo que indica Retry-After»): no se justifican con cómo está montado Dinaup («La API la comparten todas las empresas»).
-- Sin jerga del modelo de datos en pantalla («registro», «criterio»).
+- Sin jerga del modelo de datos en pantalla («criterio», `DataFlow`).
 - Un texto público (la doc, la ayuda de una ventana, una nota de versión) explica solo Dinaup, lo más corto posible: lo que Dinaup da o pide para llevarlo a otra herramienta, no cómo funciona esa herramienta. Sin infraestructura interna ni historia de versiones.
 - Un vídeo y su descripción se despiden solo con «Pruébalo en dinaup.com»: sin mandar a otro dominio (go.dinaup.com) ni pedir que se suscriban.
 - Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; un dato sale una vez por pantalla: la cabecera no destaca lo que ya está en las cifras de debajo, y nada repite el panel del diseñador o el menú del botón derecho; ninguna card sin nada que enseñar en ese caso, tampoco con una nota de dónde se configura. Un campo que no se puede cambiar enseña lo que le aplica, con su valor y sin dejar cambiarlo.
