@@ -21,7 +21,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - Un fallo de otra pieza se arregla en esa pieza, no se rodea desde la tuya: si storage no manda CORS, se arregla storage, no se baja el fichero por play; si la copia falla en la réplica, se arregla la réplica, no se repite en el primario. Mientras, el fallo avisa como hasta ahora.
 - La explicación a Angel, también la descripción de un PR, se entiende sin abrir el código: primero qué pasa y qué cambia, en palabras corrientes; los nombres internos y los `fichero:línea`, después y aparte. Más larga no es más clara: cada apartado tiene que hacer falta. Una propuesta empieza por un ejemplo concreto de lo que sale hoy y de lo que saldrá (un informe de dos columnas, con su SQL de hoy y el de después); cómo cambia por dentro (alias, contadores, bucles) va después.
 - Cada cosa, por su nombre en el negocio: una tabla, por el nombre entero de su sección, el que se ve en Dinaup («Detalles de Recursos de la empresa»; ni su código `tpr_…` ni medio nombre, «Detalles»), y el nombre va antes que el código; un proceso, por lo que hace, no por la etiqueta de su log. Una pieza interna, tampoco por un nombre que le pongas tú: «la reserva de numeración» o «el vigilante del candado de escritura» no le dicen nada. Di lo que hace («si un guardado lleva un minuto sin dejar guardar a los demás, avisa») cada vez que salga, también en el título de un PR. Un término técnico (WAL, slot, DDL, `INCLUDE`) se explica antes de usarlo.
-- En una tarjeta de decisión, cada opción dice qué cambia para Angel o para quien usa la pantalla, con un ejemplo.
+- En una tarjeta de decisión, el contexto y cada opción dicen qué cambia para Angel o para quien usa la pantalla, en palabras corrientes y con un ejemplo: «Adoptar deja cada servidor como está; tu compose lo cambia en todos». Las rutas, los contenedores y los volúmenes van después, o no van.
 - Lo que no has comprobado no se da por hecho: una causa sin reproducir o un arreglo sin verlo funcionar (en pantalla, en el log, en un test) se dice como deducción desde la primera frase («Creo que es…», nunca «Ya lo tengo»), con lo que falta para confirmarlo, aunque coincida con lo que sospecha Angel. Antes de darle la razón, mira que cuadre con lo que él ha contado.
 
 ## Antes de crear una función
@@ -64,6 +64,7 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 
 ## Comentarios
 
+- Corto, amigable y que se entienda a la primera.
 - La primera frase dice qué hace, en palabras del negocio y como se lo dirías a quien no ha visto el código: «Crea los turnos de hoy de cada empleado desde su horario».
 - Después, solo el porqué que no se ve en el código. Lo que repite el código sobra.
 - Sin la historia del cambio (va en el commit), sin mayúsculas para gritar, sin jerga propia y sin personificar.
@@ -75,8 +76,10 @@ Resumen de doc-in: `codigo/donde-va-cada-funcion`, `codigo/no-hacer`, `codigo/re
 - `.IsEmpty()` / `.IsNotEmpty()` para nulos y vacíos. Nunca se niega una: se usa la inversa (`x.IsEmpty()`, no `x.IsNotEmpty() == false` ni `!x.IsNotEmpty()`).
 - `x.Eliminado == false` en vez de `!x.Eliminado`.
 - Nada de un `If` vacío con el trabajo en el `ElseIf` o el `Else`: se escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima (`Dim YaTraeLaVersion = …` e `If YaTraeLaVersion = False Then`).
+- Lo que mira un `If`, si sale de una consulta o es largo, va antes en una variable con un nombre que diga qué significa (`Dim yaHayPublicacion = …ConsultaSQL(…)…` e `If yaHayPublicacion = False Then`): con la consulta dentro, hay que leerla entera para saber qué decide.
 - Dos formas de hacer lo mismo, que se excluyen, van cada una en su rama de un `If … Else … End If`: no un `If` que acaba en `Return` con la otra forma suelta debajo. Una condición que descarta un caso sí sale antes con su `Return` y deja lo normal debajo.
 - Un dato opcional que falla (un secreto que no se resuelve, un campo nulo) se omite y queda en el log: no lanza ni tumba la respuesta entera. Lo opcional va en su `try`, y lo que puede llegar nulo se lee con `.STR()` antes de compararlo.
+- Los pasos de una limpieza que no dependen unos de otros van cada uno en su `try`, con su aviso en el log, y se intenta el siguiente aunque falle el anterior. Lo que necesita el paso de antes, o va en una transacción, sigue en un solo `try`.
 - Diccionarios con `dic.GetM("clave")` o `dic.GetM("clave", porDefecto)`, nunca `TryGetValue` ni `ContainsKey`.
 - Cuerpos de método, propiedad y constructor con llaves y `return`, nunca `=>`. Los lambdas y los `RenderFragment` siguen como están.
 - `nameof(Tipo.Campo)` para nombres de propiedad, nunca el texto a mano.
