@@ -76,6 +76,8 @@ public class DnzDynamicStatData
     public int TimeMs { get; set; }
     public bool IsLoaded { get; set; }
     public string ErrorMessage { get; set; } = "";
+    // Qué hacer con el fallo, en una línea bajo ErrorMessage.
+    public string ErrorHint { get; set; } = "";
 
     public bool IsSingleValue => Series.Count == 1 && Series[0].SingleValue.HasValue && Series[0].Items.IsEmpty();
     public bool IsMultiKpi => Series.Count >= 1 && Series.All(s => s.SingleValue.HasValue);
