@@ -7,11 +7,42 @@
 		<DnzSkeleton Height="80px" />
 	</div>
 }
+else if (Data.ErrorMessage.IsNotEmpty() && (IsCompact || Render == DnzDynamicStatRenderE.Kpi))
+{
+	@* Un fallo no es una alarma: la cifra pequeña conserva su título y dice en una línea qué ha pasado. *@
+	<div class=@($"dnz-dynamic-stat {Class}") style=@Style @attributes="@Attributes">
+		<span style="font-size:0.8rem; color:var(--rz-text-secondary-color);">@Title</span>
+		<span style="font-size:1.1rem; color:var(--rz-text-tertiary-color);">—</span>
+		<span style="font-size:0.75rem; color:var(--rz-text-tertiary-color);" title=@Data.ErrorHint>
+			@Data.ErrorMessage
+			@if (OnRetry.HasDelegate)
+			{
+				<RadzenButton Text="Reintentar" Variant="Radzen.Variant.Text" Size="ButtonSize.ExtraSmall" Disabled=@EsperandoReintento Click=@Reintentar data-testid="dynamic-stat-reintentar" />
+			}
+		</span>
+	</div>
+}
 else if (Data.ErrorMessage.IsNotEmpty())
 {
-	<RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Radzen.Variant.Flat" ShowIcon="true" @attributes="@Attributes">
-		@Data.ErrorMessage
-	</RadzenAlert>
+	@* La tarjeta grande conserva su título y pone en el centro el aviso, sin rojo, y el botón para reintentar. *@
+	<div class=@($"dnz-dynamic-stat {Class}") style=@Style @attributes="@Attributes">
+		@if (Title.IsNotEmpty())
+		{
+			<DnzCardTitle Icon=@Icon Title=@Title />
+		}
+		<div class="d-flex flex-column align-items-center justify-content-center text-center py-4 gap-1">
+			<RadzenIcon Icon="hourglass_top" Style="font-size:1.5rem; color:var(--rz-text-tertiary-color);" />
+			<span style="font-size:0.9rem;">@Data.ErrorMessage</span>
+			@if (Data.ErrorHint.IsNotEmpty())
+			{
+				<span style="font-size:0.8rem; color:var(--rz-text-tertiary-color);">@Data.ErrorHint</span>
+			}
+			@if (OnRetry.HasDelegate)
+			{
+				<RadzenButton Text="Reintentar" Icon="refresh" Variant="Radzen.Variant.Text" Size="ButtonSize.Small" Disabled=@EsperandoReintento Click=@Reintentar data-testid="dynamic-stat-reintentar" />
+			}
+		</div>
+	</div>
 }
 else if (Data.Series.IsEmpty() || (Data.Series.All(s => s.SingleValue.HasValue == false && s.Items.IsEmpty()) && Data.RawRows.IsEmpty()))
 {
@@ -107,6 +138,8 @@ else
 	[Parameter] public bool AllowViewSwitch { get; set; }
 
 	[Parameter] public EventCallback OnClick { get; set; }
+	// Si se da, un fallo enseña «Reintentar». Se puede pulsar como mucho una vez cada 15 s.
+	[Parameter] public EventCallback OnRetry { get; set; }
 	[Parameter] public string Class { get; set; } = "";
 	[Parameter] public string Style { get; set; } = "";
 
@@ -170,6 +203,19 @@ else
 				_ => ChartType
 			};
 		}
+	}
+
+	private DateTime _ultimoReintento = DateTime.MinValue;
+	private bool EsperandoReintento => DateTime.UtcNow - _ultimoReintento < TimeSpan.FromSeconds(15);
+
+	// Reintenta y deja el botón apagado 15 s, para no lanzar la misma consulta lenta una y otra vez.
+	private async Task Reintentar()
+	{
+		if (EsperandoReintento) return;
+		_ultimoReintento = DateTime.UtcNow;
+		await OnRetry.InvokeAsync();
+		await Task.Delay(TimeSpan.FromSeconds(15));
+		StateHasChanged();
 	}
 
 	private void OnViewChanged(int view)
