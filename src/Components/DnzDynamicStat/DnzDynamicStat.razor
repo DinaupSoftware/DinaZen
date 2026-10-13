@@ -9,18 +9,18 @@
 }
 else if (Data.ErrorMessage.IsNotEmpty() && (IsCompact || Render == DnzDynamicStatRenderE.Kpi))
 {
-	@* Un fallo no es una alarma: la cifra pequeña conserva su título y dice en una línea qué ha pasado. *@
-	<div class=@($"dnz-dynamic-stat {Class}") style=@Style @attributes="@Attributes">
-		<span style="font-size:0.8rem; color:var(--rz-text-secondary-color);">@Title</span>
-		<span style="font-size:1.1rem; color:var(--rz-text-tertiary-color);">—</span>
-		<span style="font-size:0.75rem; color:var(--rz-text-tertiary-color);" title=@Data.ErrorHint>
-			@Data.ErrorMessage
+	@* Un fallo no es una alarma: la cifra pequeña conserva su tarjeta y su título, y dice debajo qué ha pasado. *@
+	<DnzCard Variant=@Variant class=@($"dnz-dynamic-stat {Class}") Style=@Style @attributes="@Attributes">
+		<div class="d-flex flex-column gap-1" style="max-width:16rem;">
+			<span style="font-size:1.1rem; color:var(--rz-text-tertiary-color);">—</span>
+			<span style="font-size:0.8rem; color:var(--rz-text-secondary-color);">@Title</span>
+			<span style="font-size:0.75rem; color:var(--rz-text-tertiary-color);" title=@Data.ErrorHint>@Data.ErrorMessage</span>
 			@if (OnRetry.HasDelegate)
 			{
-				<RadzenButton Text="Reintentar" Variant="Radzen.Variant.Text" Size="ButtonSize.ExtraSmall" Disabled=@EsperandoReintento Click=@Reintentar data-testid="dynamic-stat-reintentar" />
+				<RadzenButton Text="Reintentar" Variant="Radzen.Variant.Text" Size="ButtonSize.ExtraSmall" Disabled=@EsperandoReintento Click=@Reintentar data-testid="dynamic-stat-reintentar" Style="align-self:flex-start;" />
 			}
-		</span>
-	</div>
+		</div>
+	</DnzCard>
 }
 else if (Data.ErrorMessage.IsNotEmpty())
 {
