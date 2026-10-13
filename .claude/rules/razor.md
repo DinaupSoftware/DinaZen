@@ -42,6 +42,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 ## Diálogos: el molde
 
+- Lo que el usuario pide ver desde una fila o un botón (un log, un detalle) se abre en un diálogo, donde está mirando: no en un panel arriba de la página que obliga a subir con el scroll.
 - El diálogo publica su `OpenAsync` estático y sus `Opciones()`: quien lo abre no pasa medidas.
 - Ancho, uno de seis: `min(95%, 1806px)` denso, `min(96%, 1200px)` grande, `min(96%, 1100px)` formulario, `min(95%, 900px)` columna, `min(95%, 700px)` simple, `min(95%, 480px)` confirmación.
 - Alto: `AltoAuto=true` en la maqueta y `Height = null` en las opciones. Una ventana que abre sin alto y sin `AltoAuto=true` se queda en 150 px, el mínimo de Radzen. Un alto fijo lleva un comentario con el motivo.
@@ -67,7 +68,8 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 - Tono de Cloudflare sin historias: frases cortas, voz activa, el siguiente paso.
 - El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso».
-- Un consejo o un aviso dicen qué hacer («Pide solo lo que ha cambiado desde la última vez», «Si recibes un 429, espera lo que indica Retry-After»): no se justifican con cómo está montado Dinaup («La API la comparten todas las empresas»).
+- Un consejo o un aviso dicen qué hacer («Pide solo lo que ha cambiado desde la última vez», «Si recibes un 429, espera lo que indica Retry-After»): no se justifican con cómo está montado Dinaup («La API la comparten todas las empresas»). Un aviso cuenta una sola cosa; si hay varias, cada una va en su línea, con su acción.
+- Una opción de un menú o un botón que cambia algo dice qué le pasa a lo que el usuario tiene en marcha: «Moverla físicamente (reinicia)», «Apuntar a donde está (no reinicia)».
 - Sin jerga del modelo de datos en pantalla («criterio», `DataFlow`).
 - Un texto público (la doc, la ayuda de una ventana, una nota de versión) explica solo Dinaup, lo más corto posible: lo que Dinaup da o pide para llevarlo a otra herramienta, no cómo funciona esa herramienta. Sin infraestructura interna ni historia de versiones.
 - Un vídeo y su descripción se despiden solo con «Pruébalo en dinaup.com»: sin mandar a otro dominio (go.dinaup.com) ni pedir que se suscriban.
