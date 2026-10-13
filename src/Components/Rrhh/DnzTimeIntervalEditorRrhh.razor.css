@@ -4,7 +4,6 @@
     border-radius: var(--dnz-container-radius, 8px);
     background: var(--dnz-surface, #fff);
     box-shadow: var(--dnz-card-shadow, 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04));
-    overflow: hidden;
 }
 
 /* ── Toolbar ── */
@@ -17,6 +16,8 @@
     border-bottom: 1px solid var(--dnz-header-border, #eef1f5);
     flex-shrink: 0;
     min-height: 30px;
+    /* Sin overflow:hidden en el contenedor (cortaba los desplegables): las esquinas se redondean aqui. */
+    border-radius: var(--dnz-container-radius, 8px) var(--dnz-container-radius, 8px) 0 0;
 }
 
 .tie-toolbar-group {
@@ -293,6 +294,7 @@
     background: var(--dnz-surface-raised, #f8fafb);
     gap: 12px;
     min-height: 30px;
+    border-radius: 0 0 var(--dnz-container-radius, 8px) var(--dnz-container-radius, 8px);
 }
 
 .tie-footer-totals {
