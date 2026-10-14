@@ -129,8 +129,10 @@ const esTest = /(^|\/)tests?\//i.test(rutaNormal) || /Tests?\.(cs|vb)$/.test(rut
 const esService = /\b(class|Class|Module)\s+\w+Service\b/.test(texto);
 const nombreFichero = path.basename(fichero);
 // El Servidor no tiene contenedor de DI (sus servicios son Shared) y DinaZen es la librería que envuelve a Radzen.
+// Solo play tiene los fondos que cambian con el tema (`--play-fondo-…`, en su var.css).
 const esServidor = /dinaupservidor/i.test(path.basename(raizRepo));
 const esDinaZen = /dinazen/i.test(path.basename(raizRepo));
+const esPlay = fs.existsSync(path.join(raizRepo, "src", "play.dinaup.com", "wwwroot", "css", "var.css"));
 const esSdk = /^dinaup$/i.test(path.basename(raizRepo)) && /(^|\/)src\//.test(rutaNormal);
 // Las líneas de cada bloque `@code { … }` de un .razor, contando llaves: puede haber varios, y de una sola línea.
 const enBloqueCode = new Array(lineas.length).fill(false);
@@ -273,6 +275,7 @@ const detectores = [
     { nivel: "🔴", donde: [".razor"], re: /\bProperty="[A-Z]\w*"/, dice: "Nombre de propiedad escrito a mano: `Property=\"@nameof(Tipo.Campo)\"`.", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".razor"], re: /style="[^"]*#[0-9a-fA-F]{3,8}\b/, si: i => /style="[^"]*#[0-9a-fA-F]{3,8}\b/.test(lineas[i].replace(/var\([^()]*\)/g, "")), dice: "Color escrito a mano: usa las variables de Radzen.", regla: "codigo/no-hacer" },
     { nivel: "🟡", donde: [".css"], re: /^\s*(?!--)[\w-]+\s*:[^;]*#[0-9a-fA-F]{3,8}\b/, si: i => /#[0-9a-fA-F]{3,8}\b/.test(lineas[i].replace(/var\([^()]*\)/g, "")), dice: "Color escrito a mano: usa las variables de Radzen.", regla: "codigo/no-hacer" },
+    { nivel: "🟡", donde: [".css", ".razor"], re: /(?<![\w-])background(?:-color)?\s*:\s*var\(\s*--rz-base-(?:50|100|200|300)\s*[,)]/, si: () => esPlay && texto.includes('data-bs-theme="dark"') === false, dice: "Fondo con `--rz-base-50` a `-300`, sin versión para el tema oscuro: en oscuro es casi blanco. Usa `--play-fondo-sutil`, `--play-fondo-marcado` o `--play-fondo-hundido`, que cambian con el tema; una raya, `--rz-border-color`.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /\bBusyText=/, si: i => pieDeLinea[i] !== null, dice: "`BusyText` en el pie: basta `IsBusy`, el rótulo no cambia al guardar.", regla: "codigo/dialogos-play" },
     { nivel: "🔴", donde: [".razor"], re: /\bText="Guardar"/, si: i => pieDeLinea[i] !== null, dice: "El botón que confirma dice «Aceptar».", regla: "codigo/tono-de-voz" },
     { nivel: "🔴", donde: [".razor"], re: /\bText="Cerrar"/, si: i => pieDeLinea[i] !== null && pieDeLinea[i].confirma, dice: "Con «Aceptar» en el pie, el que sale sin guardar dice «Cancelar».", regla: "codigo/tono-de-voz" },

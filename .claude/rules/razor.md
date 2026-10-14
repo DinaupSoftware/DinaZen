@@ -10,12 +10,13 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 ## Antes de escribir
 
-- Una ventana nueva, una pieza de pantalla nueva o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, con lo que hay ahora y una o dos propuestas, la recomendada marcada. El código espera a que Angel elija. Rehacer una pantalla que no le gusta («mucho texto») también es un rediseño, aunque el encargo diga «abre un PR»: ni código ni PR antes de que elija.
+- Una ventana nueva, una pieza de pantalla nueva, un correo nuevo o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, que se pueda tocar, con lo que hay ahora y una o dos propuestas, la recomendada marcada. Una propuesta contada en un texto no es una previa. La de un correo es el correo en HTML, maquetado como llegará, no un texto plano. El código espera a que Angel elija. Rehacer una pantalla que no le gusta («mucho texto») también es un rediseño, aunque el encargo diga «abre un PR»: ni código ni PR antes de que elija.
 
 ## Componentes
 
 - Radzen y DinaZen, nunca HTML ni CSS propios para lo básico: `RadzenButton`, `DnzSearchInput`, `RadzenDataGrid`, `DnzLoader`, `DnzSpanMoney`, `DnzFileUploaderButton` (nunca `<InputFile>`).
 - Antes de escribir CSS o un componente, mira lo que ya pinta eso (`site.css`, un componente de DinaZen o de play). Si le falta algo, se le añade un parámetro (`CuentaChapaU` con `ConTitulo`): no se redibuja en el `.razor.css` de la pantalla. Una maqueta de hace días se repasa contra los controles de hoy antes de codificarla.
+- Un fondo en play va con `var(--play-fondo-sutil)`, `var(--play-fondo-marcado)` o `var(--play-fondo-hundido)`, que cambian con el tema: de fondo, `--rz-base-50` a `-300` dan un parche casi blanco en oscuro. Una raya, `var(--rz-border-color)`.
 - Un icono se elige en el buscador de iconos de play (`IconSearchU`, o `UpDialogs.SeleccionarIconoAsync`), con un botón que enseña el elegido: nunca en una casilla donde se escribe su nombre.
 - Un buscador es `DnzSearchInput`, que espera a que se deje de teclear: nunca un `RadzenTextBox` con `@oninput`, `@bind-Value:event="oninput"` o un temporizador.
 - Un desplegable con todos los valores de un enum es `DnzEnumDropDown`: la etiqueta sale del propio enum (`[Display]`). Sin una clase ni una lista solo para dar texto a las opciones.
@@ -66,12 +67,13 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 ## Textos
 
-- Tono de Cloudflare sin historias: frases cortas, voz activa, el siguiente paso.
-- El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso».
+- Tono de Cloudflare sin historias: frases cortas, voz activa, el siguiente paso. Se dice el hecho, sin una frase que lo anuncie («Parece una ventaja, pero no lo es»).
+- Un título dice qué hay, en palabras corrientes y sin metáforas ni coloquialismos: «Vencimientos», no «Lo que arde».
+- El título de una notificación dice qué ha pasado: «No se han guardado los cambios», no «Ups», «Genial» ni «Aviso». Lo que ha pasado de verdad: «No se ha calculado a tiempo», no una causa que no sabes si es cierta («Hay mucho tráfico»).
 - Un consejo o un aviso dicen qué hacer («Pide solo lo que ha cambiado desde la última vez», «Si recibes un 429, espera lo que indica Retry-After»): no se justifican con cómo está montado Dinaup («La API la comparten todas las empresas»). Un aviso cuenta una sola cosa; si hay varias, cada una va en su línea, con su acción.
 - Una opción de un menú o un botón que cambia algo dice qué le pasa a lo que el usuario tiene en marcha: «Moverla físicamente (reinicia)», «Apuntar a donde está (no reinicia)».
 - Sin jerga del modelo de datos en pantalla («criterio», `DataFlow`).
 - Un texto público (la doc, la ayuda de una ventana, una nota de versión) explica solo Dinaup, lo más corto posible: lo que Dinaup da o pide para llevarlo a otra herramienta, no cómo funciona esa herramienta. Sin infraestructura interna ni historia de versiones.
-- Un vídeo y su descripción se despiden solo con «Pruébalo en dinaup.com»: sin mandar a otro dominio (go.dinaup.com) ni pedir que se suscriban.
+- Un vídeo y su descripción se despiden solo con «Pruébalo en dinaup.com»: sin mandar a otro dominio (go.dinaup.com) ni pedir que se suscriban. El vídeo se enseña primero en la web, con su voz, y el mp4 se saca con el visto bueno de Angel.
 - Lo justo en pantalla: sin claves internas, límites del sistema ni notas que explican la ventana; sin pestañas si todo cabe; crear es un «+» en el `DnzCardTitle`; un dato sale una vez por pantalla: la cabecera no destaca lo que ya está en las cifras de debajo, y nada repite el panel del diseñador o el menú del botón derecho; ninguna card sin nada que enseñar en ese caso, tampoco con una nota de dónde se configura. Un campo que no se puede cambiar enseña lo que le aplica, con su valor y sin dejar cambiarlo.
 - Una cifra lleva su rótulo y nada debajo: una frase que dice qué mide o qué pasa al llegar al tope satura, y más repetida en cada tarjeta. Si hace falta, va en el `title` de la cifra. Lo secundario (lo que está en curso, el pico) va más pequeño.
