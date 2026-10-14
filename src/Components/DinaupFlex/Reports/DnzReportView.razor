@@ -319,7 +319,13 @@
 	private Task SaveSettingsAsync(DataGridSettings x) => DisableLocalStorageSettings ? Task.CompletedTask : (_settingsStore ??= new ReportGridSettingsStore(JS, SettingsKey)).SaveAsync(x);
 	private void OnLoadSettings(DataGridLoadSettingsEventArgs args) => args.Settings = (DisableLocalStorageSettings || _settingsStore == null) ? null : _settingsStore.Current;
 
-	private ReportRequestParameters BaseRequest() => new(ReportId) { Variables = VariablesValues, QuerySearch = QuerySearch, Order = Orden, Expresion = AdvancedFilter, AdminMode = AdminMode };
+	private ReportRequestParameters BaseRequest() {
+		return new(ReportId) { Variables = VariablesValues, QuerySearch = QuerySearch, Order = Orden, Expresion = AdvancedFilter, AdminMode = AdminMode, IncludeArchived = _includeArchived };
+	}
+
+	// Si el informe ha dejado fuera los archivados: el desplegable ofrece «Mostrar archivados» solo entonces.
+	private bool _includeArchived;
+	public bool ArchivedExcluded { get { return _dataList?.ArchivedExcluded == true; } }
 
 
 	protected override async Task OnInitializedAsync() {
@@ -364,6 +370,14 @@
 	});
 
 	public async Task UpdateAsync() { _loadSeq++; await LoadDataAsync(_lastFilter, force: true); }
+
+	public Task UpdateIncludeArchivedAsync(bool include) {
+		return InvokeAsync(async () => {
+			_includeArchived = include;
+			await UpdateAsync();
+			StateHasChanged();
+		});
+	}
 
 	// ── Server-side LoadData ──
 

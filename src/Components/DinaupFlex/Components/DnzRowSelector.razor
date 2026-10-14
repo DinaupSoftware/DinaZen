@@ -64,6 +64,10 @@
 	<ErrorBoundary>
 		<div class="dnz-rs-popup-head">
 			<DnzSearchInput BounceValueChanged=@OnDebouncedSearch Class="flex-grow-1" />
+			@if (_showArchived || reportControl?.ArchivedExcluded == true) {
+				<RadzenCheckBox TValue="bool" Value=@_showArchived Change=@OnShowArchivedChange Name="dnz-rs-show-archived" data-testid="row-selector-show-archived" />
+				<RadzenLabel Text="Mostrar archivados" Component="dnz-rs-show-archived" Style="white-space:nowrap" />
+			}
 			@if (Disabled == false && OnAdd.HasDelegate) {
 				<RadzenButton Icon="add" Text="Crear nuevo" Size="ButtonSize.Small" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Click=@OnAddFromPopupClick data-testid="row-selector-popup-add" />
 			}
@@ -92,6 +96,13 @@
 	}
 
 	[Parameter] public string Class { get; set; } = "";
+
+	bool _showArchived;
+
+	private async Task OnShowArchivedChange(bool value) {
+		_showArchived = value;
+		await reportControl.UpdateIncludeArchivedAsync(value);
+	}
 
 	private async Task OnDebouncedSearch(string value) {
 		if (Disabled) return;
@@ -188,6 +199,7 @@
 	// El render del propio evento desmonta el contenido Lazy tambien al cerrar con clic fuera: libera el informe y la proxima apertura arranca limpia.
 	async Task OnPopupClose() {
 		_popupOpen = false;
+		_showArchived = false;
 	}
 
 	private async Task OnKeyDown(KeyboardEventArgs e) {
