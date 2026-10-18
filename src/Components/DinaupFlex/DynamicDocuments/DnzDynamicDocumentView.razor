@@ -55,7 +55,7 @@
 				}
 				else if (_documentContent.IsNotEmpty())
 				{
-					<iframe id="@_iframeId" style="width:100%; max-width:900px; height:100%; border:none; border-radius:6px" />
+					<iframe id="@_iframeId" sandbox="allow-scripts allow-modals allow-popups allow-popups-to-escape-sandbox" style="width:100%; max-width:900px; height:100%; border:none; border-radius:6px" />
 				}
 				else if (_errorMessage.IsNotEmpty())
 				{

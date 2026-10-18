@@ -9,70 +9,42 @@ window.DinaZen = window.DinaZen || {};
 // IFrame Management
 // ============================================
 
+// El documento va en un iframe con sandbox: corre en un origen propio y play no puede leerlo.
+// Por eso imprimir es un mensaje que atiende un script que se le pega al final del HTML.
+var dzEscuchaImprimir = '<script>addEventListener("message",function(e){if(e.source===parent&&e.data==="dinaup:print"){focus();print();}});<\/script>';
+
 window.DinaZen.setIframeBlob = (iframeId, htmlContent) => {
-	var blob = new Blob([htmlContent], { type: "text/html" });
+	var iframe = document.getElementById(iframeId);
+	var blob = new Blob([htmlContent + dzEscuchaImprimir], { type: "text/html" });
 	var url = URL.createObjectURL(blob);
-	document.getElementById(iframeId).src = url;
+	iframe.addEventListener("load", function () { iframe.dataset.dzCargado = url; }, { once: true });
+	iframe.src = url;
 };
 
-
+// Si aun no ha cargado, espera: un mensaje enviado antes se pierde.
 window.DinaZen.printIframe = function (id) {
-	var iframe = document.getElementById(id);
+	var iframe = typeof id === "string" ? document.getElementById(id) : id;
 
-	if (!iframe) {
-		console.warn("[DinaZen] El iframe no existe:", id);
-		return;
-	}
-
-	var src = iframe.src;
-
-	// Verificar que tiene un contenido válido (evita imprimir si está vacío)
-	if (!src || src === "about:blank") {
+	if (!iframe || !iframe.src || iframe.src === "about:blank") {
 		console.warn("[DinaZen] El iframe no tiene contenido cargado:", id);
 		return;
 	}
 
-	// Intentar imprimir solo si hay contenido válido
-	if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body.innerHTML.trim().length > 0) {
-		iframe.contentWindow.focus();
-		iframe.contentWindow.print();
-	} else {
-		console.warn("[DinaZen] El iframe no tiene contenido imprimible:", id);
-	}
+	var imprimir = function () { iframe.contentWindow.postMessage("dinaup:print", "*"); };
+	if (iframe.dataset.dzCargado === iframe.src) imprimir();
+	else iframe.addEventListener("load", imprimir, { once: true });
 };
 
 window.DinaZen.printIframeOnce = function (iframe) {
-	try {
-		if (!iframe) {
-			console.warn("[DinaZen] El iframe no existe");
-			return;
-		}
+	if (!iframe || !iframe.src || iframe.src === "about:blank") return; // el about:blank inicial tambien dispara onload
+	iframe.onload = "";
+	iframe.contentWindow.postMessage("dinaup:print", "*"); // viene del onload: ya ha cargado
 
-		var src = iframe.src;
-
-		// Verificar que tiene un contenido válido (evita imprimir si está vacío)
-		if (!src || src === "about:blank") {
-			console.warn("[DinaZen] El iframe no tiene contenido cargado");
-			return;
-		}
-
-		// Intentar imprimir solo si hay contenido válido
-		if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body.innerHTML.trim().length > 0) {
-			iframe.onload = "";
-			iframe.contentWindow.focus();
-			iframe.contentWindow.print();
-
-			setTimeout(() => {
-				window.focus();
-				const element = document.querySelector('[tabindex], button, a, input, textarea, select');
-				if (element) element.focus();
-			}, 500);
-		} else {
-			console.warn("[DinaZen] El iframe no tiene contenido imprimible");
-		}
-	} catch (e) {
-		console.error("[DinaZen] Error al imprimir iframe:", e);
-	}
+	setTimeout(() => {
+		window.focus();
+		const element = document.querySelector('[tabindex], button, a, input, textarea, select');
+		if (element) element.focus();
+	}, 500);
 };
 
 // ============================================
