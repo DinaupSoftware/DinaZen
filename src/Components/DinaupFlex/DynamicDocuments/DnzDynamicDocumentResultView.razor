@@ -8,7 +8,7 @@
 </DnzCard>
 
 <div align="center" class="m-4" style="flex:1">
-	<iframe class="rz-shadow-4" id="documentopreview" onload=@(AutoImprimir ? "printIframeOnce(this)" : "") style="width: 240mm;height: 100%;margin:auto;border-radius:10px"></iframe>
+	<iframe class="rz-shadow-4" id="documentopreview" sandbox="allow-scripts allow-modals allow-popups allow-popups-to-escape-sandbox" onload=@(AutoImprimir ? "printIframeOnce(this)" : "") style="width: 240mm;height: 100%;margin:auto;border-radius:10px"></iframe>
 </div>
 
 
