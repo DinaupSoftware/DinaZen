@@ -907,6 +907,42 @@ textarea.rz-textarea:not(.rz-form-field-content > textarea) {
     overflow: hidden;
 }
 
+/* Cada contenedor se ve segun lo que lleva dentro; la clase la pone DnzFormTab.
+   Hundido: no se puede escribir nada. Elevado: lleva Estado o Tipo. Aviso: una nota
+   (Aviso, Observaciones, Terminos...) con algo escrito, con luz y borde naranja que se
+   apagan hacia abajo a la derecha. Nada se mueve. En movil, la misma clase va en .dnz-grupo. */
+.dnp-form-container.rz-card.dnz-cont-hundido,
+.dnz-grupo.dnz-cont-hundido {
+    /* Un tono por debajo del lienzo de la pestana: con su mismo color se fundiria con el. */
+    background: linear-gradient(rgba(0, 0, 0, .04), rgba(0, 0, 0, .04)), var(--dnz-tab-content-bg) !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, .06) !important;
+}
+
+.dnp-form-container.rz-card.dnz-cont-elevado,
+.dnz-grupo.dnz-cont-elevado {
+    box-shadow: var(--dnz-card-shadow) !important;
+}
+
+.dnp-form-container.rz-card.dnz-cont-aviso,
+.dnz-grupo.dnz-cont-aviso {
+    position: relative;
+    border-color: transparent !important;
+    background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--dnz-warning-color-alt) 16%, transparent) 0%, transparent 55%), var(--dnz-surface) !important;
+}
+
+.dnz-cont-aviso::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, var(--dnz-warning-color-alt) 0%, color-mix(in srgb, var(--dnz-warning-color-alt) 45%, transparent) 30%, transparent 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
 .dnp-form-container .rz-data-grid {
     width: auto !important;
     max-height: 100%;

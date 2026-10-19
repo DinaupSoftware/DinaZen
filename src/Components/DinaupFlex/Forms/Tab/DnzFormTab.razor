@@ -25,7 +25,7 @@ else if (Movil)
 			   caja. Sin etiquetas, esa caja ES la agrupacion. La de los campos es la card
 			   (misma que en escritorio); la de una lista va desnuda, porque el DnzContainer
 			   ya monta la suya y anidarlas daria caja dentro de caja. *@
-			<div class="@(grupo.EsLista ? "dnz-grupo-lista" : "dnz-grupo")">
+			<div class="@(grupo.EsLista ? "dnz-grupo-lista" : $"dnz-grupo {ClaseSegunLoQueLleva(grupo)}")">
 
 				@if (grupo.EsLista)
 				{
@@ -61,7 +61,7 @@ else
 
 		@foreach (var control in Tab.Containers.Values)
 		{
-			<DnzContainer @key=@control.Token OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client />
+			<DnzContainer @key=@control.Token Clase=@claseDeContenedor.GetM(control.Token, "") OnButtonClick=HandleButtonClick OnMostrarDialogRequiereGuardar=HandleRequiereGuardar Container=control OnDeleteItemPrimaryList=HandleOnDeleteItemPrimaryList OnTabChanged=HandleTabChanged OnAddItem=HandleNewItemList OnOpenListItem=OnOpenListItem Client=Client />
 		}
 
 		@foreach (var currentControl in Tab.Controls ?? new())
@@ -94,6 +94,38 @@ else
 
 	/// <summary>Lo emite DnzFormView al medir su contenedor. Ver alli el porque.</summary>
 	[CascadingParameter(Name = "DnzFormMovil")] public bool Movil { get; set; }
+
+	private Dictionary<string, string> claseDeContenedor = new();
+
+	private static readonly string[] PalabrasDeNota = { "aviso", "nota", "observaciones", "términos", "terminos", "terms", "condiciones", "advertencia" };
+
+	protected override void OnParametersSet()
+	{
+		// Se recalcula en cada sincronización: si un script desbloquea un campo, su contenedor deja de verse hundido al momento.
+		claseDeContenedor = DnzFormMobileLayout.Agrupar(Tab).Where(g => g.Contenedor != null).ToDictionary(g => g.Contenedor.Token, ClaseSegunLoQueLleva);
+	}
+
+	/// <summary>
+	/// Cómo se ve un contenedor según lo que lleva dentro. Gana la primera regla que cumple; si no cumple ninguna, se ve como siempre.
+	/// </summary>
+	private static string ClaseSegunLoQueLleva(DnzFormMobileLayout.Grupo grupo)
+	{
+		if (grupo.Contenedor == null || grupo.EsLista || grupo.Controles.Count == 0) return "";
+
+		// 1. Una nota (un solo texto largo que se llama Aviso, Observaciones, Términos…) se ilumina cuando tiene algo escrito.
+		var unico = grupo.Controles.Count == 1 ? grupo.Controles[0] : null;
+		var esNota = unico != null && unico.AutoSizeMaxSpace && PalabrasDeNota.Any(p => unico.Label.STR().ToLowerInvariant().Contains(p));
+		if (esNota) return unico.IsFilled ? "dnz-cont-aviso" : "";
+
+		// 2. Estado y Tipo son lo primero que se mira: su contenedor se despega un poco.
+		var llevaEstadoOTipo = grupo.Controles.Any(c => c.Label.STR().Trim().Equals("Estado", StringComparison.OrdinalIgnoreCase) || c.Label.STR().Trim().Equals("Tipo", StringComparison.OrdinalIgnoreCase));
+		if (llevaEstadoOTipo) return "dnz-cont-elevado";
+
+		// 3. Si no se puede escribir nada, se hunde.
+		if (grupo.Controles.All(c => c.IsLocked)) return "dnz-cont-hundido";
+
+		return "";
+	}
 
 
 
