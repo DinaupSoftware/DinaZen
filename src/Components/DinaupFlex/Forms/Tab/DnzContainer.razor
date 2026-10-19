@@ -2,7 +2,7 @@
 
 @* Style con mayuscula: DnzCard lo declara como parametro. En minuscula caeria en
    el splat de atributos y se emitiria dos veces sobre el mismo elemento. *@
-<DnzCard @key=@(Container.Token + "1742963010") Style="@cardStyle" class="ctrlucont dnp-form-container">
+<DnzCard @key=@(Container.Token + "1742963010") Style="@cardStyle" class=@($"ctrlucont dnp-form-container {Clase}")>
 
 	@if (Container.Icon.IsNotEmpty() && Movil == false)
 	{
@@ -49,6 +49,8 @@
 	[Parameter, EditorRequired] public DinaupClientC Client { get; set; }
 	[Parameter] public EventCallback<string> OnButtonClick { get; set; }
 	[Parameter, EditorRequired] public Dinaup.VirtualFormDTO.Container Container { get; set; }
+	/// <summary>Cómo se ve según lo que lleva dentro (hundido, elevado, aviso). La decide DnzFormTab.</summary>
+	[Parameter] public string Clase { get; set; } = "";
 	[Parameter] public EventCallback<Dinaup.VirtualFormDTO.Tab> OnTabChanged { get; set; }
 	[Parameter] public EventCallback<string> OnDeleteItemPrimaryList { get; set; }
 	[Parameter] public EventCallback OnAddItem { get; set; }
