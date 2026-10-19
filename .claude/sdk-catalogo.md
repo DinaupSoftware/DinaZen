@@ -1,6 +1,6 @@
 # Catálogo del SDK Dinaup
 
-Generado con `node .claude/tools/catalogo-sdk.mjs` desde Dinaup 10.15.0.93: 555 extensiones públicas, por el tipo que reciben. No se edita a mano.
+Generado con `node .claude/tools/catalogo-sdk.mjs` desde Dinaup 10.15.0.95: 557 extensiones públicas, por el tipo que reciben. No se edita a mano.
 
 Antes de escribir una función, busca aquí por el tipo que entra y el que sale. Si una hace casi lo que necesitas, úsala; si falta algo, se añade al SDK, no a una copia privada.
 
@@ -169,7 +169,9 @@ Antes de escribir una función, busca aquí por el tipo que entra y el que sale.
 - `IsNotEmpty(DateOnly?)` → `Boolean`
 - `IsNotEmpty(DateTime?)` → `Boolean`
 - `IsNotEmpty(TimeOnly?)` → `Boolean`
+- `IsOlderThan(dateValue As DateTime, span As TimeSpan)` → `Boolean` — True when more than has passed since this date: lastUse.IsOlderThan(TimeSpan.FromHours(1)) . A UTC date is compared with UtcNow and any o…
 - `IsToday(DateTime?)` → `Boolean`
+- `IsWithinLast(dateValue As DateTime, span As TimeSpan)` → `Boolean` — True when this date falls within the last , or in the future: lastUse.IsWithinLast(TimeSpan.FromMinutes(20)) . The opposite of IsOlderThan.
 - `KindToLocal(DateTime)` → `DateTime`
 - `KindToUnspecified(DateTime)` → `DateTime`
 - `KindToUTC(DateTime)` → `DateTime`

@@ -245,6 +245,15 @@ const anchosDeLaTabla = ["min(95%,1806px)", "min(96%,1200px)", "min(96%,1100px)"
 const ciclosDeVida = new Set(["OnInitialized", "OnInitializedAsync", "OnParametersSet", "OnParametersSetAsync", "OnAfterRender", "OnAfterRenderAsync", "SetParametersAsync", "ShouldRender", "BuildRenderTree", "Dispose", "DisposeAsync", "ToString", "Equals", "GetHashCode", "Main", "Configure", "ConfigureServices", "OpenAsync", "Opciones"]);
 const palabrasReservadas = new Set(["return", "await", "new", "throw", "else", "case", "yield", "using", "var", "if", "while", "for", "foreach", "switch", "catch", "lock", "goto", "in", "is", "as", "typeof", "nameof", "default", "base", "this", "out", "ref", "params", "await", "when", "select", "from", "where", "let", "not", "and", "or"]);
 
+// Si el SDK que fija el repo trae una extensión: lo dice su catálogo (`.claude/sdk-catalogo.md`), que se copia con esa versión.
+function sdkTrae(nombre) {
+    try {
+        return fs.readFileSync(path.join(raizRepo, ".claude", "sdk-catalogo.md"), "utf8").includes("`" + nombre + "(");
+    } catch {
+        return false;
+    }
+}
+
 // 3. Los detectores. `donde`: extensiones; `si`: condición extra sobre la línea i.
 const detectores = [
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\.TryGetValue\(|\.ContainsKey\(/, dice: "`TryGetValue` o `ContainsKey`: usa `dic.GetM(\"clave\")` o `dic.GetM(\"clave\", porDefecto)`.", regla: "codigo/no-hacer" },
@@ -257,6 +266,7 @@ const detectores = [
     { nivel: "🟡", donde: [".vb"], re: /^\s*(?:Else)?If\b.*\bThen\s*$/, si: i => /^\s*Else(?:If\b|\s*$)/.test(lineas[i + 1] || ""), dice: "`If` vacío con el trabajo en el `ElseIf` o el `Else`: escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima.", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".vb"], re: /^\s*(?:Else)?If\b(?:(?!\bThen\b).)*\b(?:Query\w*|ConsultaSQL|ConsultaDatoSQL|ExecuteScalar\w*)\s*\(/, dice: "Consulta dentro de la condición del `If`: guarda antes el resultado en una variable con un nombre que diga qué significa (`Dim yaHayPublicacion = …` e `If yaHayPublicacion = False Then`).", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".cs", ".razor"], re: /^\s*(?:@|\}\s*)?(?:else\s+)?if\s*\(/, si: i => /\{\s*\}\s*else\b/.test(lineas[i]) || (/\{\s*\}\s*$/.test(lineas[i]) && /^\s*else\b/.test(lineas[i + 1] || "")) || (/\)\s*$/.test(lineas[i]) && /^\s*\{\s*$/.test(lineas[i + 1] || "") && /^\s*\}\s*$/.test(lineas[i + 2] || "") && /^\s*else\b/.test(lineas[i + 3] || "")), dice: "`if` vacío con el trabajo en el `else`: escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /(?<![=<>-])(?:<|>)=?\s*(?:DateTime|Date)\.(?:UtcNow|Now)\.Add(?:Milliseconds|Seconds|Minutes|Hours|Days)\(\s*-|(?:DateTime|Date)\.(?:UtcNow|Now)\.Add(?:Milliseconds|Seconds|Minutes|Hours|Days)\(\s*-[^()]*\)\s*(?:<(?!>)|>)|\(\s*(?:DateTime|Date)\.(?:UtcNow|Now)\s*-\s*[A-Za-z_][\w.]*\s*\)\.Total(?:Milliseconds|Seconds|Minutes|Hours|Days)\s*[<>]/, si: () => sdkTrae("IsOlderThan"), dice: "La edad de una fecha, echada a mano: pregúntala con `IsOlderThan` o `IsWithinLast` del SDK, que se leen como frase (`ultimoUso.IsOlderThan(TimeSpan.FromHours(1))`).", regla: "codigo/reglas-duras" },
     { nivel: "🔴", donde: [".cs", ".vb"], re: /\b(?:class|Class|Module|interface|Interface)\s+\w+Factory\b/, dice: "Factoría: se crea con `new` o por DI.", regla: "codigo/client-y-service" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\b(?:static|Shared)\s+(?:readonly\s+|ReadOnly\s+)?(?:\w+\s+)?Instance\b.*(?:=\s*new\b|As\s+New\b)/, si: () => esServidor === false, dice: "Singleton a mano: regístralo en DI e inyéctalo.", regla: "codigo/client-y-service" },
     { nivel: "🟡", donde: [".cs", ".vb"], re: /\.Iniciar\(\s*\w*[Aa]ll[Ss]ervices/, si: () => esServidor === false, dice: "Servicio guardado en un estático con `Iniciar(allServices)`: inyéctalo.", regla: "codigo/client-y-service" },
