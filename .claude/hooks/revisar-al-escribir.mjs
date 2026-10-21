@@ -276,6 +276,7 @@ const detectores = [
     { nivel: "🔴", donde: [".razor"], re: /<RadzenStack\b/, si: () => esDinaZen === false, dice: "`RadzenStack`: usa un `<div class=\"d-flex …\">` de Bootstrap.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /style="[^"]*\b(?:gap|padding|margin)(?:-(?:top|bottom|left|right))?\s*:\s*(?:0\.25|\.25|0\.5|\.5|1|1\.5|3)rem/, dice: "Espaciado en `style`: usa `gap-N`, `p-N` o `m-N`.", regla: "codigo/reglas-forzadas" },
     { nivel: "🔴", donde: [".razor"], re: /<InputFile\b/, dice: "`InputFile`: usa `DnzFileUploaderButton`.", regla: "codigo/reglas-criticas-ui" },
+    { nivel: "🟡", donde: [".razor"], re: /(?:HashSet|List)<[^>]+>\s+_?(?:seleccion|marcad)\w*\s*=\s*new\b|<RadzenCheckBox\b[^>]*@bind-Value="?@?\(?\w+\.(?:Seleccionad|Marcad)\w*/i, si: () => esDinaZen === false && texto.includes("<RadzenDataGrid") && texto.includes("DataGridSelectionMode.Multiple") === false, dice: "Filas marcadas con una lista o una casilla propias: `RadzenDataGrid` las marca con `SelectionMode=\"DataGridSelectionMode.Multiple\"` y guarda las marcadas en su `Value`.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /<RadzenLink\b[^>]*doc\.dinaup\.com|<a\b[^>]*doc\.dinaup\.com[^>]*>\s*[^<\s]/, si: () => esDinaZen === false && /\/Pages\/Apps\/Ayuda\//.test(rutaNormal) === false, dice: "Enlace suelto a la doc: usa `AyudaDocU`, el «?» gris de la ayuda.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /<RadzenTextBox\b[^>]*(?:@bind-Value:event="oninput"|@oninput)/, si: i => esDinaZen === false && /busc|search|filtr/i.test(lineas[i]), dice: "Buscador con `RadzenTextBox` y `@oninput`: usa `DnzSearchInput`, que espera a que se deje de teclear.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".razor"], re: /<RadzenTextBox\b[^>]*@bind-Value="?@?\(?(?:\w+\.)*Icono?(?:Name|Nombre)?\b/i, si: () => esDinaZen === false, dice: "Casilla para escribir el nombre de un icono: se elige en el buscador de iconos de play (`IconSearchU`, o `UpDialogs.SeleccionarIconoAsync`), con un botón que enseña el elegido.", regla: "codigo/reglas-criticas-ui" },
@@ -353,12 +354,21 @@ if (esServidor && nombreFichero === "Enumeraciones.cs") {
 // inglés, y cada parámetro con su nombre y su descripción. El castellano solo entra entre «», al citar lo que devuelve.
 if (esServidor && esVb && /FuncionDinamicaC|\.AddParametro\(/.test(texto)) {
     const enCastellano = frase => /[áéíóúñÁÉÍÓÚÑ¿¡]|\b(?:que|del|los|las|para|con|una|valor|fecha|texto|campo)\b/i.test(frase.replace(/«[^»]*»/g, ""));
+    const palabraEnCastellano = /^(?:paso|pasos|boton|botones|ayuda|titulo|estilo|aviso|avisos|mensaje|fecha|fechas|hora|horas|dia|dias|mes|meses|anio|semana|hoy|ayer|texto|campo|campos|valor|valores|nombre|registro|registros|seccion|lista|crear|borrar|eliminar|obtener|recibir|guardar|calcular|buscar|abrir|cerrar|mostrar|ocultar|enviar|formulario|configurar|horario|usuario|empresa|cliente|factura|linea|lineas|importe|cantidad|precio|numero|primero|ultimo|inicio|tipo|estado|archivo|imagen|documento|correo|pagina|tabla|fila|columna|suma|sumar|restar|contar|vacio|nuevo|nueva|agregar|anadir|quitar|cambiar|comprobar|validar|redondear|convertir|desde|hasta|entre|dato|datos|pago|cobro|nota|minuto|minutos|segundo|segundos)$/i;
     for (const i of ordenadas) {
         const linea = lineas[i];
         if (/^\s*'/.test(linea)) continue;
         const descripcion = linea.match(/\.Descripcion\s*=\s*"((?:[^"]|"")*)"/);
         if (descripcion && enCastellano(descripcion[1])) {
             avisos.push({ nivel: "🔴", linea: i + 1, dice: "Descripción de una función de DinaScript en castellano: el catálogo va entero en inglés.", regla: "codigo/dinascript-funciones" });
+        }
+        // El nombre de la función y el de cada pieza de su familia, también: es lo que se escribe en el script.
+        const constructor = linea.match(/New FuncionDinamicaC\(([^)]*)\)/);
+        const palabra = constructor === null ? undefined : [...constructor[1].matchAll(/"([A-Za-z_]\w*)"/g)]
+            .flatMap(nombre => nombre[1].match(/[A-Z]+(?=[A-Z][a-z]|\d|_|$)|[A-Z]?[a-z]+/g) || [])
+            .find(trozo => palabraEnCastellano.test(trozo));
+        if (palabra !== undefined) {
+            avisos.push({ nivel: "🔴", linea: i + 1, dice: `Nombre de una función de DinaScript en castellano («${palabra}»): el nombre y el de sus piezas van en inglés (\`Notice_Step\`, no \`Notice_Paso\`).`, regla: "codigo/dinascript-funciones" });
         }
         const inicio = linea.indexOf(".AddParametro(");
         if (inicio < 0) continue;
