@@ -120,6 +120,17 @@
 				</RadzenHtmlEditor>
 			</div>
 		}
+		else if (DataControl.FieldRole == RoleFieldE.Markdown)
+		{
+			<div class="dup_input dup_input_estandar d-flex flex-column h-100">
+				<RadzenLabel ContextMenu=@ShowContextMenuWithItems class="labelinput" for="@DataControl.Token">
+					@DataControl.Label
+					<span class="ico_IsModified"></span>
+					<span class="ico_IsRequired"></span>
+				</RadzenLabel>
+				<RadzenMarkdownEditor class="flex-grow-1" @bind-Value=@DataControl.Value @bind-Value:after=@(() => HandleDatacontrolChanged( DataControl ) ) @key=@(DataControl.Token + "-valor") Disabled=@DataControl.IsLocked />
+			</div>
+		}
 		else if (DataControl.IsMultiline)
 		{
 
