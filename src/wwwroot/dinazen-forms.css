@@ -821,19 +821,22 @@ textarea.rz-textarea:not(.rz-form-field-content > textarea) {
     font-weight: 400;
 }
 
-/* HTML Editor */
-.controlu .rz-html-editor {
+/* HTML Editor y Markdown */
+.controlu .rz-html-editor,
+.controlu .rz-markdown-editor {
     border-radius: var(--dnz-input-radius) !important;
     border: 1px solid var(--dnz-input-border) !important;
     overflow: hidden;
 }
 
-.controlu .rz-html-editor:focus-within {
+.controlu .rz-html-editor:focus-within,
+.controlu .rz-markdown-editor:focus-within {
     border-color: var(--dnz-focus-border) !important;
     box-shadow: var(--dnz-focus-ring) !important;
 }
 
-.controlu .rz-html-editor-toolbar {
+.controlu .rz-html-editor-toolbar,
+.controlu .rz-markdown-editor-toolbar {
     border-bottom: 1px solid var(--dnz-header-border) !important;
     background: var(--dnz-surface-raised) !important;
 }
@@ -2069,7 +2072,8 @@ textarea.rz-textarea:not(.rz-form-field-content > textarea) {
     height: 170px;
 }
 
-.controlu-movil .rz-html-editor {
+.controlu-movil .rz-html-editor,
+.controlu-movil .rz-markdown-editor {
     min-height: 130px;
 }
 

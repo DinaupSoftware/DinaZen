@@ -128,7 +128,29 @@
 					<span class="ico_IsModified"></span>
 					<span class="ico_IsRequired"></span>
 				</RadzenLabel>
-				<RadzenMarkdownEditor class="flex-grow-1" @bind-Value=@DataControl.Value @bind-Value:after=@(() => HandleDatacontrolChanged( DataControl ) ) @key=@(DataControl.Token + "-valor") Disabled=@DataControl.IsLocked />
+				<RadzenMarkdownEditor class="flex-grow-1" @bind-Value=@DataControl.Value @bind-Value:after=@(() => HandleDatacontrolChanged( DataControl ) ) @key=@(DataControl.Token + "-valor") Disabled=@DataControl.IsLocked>
+					<RadzenMarkdownEditorUndo />
+					<RadzenMarkdownEditorRedo />
+					<RadzenMarkdownEditorSeparator />
+					<RadzenMarkdownEditorFormatBlock />
+					<RadzenMarkdownEditorBold />
+					<RadzenMarkdownEditorItalic />
+					<RadzenMarkdownEditorStrikethrough />
+					<RadzenMarkdownEditorCode />
+					<RadzenMarkdownEditorSeparator />
+					<RadzenMarkdownEditorUnorderedList />
+					<RadzenMarkdownEditorOrderedList />
+					<RadzenMarkdownEditorTaskList />
+					<RadzenMarkdownEditorQuote />
+					<RadzenMarkdownEditorSeparator />
+					<RadzenMarkdownEditorLink />
+					<RadzenMarkdownEditorImage />
+					<RadzenMarkdownEditorCodeBlock />
+					<RadzenMarkdownEditorHorizontalRule />
+					<RadzenMarkdownEditorTableTools />
+					<RadzenMarkdownEditorSeparator />
+					<RadzenMarkdownEditorSource />
+				</RadzenMarkdownEditor>
 			</div>
 		}
 		else if (DataControl.IsMultiline)
