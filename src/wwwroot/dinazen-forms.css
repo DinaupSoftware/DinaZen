@@ -314,10 +314,10 @@
     padding: 0;
 }
 
+/* Sin display propio: con Overflow="Collapse" Radzen la pinta como rejilla y un flex aquí
+   saca el botón ⋯ a una segunda fila y las pestañas parpadean entre una y dos líneas. */
 .dnz-form-body > .rz-tabview {
     height: 100%;
-    display: flex;
-    flex-direction: column;
 }
 
 .dnz-form-body > .rz-tabview > .rz-tabview-nav-content {
