@@ -46,7 +46,7 @@
 	<!-- NuGet packages -->
 	<ItemGroup Condition="'$(UseLocalProjects)' != 'true'">
 		<PackageReference Include="Dinaup.MyDinaup0" Version="10.15.0.20" />
-		<PackageReference Include="DemoUp.MyDinaup" Version="10.15.0.41" />
+		<PackageReference Include="DemoUp.MyDinaup" Version="10.15.0.42" />
 		<PackageReference Include="Dinaup" Version="10.15.0.*" />
 	</ItemGroup>
 	<ItemGroup>
