@@ -254,6 +254,31 @@ function sdkTrae(nombre) {
     }
 }
 
+// Una duración guardada en un número cuyo nombre no dice la unidad (`Dim timeout = 30`, `int duracion;`): devuelve ese nombre, o "".
+// Si el nombre dice que es una cuenta (`cantidadDeTimeouts`), no es una duración.
+const palabraDeTiempo = /timeout|duraci[oó]n|duration|delay|retraso|intervalo|interval|latencia|latency|cooldown|backoff/i;
+const unidadesDeUnNombre = new Set(["ms", "msec", "millis", "milliseconds", "millisecond", "milisegundos", "milisegundo", "seg", "segs", "segundos", "segundo", "sec", "secs", "second", "seconds", "min", "mins", "minuto", "minutos", "minute", "minutes", "hora", "horas", "hour", "hours", "hrs", "dia", "dias", "día", "días", "day", "days", "ticks", "semana", "semanas", "week", "weeks", "bytes", "kb", "mb", "gb"]);
+const cuentasDeUnNombre = new Set(["cantidad", "count", "numero", "num", "total", "veces", "times", "intentos", "retries", "reintentos", "attempts", "cuantos", "cuantas", "index", "indice"]);
+const declaracionesNumericas = esVb
+    ? [/^\s*(?:<[^>]*>\s*)*(?:(?:Public|Private|Friend|Protected|Dim|Const|Shared|ReadOnly|Property|Overridable|Overrides|WithEvents|Static)\s+)+([A-Za-z_]\w*)\s+As\s+(?:New\s+)?(?:Integer|Long|Double|Decimal|Short|Single|Int32|Int64|UInteger|ULong)\b/g,
+        /[(,]\s*(?:Optional\s+)?(?:ByVal\s+|ByRef\s+)?([A-Za-z_]\w*)\s+As\s+(?:Integer|Long|Double|Decimal|Short|Single|Int32|Int64|UInteger|ULong)\b/g,
+        /^\s*(?:Dim|Const)\s+([A-Za-z_]\w*)\s*=\s*-?\d[\d_]*(?:\.\d+)?\s*(?:'.*)?$/g]
+    : [/\b(?:int|long|double|decimal|short|float|uint|ulong|Int32|Int64)\s+([A-Za-z_]\w*)\s*(?:=(?!=)|;|,|\)|\{)/g,
+        /\b(?:var|const\s+int|const\s+long)\s+([A-Za-z_]\w*)\s*=\s*-?\d[\d_]*(?:\.\d+)?\s*;/g];
+function duracionSinUnidad(linea) {
+    for (const re of declaracionesNumericas) {
+        for (const m of linea.matchAll(re)) {
+            const nombre = m[1];
+            if (palabraDeTiempo.test(nombre) === false) continue;
+            const partes = nombre.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2").toLowerCase().split(/[\s_]+/);
+            if (partes.some(p => unidadesDeUnNombre.has(p) || cuentasDeUnNombre.has(p))) continue;
+            if (/(?:ms|milisegundos?|milliseconds?|millis|segundos?|seconds?|secs?|minutos?|minutes?|mins?|horas?|hours?|d[ií]as?|days?|ticks)$/i.test(nombre)) continue;
+            return nombre;
+        }
+    }
+    return "";
+}
+
 // 3. Los detectores. `donde`: extensiones; `si`: condición extra sobre la línea i.
 const detectores = [
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\.TryGetValue\(|\.ContainsKey\(/, dice: "`TryGetValue` o `ContainsKey`: usa `dic.GetM(\"clave\")` o `dic.GetM(\"clave\", porDefecto)`.", regla: "codigo/no-hacer" },
@@ -268,6 +293,7 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".razor"], re: /^\s*(?:@|\}\s*)?(?:else\s+)?if\s*\(/, si: i => /\{\s*\}\s*else\b/.test(lineas[i]) || (/\{\s*\}\s*$/.test(lineas[i]) && /^\s*else\b/.test(lineas[i + 1] || "")) || (/\)\s*$/.test(lineas[i]) && /^\s*\{\s*$/.test(lineas[i + 1] || "") && /^\s*\}\s*$/.test(lineas[i + 2] || "") && /^\s*else\b/.test(lineas[i + 3] || "")), dice: "`if` vacío con el trabajo en el `else`: escribe la condición de lo que hace algo y, si es larga, en una variable con nombre justo encima.", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /(?<![=<>-])(?:<|>)=?\s*(?:DateTime|Date)\.(?:UtcNow|Now)\.Add(?:Milliseconds|Seconds|Minutes|Hours|Days)\(\s*-|(?:DateTime|Date)\.(?:UtcNow|Now)\.Add(?:Milliseconds|Seconds|Minutes|Hours|Days)\(\s*-[^()]*\)\s*(?:<(?!>)|>)|\(\s*(?:DateTime|Date)\.(?:UtcNow|Now)\s*-\s*[A-Za-z_][\w.]*\s*\)\.Total(?:Milliseconds|Seconds|Minutes|Hours|Days)\s*[<>]/, si: () => sdkTrae("IsOlderThan"), dice: "La edad de una fecha, echada a mano: pregúntala con `IsOlderThan` o `IsWithinLast` del SDK, que se leen como frase (`ultimoUso.IsOlderThan(TimeSpan.FromHours(1))`).", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /\.Hour\b(?:\.Between\(\s*\d|\s*(?:>=|<=|==|<(?![<>=])|>(?![>=]))\s*0*[1-9]\d?\b)/, si: i => /^\s*[Rr]eturn\b/.test(lineas[i]) === false && /extensi/i.test(path.basename(rutaNormal)) === false, dice: "Ventana horaria a mano (`ahora.Hour >= 22 OrElse ahora.Hour < 2`): pregúntala con una extensión que se lea como frase (`ahora.EstaEnLaVentanaDeMantenimiento()`), una para todas las tareas que comparten esa ventana.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: palabraDeTiempo, si: i => duracionSinUnidad(lineas[i]) !== "", dice: "Duración sin su unidad en el nombre: `timeoutMs`, `TimeoutSegundos`, `DuracionMaximaDeSolicitudMS`. Con `timeout` a secas no se sabe si son segundos o milisegundos.", regla: "codigo/reglas-duras" },
     { nivel: "🔴", donde: [".cs", ".vb"], re: /\b(?:class|Class|Module|interface|Interface)\s+\w+Factory\b/, dice: "Factoría: se crea con `new` o por DI.", regla: "codigo/client-y-service" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\b(?:static|Shared)\s+(?:readonly\s+|ReadOnly\s+)?(?:\w+\s+)?Instance\b.*(?:=\s*new\b|As\s+New\b)/, si: () => esServidor === false, dice: "Singleton a mano: regístralo en DI e inyéctalo.", regla: "codigo/client-y-service" },
     { nivel: "🟡", donde: [".cs", ".vb"], re: /\.Iniciar\(\s*\w*[Aa]ll[Ss]ervices/, si: () => esServidor === false, dice: "Servicio guardado en un estático con `Iniciar(allServices)`: inyéctalo.", regla: "codigo/client-y-service" },
