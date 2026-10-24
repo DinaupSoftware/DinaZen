@@ -377,6 +377,12 @@ if (esServidor && nombreFichero === "Enumeraciones.cs") {
     }
 }
 
+// Helpers_Enumeraciones.vb lo escribe el generador del Servidor: lo que se cambia a mano se pierde al regenerar, y
+// verificar-enums.yml sale en rojo en el PR.
+if (esServidor && nombreFichero === "Helpers_Enumeraciones.vb") {
+    avisos.push({ nivel: "🔴", linea: (ordenadas[0] ?? 0) + 1, dice: "`Helpers_Enumeraciones.vb` no se edita a mano: lo escribe `Tools/enums/generar_helpers_enumeraciones.py`. Sigue `skills/agregar-nuevo-enum.md`.", regla: "codigo/dinaupcs-commons" });
+}
+
 // El catálogo de DinaScript es lo que lee quien escribe un script (la ventana «Funciones» de play, Yudo): va entero en
 // inglés, y cada parámetro con su nombre y su descripción. El castellano solo entra entre «», al citar lo que devuelve.
 if (esServidor && esVb && /FuncionDinamicaC|\.AddParametro\(/.test(texto)) {
