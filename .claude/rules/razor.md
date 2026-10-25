@@ -51,6 +51,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - Alto: `AltoAuto=true` en la maqueta y `Height = null` en las opciones. Una ventana que abre sin alto y sin `AltoAuto=true` se queda en 150 px, el mínimo de Radzen. Un alto fijo lleva un comentario con el motivo.
 - Un solo scroll, en la ventana y en la página: si el cuerpo scrolla, nada de dentro scrolla por su cuenta; si una lista o un editor scrollan por dentro, el cuerpo no. En la ventana, `ContentStyle="overflow:hidden"`; en la página, el `RadzenBody` con `position:relative; overflow:hidden` y lo de dentro con `position:absolute; inset:0`, como /App/Chat. Nunca un alto restado a ojo como `calc(100vh - 160px)`. Se mira en pantalla con la lista llena y la ventana baja; si no se ha podido, la entrega lo dice.
 - `CloseDialogOnOverlayClick = true` en consultas; `false` con comentario en formularios.
+- Esc cierra la ventana como su botón de cerrar: `CloseDialogOnEsc = true` y, si ese botón pregunta por cambios sin guardar, `Options.CanClose` le pasa el Esc (`SectionDialog.razor`). Si la ventana usa Esc para algo suyo (el diseñador), lo atiende ella y cierra cuando ya no queda nada. Solo una ventana de progreso lo apaga, con un comentario.
 - Mientras lee: `IsLoading=@cargando` (nace en `true`) y el fallo en `ErrorText`, con `OnRetry` si reintentar sirve. Nunca `@if (x == null) return;`.
 - «Aceptar» no aparece hasta que la lectura acaba bien.
 
