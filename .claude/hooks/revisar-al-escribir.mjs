@@ -319,6 +319,7 @@ const detectores = [
     { nivel: "🔴", donde: [".razor"], re: /\bText="Cerrar"/, si: i => pieDeLinea[i] !== null && pieDeLinea[i].confirma, dice: "Con «Aceptar» en el pie, el que sale sin guardar dice «Cancelar».", regla: "codigo/tono-de-voz" },
     { nivel: "🔴", donde: [".razor"], re: /^\s*@if\s*\(\s*\w+\s*==\s*null\s*\)\s*return;/, dice: "Ventana en blanco mientras carga: `IsLoading` en `DnzDialogLayout`.", regla: "codigo/dialogos-play" },
     { nivel: "🟡", donde: [".razor", ".cs"], re: /^\s*Width\s*=\s*"[^"]*"\s*,?\s*(?:\/\/.*)?$/, si: i => esCSharpDeRazor(i) && texto.includes("DialogOptions") && anchosDeLaTabla.includes(lineas[i].match(/"([^"]*)"/)[1].replace(/\s+/g, "")) === false && /\/\/|'/.test(lineas[i]) === false && /^\s*\/\//.test(lineas[i - 1] || "") === false, dice: "Ancho de diálogo fuera de la tabla: uno de los seis, o un comentario con el motivo.", regla: "codigo/dialogos-play" },
+    { nivel: "🟡", donde: [".razor", ".cs"], re: /^\s*Width\s*=\s*"min\(\s*9\d%\s*,\s*\d+px\)"\s*,?\s*(?:\/\/.*)?$/, si: i => esCSharpDeRazor(i) && texto.includes("DialogOptions") && Number(lineas[i].match(/(\d+)px/)[1]) < 1806 && (/<(?:AgentDialogLayout|InlineYudo)\b/.test(texto) || lineas.slice(Math.max(0, i - 6), i + 1).some(l => /\bYudo\b/.test(l))), dice: "Ventana con Yudo dentro más estrecha que el denso: con Yudo abre en `min(95%, 1806px)`.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🟡", donde: [".razor", ".cs"], re: /^\s*Height\s*=\s*"\d+px"\s*,?\s*(?:\/\/.*)?$/, si: i => esCSharpDeRazor(i) && /\/\//.test(lineas[i]) === false && /^\s*\/\//.test(lineas[i - 1] || "") === false, dice: "Alto fijo en px: `AltoAuto=true` y `Height = null`, o un comentario con el motivo.", regla: "codigo/dialogos-play" },
     { nivel: "🟡", donde: [".razor"], re: /<RadzenTemplateForm[^>]*\bSubmit=|Key\s*==\s*"Enter"/, dice: "Esta entrada no tiene el cerrojo del botón: el método que guarda empieza con `if (guardando) return;`.", regla: "codigo/una-sola-vez" },
     { nivel: "🟡", donde: [".razor"], re: /@onkeydown=.*@onkeypress=|@onkeypress=.*@onkeydown=/, dice: "`@onkeydown` y `@onkeypress` en el mismo elemento: Enter dispara los dos. Un evento por acción.", regla: "codigo/una-sola-vez" },
@@ -717,7 +718,7 @@ if (esCodigo) {
                 const suya = partes[3];
                 const mismaFirma = tipoPrimero !== "" && suya.includes(tipoPrimero.trim()) && (devuelve === "" || suya.includes(devuelve.trim().replace(/\?$/, "")));
                 const relativa = path.relative(raizRepo, otro).split("\\").join("/");
-                avisos.push({ nivel: mismaFirma ? "🔴" : "🟡", linea: i + 1, dice: `\`${nombre}\` ya existe en \`${relativa}:${partes[2]}\`${mismaFirma ? "" : ", quizá con otro fin"}: reutilízala. Si hace falta en varios sitios, súbela a \`<Servicio>.Extensions\` o proponla para el SDK.`, regla: "codigo/no-hacer" });
+                avisos.push({ nivel: mismaFirma ? "🔴" : "🟡", linea: i + 1, dice: `\`${nombre}\` ya existe en \`${relativa}:${partes[2]}\`${mismaFirma ? "" : ", quizá con otro fin"}: reutilízala o quita la tuya, que cambiarle el nombre no lo arregla. Si hace falta en varios sitios, súbela a \`<Servicio>.Extensions\` o proponla para el SDK.`, regla: "codigo/no-hacer" });
                 break;
             }
         }
