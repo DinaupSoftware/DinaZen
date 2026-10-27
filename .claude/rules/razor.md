@@ -10,7 +10,7 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 
 ## Antes de escribir
 
-- Una ventana nueva, una pieza de pantalla nueva, un correo nuevo o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, que se pueda tocar, con lo que hay ahora y una o dos propuestas, la recomendada marcada. Lo que hay se calca de la pantalla de verdad, de su `.razor` y su CSS (colores, bordes, medidas), no de una imitación, y lo que propone tampoco se sale del estilo de play: un estilo que no sale de ningún color de play no es una propuesta. Una propuesta contada en un texto no es una previa. La de un correo es el correo en HTML, maquetado como llegará, no un texto plano. El código espera a que Angel elija. Rehacer una pantalla que no le gusta («mucho texto») también es un rediseño, aunque el encargo diga «abre un PR»: ni código ni PR antes de que elija.
+- Una ventana nueva, una pieza de pantalla nueva, un correo nuevo o un rediseño se enseñan antes en una previa: una página HTML con el CSS de play, que se pueda tocar, con lo que hay ahora y una o dos propuestas, la recomendada marcada. Lo que hay se calca de la pantalla de verdad, de su `.razor` y su CSS (colores, bordes, medidas), no de una imitación, y lo que propone tampoco se sale del estilo de play: un estilo que no sale de ningún color de play no es una propuesta. Una propuesta contada en un texto no es una previa, ni una maqueta o unas capturas de lo ya escrito: la previa va antes de la primera línea de código, y no se ofrece empezar sin ella («¿Empiezo la fase 1?»). La de un correo es el correo en HTML, maquetado como llegará, no un texto plano. El código espera a que Angel elija. Rehacer una pantalla que no le gusta («mucho texto») también es un rediseño, aunque el encargo diga «abre un PR»: ni código ni PR antes de que elija.
 
 ## Componentes
 
@@ -20,9 +20,10 @@ Resumen de doc-in: `codigo/reglas-criticas-ui`, `codigo/dialogos-play`, `codigo/
 - Un fondo en play va con `var(--play-fondo-sutil)`, `var(--play-fondo-marcado)` o `var(--play-fondo-hundido)`, que cambian con el tema: de fondo, `--rz-base-50` a `-300` dan un parche casi blanco en oscuro. Una raya, `var(--rz-border-color)`.
 - Un icono se elige en el buscador de iconos de play (`IconSearchU`, o `UpDialogs.SeleccionarIconoAsync`), con un botón que enseña el elegido: nunca en una casilla donde se escribe su nombre.
 - Un buscador es `DnzSearchInput`, que espera a que se deje de teclear: nunca un `RadzenTextBox` con `@oninput`, `@bind-Value:event="oninput"` o un temporizador.
+- Un texto de varias líneas es Markdown: se edita con `RadzenMarkdownEditor`, nunca con `RadzenTextArea`, y en Flex su campo es Markdown, no Multilínea.
 - Un desplegable con todos los valores de un enum es `DnzEnumDropDown`: la etiqueta sale del propio enum (`[Display]`). Sin una clase ni una lista solo para dar texto a las opciones.
 - En los estilos de un enum (`EstiloTexto`), un tipo va con borde («Tipo naranja») y un estado, con relleno («Estado naranja»). El usuario puede saltársela en sus enums; lo que hace Dinaup la sigue.
-- Cada bloque va en una `DnzCard` titulada con `DnzCardTitle`. Nada suelto sobre el fondo.
+- Cada bloque va en una `DnzCard` titulada con `DnzCardTitle`, también los campos de una ventana, agrupados y con su icono. Nada suelto sobre el fondo, ni un `div` con clase propia (`md-bloque`) que haga de card.
 - Un enlace a la doc es `AyudaDocU`, el «?» gris de la ayuda: nunca un `RadzenLink` o un `<a>` suelto.
 - Un campo va en `RadzenFormField Variant="Variant.Flat"`, que `site.css` pinta sin caja (fondo suave, sin borde): nunca `Outlined`, `Filled` ni `Text`, ni borde o fondo propios. Los formularios dinámicos (`DnzControl`) van aparte.
 - Un botón que hace algo con el valor de un campo va aparte, a la derecha del `RadzenFormField`: nunca en su `<End>` o `<Start>`.

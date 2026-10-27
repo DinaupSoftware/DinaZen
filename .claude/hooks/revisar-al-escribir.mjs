@@ -279,6 +279,28 @@ function duracionSinUnidad(linea) {
     return "";
 }
 
+// Una variable de una letra solo vale con ámbito mínimo: si el bloque donde se declara sigue más de tres líneas, lleva
+// nombre. Las líneas que siguen dentro de una cadena (el SQL de varias líneas) no cuentan. Quedan fuera los índices `i`, `j`
+// y `k`, y la `x` y la `y` de una coordenada: con su pareja declarada al lado o un `.X` en la línea.
+function letraConAmbitoLargo(i, declaracion) {
+    const letra = lineas[i].match(declaracion)[1];
+    if (/^[ijk]$/i.test(letra) || esTest) return false;
+    if (/^[xy]$/i.test(letra)) {
+        const pareja = /^x$/i.test(letra) ? "y" : "x";
+        const vecinas = `${lineas[i - 1] || ""}\n${lineas[i + 1] || ""}`;
+        if (new RegExp(`^\\s*(?:Dim|var)\\s+${pareja}\\b`, "im").test(vecinas)) return false;
+        if (/\.[XY]\b|(?:Offset|center|Center|Client|Page|Screen)[XY]\b|\bd[xy]\b/.test(lineas[i])) return false;
+    }
+    const sangria = lineas[i].search(/\S/);
+    let siguen = 0;
+    for (let k = i + 1; k < lineas.length && siguen < 4; k++) {
+        if (lineas[k].trim() === "" || empiezaEnCadena[k]) continue;
+        if (lineas[k].search(/\S/) < sangria) return false;
+        siguen++;
+    }
+    return siguen === 4;
+}
+
 // 3. Los detectores. `donde`: extensiones; `si`: condición extra sobre la línea i.
 const detectores = [
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\.TryGetValue\(|\.ContainsKey\(/, dice: "`TryGetValue` o `ContainsKey`: usa `dic.GetM(\"clave\")` o `dic.GetM(\"clave\", porDefecto)`.", regla: "codigo/no-hacer" },
@@ -294,6 +316,10 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /(?<![=<>-])(?:<|>)=?\s*(?:DateTime|Date)\.(?:UtcNow|Now)\.Add(?:Milliseconds|Seconds|Minutes|Hours|Days)\(\s*-|(?:DateTime|Date)\.(?:UtcNow|Now)\.Add(?:Milliseconds|Seconds|Minutes|Hours|Days)\(\s*-[^()]*\)\s*(?:<(?!>)|>)|\(\s*(?:DateTime|Date)\.(?:UtcNow|Now)\s*-\s*[A-Za-z_][\w.]*\s*\)\.Total(?:Milliseconds|Seconds|Minutes|Hours|Days)\s*[<>]/, si: () => sdkTrae("IsOlderThan"), dice: "La edad de una fecha, echada a mano: pregúntala con `IsOlderThan` o `IsWithinLast` del SDK, que se leen como frase (`ultimoUso.IsOlderThan(TimeSpan.FromHours(1))`).", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /\.Hour\b(?:\.Between\(\s*\d|\s*(?:>=|<=|==|<(?![<>=])|>(?![>=]))\s*0*[1-9]\d?\b)/, si: i => /^\s*[Rr]eturn\b/.test(lineas[i]) === false && /extensi/i.test(path.basename(rutaNormal)) === false, dice: "Ventana horaria a mano (`ahora.Hour >= 22 OrElse ahora.Hour < 2`): pregúntala con una extensión que se lea como frase (`ahora.EstaEnLaVentanaDeMantenimiento()`), una para todas las tareas que comparten esa ventana.", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: palabraDeTiempo, si: i => duracionSinUnidad(lineas[i]) !== "", dice: "Duración sin su unidad en el nombre: `timeoutMs`, `TimeoutSegundos`, `DuracionMaximaDeSolicitudMS`. Con `timeout` a secas no se sabe si son segundos o milisegundos.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".vb"], re: /^\s*Dim\s+[A-Za-z]\s*(?:=|As\b)/, si: i => letraConAmbitoLargo(i, /^\s*Dim\s+([A-Za-z])\b/), dice: "Variable de una letra en un bloque de más de tres líneas: un nombre que diga qué es (`proyecto`, no `P`), aunque la línea quede larga.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".cs", ".razor"], re: /^\s*var\s+[A-Za-z]\s*=/, si: i => letraConAmbitoLargo(i, /^\s*var\s+([A-Za-z])\b/), dice: "Variable de una letra en un bloque de más de tres líneas: un nombre que diga qué es (`proyecto`, no `P`), aunque la línea quede larga.", regla: "codigo/reglas-duras" },
+    { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /"\/(?:App|BusinessApp|Play|AppTest)\/(?:[^"{]|\{[^}]*\})*?(?<=[\/a-z-])(?:Secci(?:on|ones)|Errores|Informes?|Documentos?|Algoritmos|Componentes|Ediciones|Copias|BaseDeDatos|Facturas?|Comandas|Mostrador|Fichar|Fichajes|Kiosco|Analisis|Clientes?|Procesos?|Asesorias?|Tareas?|Proyectos?|Empleados?|Vacaciones|Ausencias|Nominas|Ventas|Compras|Contabilidad|Impuestos|Empresas?|Ajustes|Configuracion|Ayuda|Inicio|Usuarios?|Productos?|Pedidos?|Almacen(?:es)?|Proveedores|Presupuestos?|Cobros|Pagos|Auditorias?|Riesgos|Indicadores|Mediciones|Lecturas|Plantillas?|Obligaciones|Calendario|Herramientas|Explorador|Archivos|Cuentas|Movimientos|Gastos|Ingresos|Asientos|Turnos|Horarios|Departamentos|Contratos|Oportunidades|Eventos|Revisiones|Ejecuciones|Imprimir|Firmas|Notas|Cajas?)(?=[A-Z\/"?#-]|$)/, enCadena: true, dice: "Ruta en castellano: las rutas de play van en inglés (`/App/Processes`, no `/App/Procesos`), también la de un menú o un `NavigateTo`.", regla: "codigo" },
+    { nivel: "🟡", donde: [".razor"], re: /class="(?:[^"]*\s)?[a-z]{2,4}-bloque(?=["\s])/, dice: "Bloque con una clase propia que hace de card: va en una `DnzCard` con su `DnzCardTitle`.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".cs", ".vb"], re: /\b(?:class|Class|Module|interface|Interface)\s+\w+Factory\b/, dice: "Factoría: se crea con `new` o por DI.", regla: "codigo/client-y-service" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\b(?:static|Shared)\s+(?:readonly\s+|ReadOnly\s+)?(?:\w+\s+)?Instance\b.*(?:=\s*new\b|As\s+New\b)/, si: () => esServidor === false, dice: "Singleton a mano: regístralo en DI e inyéctalo.", regla: "codigo/client-y-service" },
     { nivel: "🟡", donde: [".cs", ".vb"], re: /\.Iniciar\(\s*\w*[Aa]ll[Ss]ervices/, si: () => esServidor === false, dice: "Servicio guardado en un estático con `Iniciar(allServices)`: inyéctalo.", regla: "codigo/client-y-service" },
@@ -329,6 +355,7 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /SectionsD\.\w+D\.GetRows/, dice: "Listar por la API de secciones recorta a 500 filas sin avisar: una IAQuery sobre la sección, por páginas (`Pagina`).", regla: "codigo/dinaupclient" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /\bOp\s*=\s*"IN"|\bids\w*\.Chunk\(/i, si: () => esSdk === false, dice: "Leer fichas por bloques de ids para cruzarlas después: trae esos datos por ruta de relación en la consulta principal.", regla: "codigo/una-consulta-por-pantalla" },
     { nivel: "🟡", donde: [".vb"], re: /\bQuery(?:SuperUser)?(?:Value|List|HashSet|Dic|Json|WithColumns)?RW\s*\(/, si: i => esServidor && esTest === false && rwSinMotivo(i), dice: "`QueryRW` sin decir por qué va al primario: si la lectura aguanta unos segundos de retraso, `QueryRO` (la réplica). Si no, escribe al lado el motivo: decide una escritura, avanza una marca de agua o lee lo que el usuario acaba de guardar.", regla: "codigo/sql-postgres" },
+    { nivel: "🟡", donde: [".vb"], re: /(?<![\w.])(?:PGReadHelper\.)?Query(?:Value|List|HashSet|Dic|Json|WithColumns)?\s*\((?!\s*(?:m|_)?(?:TR|tr|Tr)\s*,)/, si: i => esServidor && esTest === false && /^PGReadHelper/.test(nombreFichero) === false && /\b(?:Function|Sub)\s+Query/.test(lineas[i]) === false && /\bnodo\s*:=|NodoLecturaE\.|NodoParaLeer/.test(lineas.slice(i, i + 3).join(" ")) === false, dice: "`Query` sin `RO` ni `RW` va al primario sin decirlo. Si la lectura aguanta unos segundos de retraso, su versión `RO`; si no, la `RW` con el motivo al lado.", regla: "codigo/sql-postgres" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /(?:\*|\+=)\s*\w*(?:campos|cols|fields)\.Length/, dice: "Modelo armado a mano desde el array de `ReadCopy`: `QueryListAsync` o `ReadObjectListAsync`.", regla: "codigo/leer-db0" },
     { nivel: "🔴", donde: [".cs"], re: /static\s+\w+\s+Desde\s*\(\s*Dictionary<string,\s*string>/, dice: "Mapeador de fila propio: `FromDic` de `BaseModelConverter`.", regla: "codigo/leer-db0" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /Referencia\w*.*Value\s*=\s*"0"|Value\s*=\s*"0".*Referencia/, enCadena: true, dice: "Referencia vacía: `Guid.Empty.STR()`, no `\"0\"`.", regla: "codigo/reglas-duras" },
@@ -364,6 +391,12 @@ for (const i of ordenadas) {
         if (d.si !== undefined && d.si(i) === false) continue;
         avisos.push({ nivel: d.nivel, linea: i + 1, dice: d.dice, regla: d.regla });
     }
+}
+
+// Un diálogo con campos los pone en una `DnzCard`: nada suelto sobre el fondo. Se avisa una vez, en el primer campo escrito.
+if (esRazor && /Dialog\.razor$/.test(nombreFichero) && /<DnzCard\b/.test(texto) === false) {
+    const campo = ordenadas.find(i => /<RadzenFormField\b/.test(lineas[i]));
+    if (campo !== undefined) avisos.push({ nivel: "🟡", linea: campo + 1, dice: "Campos sobre el fondo del diálogo: cada bloque va en una `DnzCard` con su `DnzCardTitle`.", regla: "codigo/reglas-criticas-ui" });
 }
 
 // Cada función de la API del Servidor dice quién la usa: Public_ (cualquier integración) o Play_ (solo Play).
