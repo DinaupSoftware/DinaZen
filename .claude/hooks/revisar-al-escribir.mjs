@@ -22,7 +22,7 @@ const entrada = datos.tool_input || {};
 const fichero = entrada.file_path || ((entrada.edits || [])[0] || {}).file_path || "";
 const extension = path.extname(fichero).toLowerCase();
 const rutaNormal = fichero.split("\\").join("/");
-if ([".cs", ".vb", ".razor", ".css", ".csproj", ".vbproj"].includes(extension) === false) process.exit(0);
+if ([".cs", ".vb", ".razor", ".css", ".csproj", ".vbproj", ".yml", ".yaml"].includes(extension) === false) process.exit(0);
 if (/\/(bin|obj|node_modules|\.claude)\//.test(rutaNormal) || /\/wwwroot\/lib\//.test(rutaNormal)) process.exit(0);
 if (fs.existsSync(fichero) === false) process.exit(0);
 
@@ -134,6 +134,13 @@ const esServidor = /dinaupservidor/i.test(path.basename(raizRepo));
 const esDinaZen = /dinazen/i.test(path.basename(raizRepo));
 const esPlay = fs.existsSync(path.join(raizRepo, "src", "play.dinaup.com", "wwwroot", "css", "var.css"));
 const esSdk = /^dinaup$/i.test(path.basename(raizRepo)) && /(^|\/)src\//.test(rutaNormal);
+// Los workflows de Dinaup-0 corren en sus runners propios; de qué org es el repo lo dice su remoto `origin`.
+let esWorkflowDeDinaup0 = false;
+if (/(^|\/)\.github\/workflows\/[^/]+\.ya?ml$/.test(rutaNormal)) {
+    try {
+        esWorkflowDeDinaup0 = /[\/:]dinaup-0\//i.test(git(["remote", "get-url", "origin"], raizRepo));
+    } catch { }
+}
 // Las líneas de cada bloque `@code { … }` de un .razor, contando llaves: puede haber varios, y de una sola línea.
 const enBloqueCode = new Array(lineas.length).fill(false);
 for (let i = 0; esRazor && i < lineas.length; i++) {
@@ -320,6 +327,7 @@ const detectores = [
     { nivel: "🟡", donde: [".cs", ".razor"], re: /^\s*var\s+[A-Za-z]\s*=/, si: i => letraConAmbitoLargo(i, /^\s*var\s+([A-Za-z])\b/), dice: "Variable de una letra en un bloque de más de tres líneas: un nombre que diga qué es (`proyecto`, no `P`), aunque la línea quede larga.", regla: "codigo/reglas-duras" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /"\/(?:App|BusinessApp|Play|AppTest)\/(?:[^"{]|\{[^}]*\})*?(?<=[\/a-z-])(?:Secci(?:on|ones)|Errores|Informes?|Documentos?|Algoritmos|Componentes|Ediciones|Copias|BaseDeDatos|Facturas?|Comandas|Mostrador|Fichar|Fichajes|Kiosco|Analisis|Clientes?|Procesos?|Asesorias?|Tareas?|Proyectos?|Empleados?|Vacaciones|Ausencias|Nominas|Ventas|Compras|Contabilidad|Impuestos|Empresas?|Ajustes|Configuracion|Ayuda|Inicio|Usuarios?|Productos?|Pedidos?|Almacen(?:es)?|Proveedores|Presupuestos?|Cobros|Pagos|Auditorias?|Riesgos|Indicadores|Mediciones|Lecturas|Plantillas?|Obligaciones|Calendario|Herramientas|Explorador|Archivos|Cuentas|Movimientos|Gastos|Ingresos|Asientos|Turnos|Horarios|Departamentos|Contratos|Oportunidades|Eventos|Revisiones|Ejecuciones|Imprimir|Firmas|Notas|Cajas?)(?=[A-Z\/"?#-]|$)/, enCadena: true, dice: "Ruta en castellano: las rutas de play van en inglés (`/App/Processes`, no `/App/Procesos`), también la de un menú o un `NavigateTo`.", regla: "codigo" },
     { nivel: "🟡", donde: [".razor"], re: /class="(?:[^"]*\s)?[a-z]{2,4}-bloque(?=["\s])/, dice: "Bloque con una clase propia que hace de card: va en una `DnzCard` con su `DnzCardTitle`.", regla: "codigo/reglas-criticas-ui" },
+    { nivel: "🟡", donde: [".razor"], re: /<RadzenPanelMenu\b/, si: () => esDinaZen === false && /MenuU\.razor$/.test(nombreFichero) === false && texto.includes("<SidebarContent") === false, dice: "Un menú vertical dentro de una pantalla de una app, que ya tiene el suyo a la izquierda: se leen como dos menús. Lo que se elige va en una rejilla y se abre al pulsarlo.", regla: "codigo/reglas-criticas-ui" },
     { nivel: "🔴", donde: [".cs", ".vb"], re: /\b(?:class|Class|Module|interface|Interface)\s+\w+Factory\b/, dice: "Factoría: se crea con `new` o por DI.", regla: "codigo/client-y-service" },
     { nivel: "🔴", donde: [".cs", ".vb", ".razor"], re: /\b(?:static|Shared)\s+(?:readonly\s+|ReadOnly\s+)?(?:\w+\s+)?Instance\b.*(?:=\s*new\b|As\s+New\b)/, si: () => esServidor === false, dice: "Singleton a mano: regístralo en DI e inyéctalo.", regla: "codigo/client-y-service" },
     { nivel: "🟡", donde: [".cs", ".vb"], re: /\.Iniciar\(\s*\w*[Aa]ll[Ss]ervices/, si: () => esServidor === false, dice: "Servicio guardado en un estático con `Iniciar(allServices)`: inyéctalo.", regla: "codigo/client-y-service" },
@@ -370,7 +378,8 @@ const detectores = [
     { nivel: "🟡", donde: [".razor"], re: /\bCalcular\w*\([^;]*\bawait\b[^;]*\.Recibir\w*\(/, dice: "La pantalla encadena el cargador y el cálculo: una sola llamada al servicio con el dato de negocio (`Recibir_LogoEmpresa(concepto)`), que carga y calcula por dentro.", regla: "codigo/donde-va-cada-funcion" },
     { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /\b(?:Function|Sub)\s+Migra\w*\s*\(|\b(?:Task(?:<[^>]*>)?|void)\s+Migra\w*\s*\(/, si: () => esTest === false, dice: "¿Una migración? No se migran datos: cuando un dato pasa a otro sitio, lo nuevo empieza vacío.", regla: "codigo/codigo-lineal" },
     { nivel: "🟡", donde: [".vb", ".cs"], re: /\bReportarEstado\(|\bEstadoDeInicioDelSistema\s*=/, si: i => /"crash::/.test(lineas[i]) === false && (lineas[i].match(/"(?:[^"]|"")*"/g) || []).join(" ").split(/\s+/).filter(p => /[\p{L}\d]/u.test(p)).length > 12, dice: "Estado de más de 12 palabras: di qué está pasando en pocas palabras, sin cómo funciona por dentro ni por qué tarda («Reindexando tabla recambios»).", regla: "codigo/tono-de-voz" },
-    { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /(?:solo|sólo) para (?:los )?tests?|para poder probarl[oa]|inyectable para tests?/i, si: () => esTest === false, comentario: true, enCadena: true, dice: "Código de producción deformado para un test.", regla: "tests/contra-una-licencia" }
+    { nivel: "🟡", donde: [".cs", ".vb", ".razor"], re: /(?:solo|sólo) para (?:los )?tests?|para poder probarl[oa]|inyectable para tests?/i, si: () => esTest === false, comentario: true, enCadena: true, dice: "Código de producción deformado para un test.", regla: "tests/contra-una-licencia" },
+    { nivel: "🔴", donde: [".yml", ".yaml"], re: /^\s*(?:-\s*)?(?:runs-on|os)\s*:[^#]*\bubuntu-(?:latest|\d)/, si: () => esWorkflowDeDinaup0, dice: "Workflow de Dinaup-0 en un runner de GitHub (`ubuntu-…`): va en el propio, `runs-on: [self-hosted, Linux]`. Sus minutos se pagan y, sin presupuesto de Actions, el workflow no arranca.", regla: "infra/deploy-ci-cd/self-hosted-runners-scope" }
 ];
 
 // 4. Pasar los detectores por las líneas escritas.
