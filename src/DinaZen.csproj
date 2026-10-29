@@ -47,7 +47,7 @@
 	<ItemGroup Condition="'$(UseLocalProjects)' != 'true'">
 		<PackageReference Include="Dinaup.MyDinaup0" Version="10.15.0.21" />
 		<PackageReference Include="DemoUp.MyDinaup" Version="10.15.0.44" />
-		<PackageReference Include="Dinaup" Version="10.15.0.*" />
+		<PackageReference Include="Dinaup" Version="10.15.0.102" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="Components\DnzStatsDisplay.razor" />
