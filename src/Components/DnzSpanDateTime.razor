@@ -43,7 +43,9 @@
 	private string ContainerStyle => $"font-size: {FontSize};";
 
 	protected override void OnParametersSet() {
-		if (Value.HasValue == false) {
+		// Sin fecha no se pinta nada. Vacía es null o DateTime.MinValue: las filas de MyDinaup sin
+		// nulables la traen así, y sin esto saldría «1 ene 0001».
+		if (Value.IsEmpty()) {
 			ResetState();
 			return;
 		}
